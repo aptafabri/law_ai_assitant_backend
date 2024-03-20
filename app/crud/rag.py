@@ -30,7 +30,7 @@ prompt = PromptTemplate(template=custom_prompt_template, input_variables=["conte
 
 
 
-def run_llm_conversational_retrievalchain(query: str, chat_history: List[Dict[str, Any]] = []):
+def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history)
     """
@@ -47,16 +47,19 @@ def run_llm_conversational_retrievalchain(query: str, chat_history: List[Dict[st
 
     qa = ConversationalRetrievalChain.from_llm(
         llm=chat,
-        retriever=docsearch.as_retriever(),
+        retriever=docsearch.as_retriever( search_kwargs={"k": 4}),
         return_source_documents=True,
         combine_docs_chain_kwargs={"prompt":prompt}
     )
-    return qa.invoke({"question": query, "chat_history": chat_history})
+    
+    return qa.invoke({"question": question, "chat_history": chat_history})
+
+
     
 
 def run_llm_retrieval_qa(query: str):
     """
-    We can't use 
+    We can't use memory in retreivalqa chain...
     making answer witn relevant documents and custom prompt without memory(chat_history)
     """
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
