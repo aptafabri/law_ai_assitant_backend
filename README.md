@@ -14,7 +14,7 @@ You'll need `python@3.8`, `pipenv` and `postgresql@12` installed on your system 
 
 Run the following command to install all the project dependencies.
 ```shell script
-pipenv install
+pip install -r requirements.txt
 ```
 Make sure your local PostgreSQL server is running on `http://localhost:5432`. Then, create a new database called `fastapi_db`.
 ```shell script
@@ -33,7 +33,7 @@ If there are any changes to the `SQLALCHEMY_DATABASE_URI` key in the `.env` file
 
 After all the above mentioned steps, you can start the application using the following command:
 ```shell script
-python -m app.main
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
 ```
 The application will be available at https://localhost:8000.
 
