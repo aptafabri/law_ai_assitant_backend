@@ -21,6 +21,7 @@ If a question does not make any sense, or is not factually coherent, explain why
 Do not say thank you and tell you are an AI Assistant and be open about everything.
 <</SYS>>
 Use the following pieces of context to answer the users question.
+You must answer about all question in turkish.
 Context : {context}
 Question : {question}
 Answer : [/INST]
