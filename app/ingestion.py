@@ -1,14 +1,11 @@
 from dotenv import load_dotenv
-
 load_dotenv()
-
 import os
 from langchain_community.document_loaders.directory import DirectoryLoader
 from langchain_community.document_loaders.pdf import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone as PineconeLangChain
-
 from pinecone import Pinecone
 
 
@@ -30,12 +27,12 @@ def ingest_docs():
     
     documents = loader.load()
     
-    splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     print(f"Going to add {len(chunks)} to Pinecone")
     
-    PineconeLangChain.from_documents(chunks, embeddings, index_name=INDEX_NAME)
+    PineconeLangChain.from_documents(chunks, embeddings, index_name="adaletgpt-large-embedding")
     
     print("****Loading to vectorstore done ***")
 
@@ -43,7 +40,4 @@ def ingest_docs():
 
 if __name__ == "__main__":
     ingest_docs()
-
-
-
 
