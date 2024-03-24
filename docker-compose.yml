@@ -1,0 +1,11 @@
+version: '1.0'
+
+services:
+  adaletgpt_backend_web:
+    build: .
+    container_name: adaletgpt_backend_web
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: "always"
