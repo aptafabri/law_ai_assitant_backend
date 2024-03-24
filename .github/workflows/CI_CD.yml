@@ -15,8 +15,8 @@ jobs:
         with:
           ecr: auto
           logout: true
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+          username: liuchinlung
+          password: dckr_pat_1yjy8rMO4ixD-jJk36bgi-7uT-0
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
