@@ -2,6 +2,7 @@
 services:
   adaletgpt_backend_web:
     build: .
+    image: liuchinlung/adaletgpt_backend:latest
     container_name: adaletgpt_backend_web
     env_file:
       - .env
