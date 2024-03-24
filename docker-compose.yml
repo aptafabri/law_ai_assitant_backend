@@ -1,4 +1,3 @@
-version: '1.0'
 
 services:
   adaletgpt_backend_web:
