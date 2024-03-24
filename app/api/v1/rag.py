@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from app.crud.rag import run_llm_conversational_retrievalchain
+from crud.rag import run_llm_conversational_retrievalchain
 
 
 router = APIRouter()
