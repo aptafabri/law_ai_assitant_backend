@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from crud.rag import run_llm_conversational_retrievalchain
+from crud.rag import run_llm_conversational_retrievalchain, run_llm_conversational_retrievalchain_with_sourcelink
 
 
 router = APIRouter()
@@ -27,7 +27,9 @@ async def chat_with_document(request:Request):
     """
     data= await request.json()
     question = data["question"] 
-    answer = run_llm_conversational_retrievalchain(question=question, chat_history=[])
+    # answer = run_llm_conversational_retrievalchain(question=question, chat_history=[])
+    answer = run_llm_conversational_retrievalchain_with_sourcelink(question=question, chat_history=[])
+
     
     return {"answer":answer}
     
