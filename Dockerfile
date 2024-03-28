@@ -1,8 +1,8 @@
-FROM python:3.11
+FROM tiangolo/uvicorn-gunicorn:python3.11
 
 WORKDIR /app
 COPY ./requirements.txt /app
-RUN pip install -r requirements.txt
+RUN pip install --no-cachedir -r requirements.txt
 COPY ./app .
 
 # Run the initial DB Script to build sqlite.db, then run main app
