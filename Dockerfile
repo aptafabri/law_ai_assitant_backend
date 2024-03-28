@@ -3,7 +3,7 @@ FROM tiangolo/uvicorn-gunicorn:python3.11
 WORKDIR /app
 COPY ./requirements.txt /app
 RUN apt-get update && apt-get install
-RUN apt-get install libpq-dev python3-dev
+RUN apt-get install libpq-dev
 RUN pip install -r requirements.txt
 COPY ./app .
 
