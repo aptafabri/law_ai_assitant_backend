@@ -15,22 +15,19 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain.memory import ChatMessageHistory
 from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
+from core.config import settings
 from pinecone import Pinecone
 import langchain
 langchain.debug = True
 
-OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
-PINECONE_API_KEY=os.getenv("PINECONE_API_KEY")
-INDEX_NAME=os.getenv("INDEX_NAME")
-
-pc = Pinecone( api_key= PINECONE_API_KEY )
+pc = Pinecone( api_key=settings.PINECONE_API_KEY )
 
 session_store = {}
 
 def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
     if session_id not in session_store:
         session_store[session_id] = PostgresChatMessageHistory(
-            connection_string="postgresql://postgres:postgres@localhost/adaletgpt",
+            connection_string=settings.SQLALCHEMY_DATABASE_URI,
             session_id=session_id
         )
     return session_store[session_id]
@@ -116,7 +113,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     
     docsearch = PineconeLangChain.from_existing_index(
         embedding=embeddings,
-        index_name=INDEX_NAME,
+        index_name=settings.INDEX_NAME,
     )
 
     qa = ConversationalRetrievalChain(
