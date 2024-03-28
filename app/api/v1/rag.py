@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from crud.rag import run_llm_conversational_retrievalchain, run_llm_conversational_retrievalchain_with_sourcelink
-
+from schemas.message import ChatRequest
 
 router = APIRouter()
 
@@ -21,17 +21,21 @@ def ingestion_doc():
     "/chat",
     tags=["RagController"]
 )
-async def chat_with_document(request:Request):
+async def chat_with_document(message:ChatRequest):
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
-    data= await request.json()
-    question = data["question"] 
-    # answer = run_llm_conversational_retrievalchain(question=question, chat_history=[])
-    answer = run_llm_conversational_retrievalchain_with_sourcelink(question=question, chat_history=[])
+   
+    response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
 
     
-    return {"answer":answer}
+    return {
+        "session_id": message.session_id,
+        "question":response["question"],
+        "answer":response["answer"],
+        "chat_history":response["chat_history"]
+    }
+    
     
 
 

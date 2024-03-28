@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
 
-class Message(BaseModel):
-    message: str
+class ChatRequest(BaseModel):
+    session_id: str
+    question: str

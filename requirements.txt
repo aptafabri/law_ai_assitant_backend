@@ -7,3 +7,9 @@ langchain_openai
 pinecone-client
 pydantic_settings
 pypdf
+psycopg
+psycopg-binary
+passlib
+python-jose
+bcrypt==3.2.2
+pyjwt
