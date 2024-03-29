@@ -1,9 +1,9 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
 WORKDIR /app
 COPY ./requirements.txt /app
 RUN apt-get update \
-    && apt-get -y install libpq-dev gcc \
+    && apt-get -y install libpq-dev python3-dev gcc \
     && pip install psycopg2
 RUN pip install -r requirements.txt
 COPY ./app .
