@@ -1,10 +1,9 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 WORKDIR /app
 COPY ./requirements.txt /app
-RUN apt-get update \
-    && apt-get -y install libpq-dev python3-dev gcc \
-    && pip install psycopg2
+RUN apt update
+RUN apt install -y libpq-dev python3-dev
 RUN pip install -r requirements.txt
 COPY ./app .
 

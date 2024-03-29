@@ -6,7 +6,7 @@ on:
 jobs:
   build_and_push:
     name: Push docker image to Docker Hub
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
 
   deploy:
     name: Deploy AdaletGPT Backend in aws ec2 using docker pull
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     needs: [ build_and_push ]
     steps:
