@@ -2,8 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 COPY ./requirements.txt /app
-RUN apt update
-RUN apt install -y libpq-dev python3-dev
+RUN apt-get update && \
+    apt install -y libpq-dev python3-dev gcc
 RUN pip install -r requirements.txt
 COPY ./app .
 
