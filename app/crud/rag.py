@@ -27,7 +27,7 @@ session_store = {}
 def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
     if session_id not in session_store:
         session_store[session_id] = PostgresChatMessageHistory(
-            connection_string=settings.SQLALCHEMY_DATABASE_URI,
+            connection_string="postgresql://postgres:adminliu0220@localhost/adaletgpt",
             session_id=session_id
         )
     return session_store[session_id]
