@@ -13,8 +13,7 @@ router = APIRouter()
     tags=["User controller"]
 )
 async def register(user: UserCreate, session: Session = Depends(get_session) ):
-    print(user, session)
-    
+     
     return create_user(user, session)
 
 @router.post(
@@ -22,9 +21,7 @@ async def register(user: UserCreate, session: Session = Depends(get_session) ):
     tags=["User controller"]
 )
 async def login(user:UserLogin, session: Session = Depends(get_session)):
-    
-    print(user, session)
-    
+       
     return login_user(user, session)
 
 @router.get('/getusers')

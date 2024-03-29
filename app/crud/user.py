@@ -19,7 +19,7 @@ def get_session():
 def create_user(user:UserCreate, session: Session):
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
-        return {"sattus_code:":400, "message":"Eamil already registered"}
+        return {"status_code:":400, "message":"Eamil already registered"}
 
     
     encrypted_password =get_hashed_password(user.password)
@@ -35,12 +35,12 @@ def login_user(auth: UserLogin, session:Session):
     user = session.query(User).filter(User.email == auth.email).first()
     if user is None:
         # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email")
-        return {"sattus_code:":400, "message":"Incorrect email."}
+        return {"status_code:":400, "message":"Incorrect email."}
 
     hashed_pass = user.password
    
     if not verify_password(auth.password, hashed_pass):
-         return {"sattus_code:":400, "message":"Incorrect password."}
+         return {"status_code:":400, "message":"Incorrect password."}
     
     access=create_access_token(user.id)
     refresh = create_refresh_token(user.id)
@@ -59,11 +59,11 @@ def change_password(user:ChangePassword, session:Session):
     
     update_user = session.query(User).filter(User.email == user.email).first()
     if create_user is None:
-        return {"sattus_code:":400, "message":"User not found."}
+        return {"status_code:":400, "message":"User not found."}
 
     
     if not verify_password(user.old_password, update_user.password):
-        return {"sattus_code:":400, "message":"Invalid password."}
+        return {"status_code:":400, "message":"Invalid password."}
 
     
     encrypted_password = get_hashed_password(user.new_password)
