@@ -4,8 +4,6 @@ from sqlalchemy.orm import sessionmaker
 
 from core import settings
 
-# engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
 
 
