@@ -8,7 +8,7 @@ pinecone-client
 pydantic_settings
 pypdf
 psycopg
-psycopg2
+psycopg2-binary
 psycopg-binary
 passlib
 python-jose
