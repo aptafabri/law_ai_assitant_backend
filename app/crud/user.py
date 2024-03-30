@@ -27,7 +27,6 @@ def create_user(user:UserCreate, session: Session):
 def login_user(auth: UserLogin, session:Session):
     user = session.query(User).filter(User.email == auth.email).first()
     if user is None:
-        # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email")
         return {"status_code:":400, "message":"Incorrect email."}
 
     hashed_pass = user.password

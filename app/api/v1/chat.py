@@ -4,13 +4,16 @@ from sqlalchemy.orm import Session
 from database.session import get_session
 from crud.chat import get_sessions_by_userid, get_messages_by_session_id
 from schemas.message import SessionSummary, Message
+from core.auth_bearer import JWTBearer
+from core.config import settings
+import jwt
 router = APIRouter()
 
 @router.post("/get-sessions-by-userid", tags= ["Chat Controller"], response_model= List[SessionSummary])
-async def get_sessions(request:Request, session:Session = Depends(get_session)):
-    body = await request.json()
-    print(body)
-    sessions = get_sessions_by_userid(body["user_id"], session)
+async def get_sessions(dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
+    payload = jwt.decode(dependencies, settings.JWT_SECRET_KEY, settings.ALGORITHM)
+    user_id = payload['sub']
+    sessions = get_sessions_by_userid(user_id, session)
     
     return sessions
 
@@ -18,7 +21,7 @@ async def get_sessions(request:Request, session:Session = Depends(get_session)):
 async def get_chat_history(request:Request, session: Session = Depends(get_session)):
     body = await request.json()
     session_id = body["session_id"]
-    print(session_id)
+
     chat_history = get_messages_by_session_id(session_id=session_id, session=session)
     
     return chat_history
