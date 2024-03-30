@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from crud.rag import run_llm_conversational_retrievalchain, run_llm_conversational_retrievalchain_with_sourcelink
-from schemas.message import ChatRequest
-
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink
+from crud.chat import add_message
+from database.session import get_session
+from schemas.message import ChatRequest, ChatAdd
+from datetime import datetime
 router = APIRouter()
 
 @router.post(
@@ -14,26 +17,29 @@ def ingestion_doc():
     """
     return {"success":"true"}
 
-
-
-
 @router.post(
     "/chat",
     tags=["RagController"]
 )
-async def chat_with_document(message:ChatRequest):
+async def chat_with_document(message:ChatRequest, session: Session = Depends(get_session)):
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
    
     response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
-
+    created_date = datetime.now()
+    user_message = ChatAdd( user_id = message.user_id, session_id= message.session_id, content= message.question, role = "Human", created_date=created_date)
+    ai_message = ChatAdd( user_id = message.user_id, session_id= message.session_id, content= response["answer"], role = "AI", created_date= created_date)
+       
+    add_message(user_message, session)
+    add_message(ai_message, session)
     
+       
     return {
+        "user_id": message.user_id,
         "session_id": message.session_id,
-        "question":response["question"],
-        "answer":response["answer"],
-        "chat_history":response["chat_history"]
+        "question":message.question,
+        "answer":response["answer"]
     }
     
     

@@ -9,13 +9,6 @@ import jwt
 from core import settings
 
 
-def get_session():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
 def create_user(user:UserCreate, session: Session):
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:

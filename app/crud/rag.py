@@ -37,7 +37,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """
         
-        
     qa_prompt_template = """"
             #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT Assistant.
@@ -61,10 +60,8 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
                        
     """
 
-
-   
-
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
+    
     document_llm_chain = LLMChain(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         prompt=QA_CHAIN_PROMPT,
@@ -129,7 +126,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     
     return qa.invoke({"question": question})
-
 
 
 def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):

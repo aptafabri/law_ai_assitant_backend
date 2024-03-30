@@ -1,10 +1,11 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from crud.user import create_user, get_session, login_user, change_password, logout_user
+from fastapi import APIRouter, Depends
+from crud.user import create_user, login_user, change_password, logout_user
 from schemas.user import UserCreate, UserLogin, ChangePassword
 from core.auth_bearer import JWTBearer
 from models import User
+from database.session import get_session
 router = APIRouter()
 
 
@@ -37,6 +38,13 @@ async def password_change(user:ChangePassword, dependencies=Depends(JWTBearer())
 
 @router.post('/logout')
 async def logout(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    print("token:",dependencies)
     token = dependencies
     return logout_user(token, session)
+
+@router.post('/refresh')
+async def refresh(dependencies=Depends(JWTBearer())):
+    return {
+       "access_token":dependencies
+    }
     

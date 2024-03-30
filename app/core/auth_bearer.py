@@ -4,8 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException,status
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import TokenTable
-from database.session import SessionLocal
-from crud.user import get_session
+from database.session import SessionLocal, get_session
 from contextlib import contextmanager
 from core import settings
 
