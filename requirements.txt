@@ -9,7 +9,6 @@ pydantic_settings
 pypdf
 psycopg
 psycopg-binary
-psycopg2
 passlib
 python-jose
 bcrypt==3.2.2
