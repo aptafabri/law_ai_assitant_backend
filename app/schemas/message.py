@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+class ChatRequestWithOutUserID(BaseModel):
+  
+    session_id: str
+    question: str
 
 class ChatRequest(BaseModel):
     user_id: int
