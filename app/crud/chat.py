@@ -7,14 +7,6 @@ from typing import List
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
-    # Get subquery to get distinct session ids
-    # subquery = session.query(ChatHistory.session_id, func.max(ChatHistory.created_date).label('latest_date'))\
-    #               .filter(ChatHistory.user_id == user_id)\
-    #               .group_by(ChatHistory.session_id)\
-    #               .subquery()
-
-    # # Outer query to select distinct session_id values ordered by latest_date
-    # session_ids = session.query(subquery.c.session_id).order_by(subquery.c.latest_date.desc())
     session_ids= session.query(ChatHistory.session_id).filter(ChatHistory.user_id == user_id).distinct().all()
     session_summary_array : List[SessionSummary] = []
 
