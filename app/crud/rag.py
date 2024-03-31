@@ -27,7 +27,7 @@ session_store = {}
 def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
     if session_id not in session_store:
         session_store[session_id] = PostgresChatMessageHistory(
-            connection_string=settings.SQLALCHEMY_DATABASE_URI,
+            connection_string="postgresql://amtiwrye:vvf9bCN4ta9dzC1AjcfCBdWYg9nxL40O@arjuna.db.elephantsql.com/amtiwrye",
             session_id=session_id
         )
     return session_store[session_id]
