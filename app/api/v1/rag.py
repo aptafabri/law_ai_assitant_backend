@@ -39,7 +39,7 @@ async def chat_with_document(message:ChatRequestWithOutUserID, session: Session 
     
        
     return {
-        "user_id": message.user_id,
+        "user_id": 1,
         "session_id": message.session_id,
         "question":message.question,
         "answer":response["answer"]
