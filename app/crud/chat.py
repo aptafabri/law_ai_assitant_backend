@@ -19,13 +19,13 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
             WHERE session_id IN (
                 SELECT DISTINCT ON (session_id) session_id
                 FROM public.chat_history
-                WHERE user_id = {user_id}
+                WHERE user_id = :user_id
             )
         ) AS subquery
         WHERE row_num <= 2 ORDER BY created_date DESC;
     """
     try:
-        results =session.execute(text(query)).fetchall()
+        results =session.execute(text(query), {"user_id": user_id}).fetchall()
         session_summary_array : List[SessionSummary] = []
         prev_element = None
         for index, result in enumerate(results):
