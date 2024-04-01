@@ -4,6 +4,7 @@ from schemas.message import ChatAdd, SessionSummary, Message
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import delete
 from typing import List
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
@@ -65,9 +66,18 @@ def add_message(message:ChatAdd, session:Session):
 def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
-        session_messages = session.query(ChatHistory) \
+        
+        session_messages = session.query(ChatHistory.id) \
             .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
-            .delete()
+            .all()
+        
+        message_ids =  [msg_id for (msg_id,) in session_messages]
+        
+        session.query(ChatHistory)\
+            .filter(ChatHistory.id.in_(message_ids))\
+            .delete(synchronize_session=False)
+        session.commit()
+                        
         return {"message":"Delted session successfully."} 
 
     except SQLAlchemyError as e:
