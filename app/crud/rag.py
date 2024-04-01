@@ -32,7 +32,7 @@ def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
         )
     return session_store[session_id]
 
-def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session_id: str = None):
+async def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session_id: str = None):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """
