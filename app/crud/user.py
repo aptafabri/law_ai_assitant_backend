@@ -43,6 +43,7 @@ def login_user(auth: UserLogin, session:Session):
     session.commit()
     session.refresh(token_db)
     return {
+        "status_code": 200,
         "access_token": access,
         "refresh_token": refresh,
     }
@@ -89,4 +90,9 @@ def logout_user(token:str, session:Session):
         session.commit()
         session.refresh(existing_token)
     return {"message":"Logout Successfully"} 
+
+def get_userid_by_token(token:str):
+    payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
+    user_id = payload['sub']
+    return user_id
     

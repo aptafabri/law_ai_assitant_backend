@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink
 from crud.chat import add_message
 from database.session import get_session
-from schemas.message import ChatRequest, ChatAdd, ChatRequestWithOutUserID
+from schemas.message import ChatRequest, ChatAdd
 from datetime import datetime
 router = APIRouter()
 
@@ -21,7 +21,7 @@ def ingestion_doc():
     "/chat",
     tags=["RagController"]
 )
-async def chat_with_document(message:ChatRequestWithOutUserID, session: Session = Depends(get_session)):
+async def chat_with_document(message:ChatRequest, session: Session = Depends(get_session)):
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """

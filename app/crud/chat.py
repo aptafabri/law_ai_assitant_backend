@@ -15,12 +15,16 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
             filter(ChatHistory.session_id == session_id).\
             order_by(ChatHistory.created_date.asc()).limit(2).all()
         
-        print(session_messages[0].id, session_messages[0].role)
-        print(session_messages[1].id, session_messages[1].role)      
+        for session_message in session_messages:
+            if(session_message.role == 'Human'):
+                session_name = session_message.content
+            else:
+                session_summary = session_message.content
+
         session_summary = SessionSummary(
                 session_id=session_id,
-                name=session_messages[0].content,
-                summary=session_messages[1].content
+                name=session_name,
+                summary=session_summary
         )
         
         session_summary_array.append(session_summary)
@@ -29,7 +33,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
         
 def get_messages_by_session_id(session_id:str, session: Session)->List[Message]:
     
-    session_messages = session.query(ChatHistory.id, ChatHistory.content, ChatHistory.role, ChatHistory.created_date)\
+    session_messages = session.query(ChatHistory.content, ChatHistory.role)\
         .filter(ChatHistory.session_id == session_id)\
         .order_by(ChatHistory.created_date.asc()).all()
     
@@ -47,4 +51,6 @@ def add_message(message:ChatAdd, session:Session):
     session.add(new_message)
     session.commit()
     session.refresh(new_message)
+
+# def delete_session_messages(session_id)
 

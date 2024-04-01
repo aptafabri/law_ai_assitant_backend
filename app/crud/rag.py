@@ -27,7 +27,7 @@ session_store = {}
 def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
     if session_id not in session_store:
         session_store[session_id] = PostgresChatMessageHistory(
-            connection_string="postgresql://amtiwrye:vvf9bCN4ta9dzC1AjcfCBdWYg9nxL40O@arjuna.db.elephantsql.com/amtiwrye",
+            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
             session_id=session_id
         )
     return session_store[session_id]
@@ -39,7 +39,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         
     qa_prompt_template = """"
             #### Instruction #####
-            You are a trained bot to guide people about Turkish Law and your name is AdaletGPT Assistant.
+            You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
             Given the following pieces of context and conversations, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
@@ -56,7 +56,8 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             CONVESATION: {chat_history}\n
             =================
             
-            FINAL ANSWER:        
+            FINAL ANSWER:
+            
                        
     """
 
@@ -128,75 +129,75 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     return qa.invoke({"question": question})
 
 
-def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):
-    """
-    making answer witn relevant documents and custom prompt with memory(chat_history)
-    """
-    custom_prompt_template = """"[INST] <<SYS>>
-    You are a trained bot to guide people about Turkish Law. You will answer user's query with your knowledge and the context provided.\n
-    Use the following pieces of context to answer the question at the end.\n If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
-    If there is no full data for the question at the end, just say that you don't know.\n
-    You must answer in turkish about all questions.\n
-    You must add full sources.
-    If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n
-    Do not say thank you and tell you are an AI Assistant and be open about everything.\n
-    <</SYS>>
-    Use the following pieces of context to answer the users question.\n
-    Context : {context}
-    Question : {question}
-    Answer : [/INST]
-    """
+# def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):
+#     """
+#     making answer witn relevant documents and custom prompt with memory(chat_history)
+#     """
+#     custom_prompt_template = """"[INST] <<SYS>>
+#     You are a trained bot to guide people about Turkish Law. You will answer user's query with your knowledge and the context provided.\n
+#     Use the following pieces of context to answer the question at the end.\n If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+#     If there is no full data for the question at the end, just say that you don't know.\n
+#     You must answer in turkish about all questions.\n
+#     You must add full sources.
+#     If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n
+#     Do not say thank you and tell you are an AI Assistant and be open about everything.\n
+#     <</SYS>>
+#     Use the following pieces of context to answer the users question.\n
+#     Context : {context}
+#     Question : {question}
+#     Answer : [/INST]
+#     """
 
-    prompt = PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
+#     prompt = PromptTemplate(template=custom_prompt_template, input_variables=["context", "question"])
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+#     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     
-    chat = ChatOpenAI(
-        model_name = 'gpt-3.5-turbo-16k',
-        verbose=True,
-        temperature=0,
-    )
+#     chat = ChatOpenAI(
+#         model_name = 'gpt-3.5-turbo-16k',
+#         verbose=True,
+#         temperature=0,
+#     )
     
-    docsearch = PineconeLangChain.from_existing_index(
-        embedding=embeddings,
-        index_name=INDEX_NAME,
-    )
+#     docsearch = PineconeLangChain.from_existing_index(
+#         embedding=embeddings,
+#         index_name=INDEX_NAME,
+#     )
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=chat,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 4}),
-        return_source_documents=True,
-        combine_docs_chain_kwargs={"prompt":prompt}
-    )
+#     qa = ConversationalRetrievalChain.from_llm(
+#         llm=chat,
+#         retriever=docsearch.as_retriever(search_kwargs={"k": 4}),
+#         return_source_documents=True,
+#         combine_docs_chain_kwargs={"prompt":prompt}
+#     )
 
     
-    return qa.invoke({"question": question, "chat_history": chat_history})
+#     return qa.invoke({"question": question, "chat_history": chat_history})
 
 
-def run_llm_retrieval_qa(query: str):
-    """
-    We can't use memory in retreivalqa chain...
-    making answer witn relevant documents and custom prompt without memory(chat_history)
-    """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-    docsearch = PineconeLangChain.from_existing_index(
-        embedding=embeddings,
-        index_name=INDEX_NAME,
-    )
-    chat = ChatOpenAI(
-        verbose=True,
-        temperature=0,
-    )
+# def run_llm_retrieval_qa(query: str):
+#     """
+#     We can't use memory in retreivalqa chain...
+#     making answer witn relevant documents and custom prompt without memory(chat_history)
+#     """
+#     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+#     docsearch = PineconeLangChain.from_existing_index(
+#         embedding=embeddings,
+#         index_name=settings.INDEX_NAME
+#     )
+#     chat = ChatOpenAI(
+#         verbose=True,
+#         temperature=0,
+#     )
     
-    qa= RetrievalQA.from_chain_type(
+#     qa= RetrievalQA.from_chain_type(
         
-        llm=chat,
-        chain_type="stuff",
-        retriever=docsearch.as_retriever(search_kwargs={'k': 2}),
-        return_source_documents=True,
-        chain_type_kwargs={'prompt':prompt}
-    )
+#         llm=chat,
+#         chain_type="stuff",
+#         retriever=docsearch.as_retriever(search_kwargs={'k': 2}),
+#         return_source_documents=True,
+#         chain_type_kwargs={'prompt':prompt}
+#     )
     
-    answer= qa.invoke({"query":query})
+#     answer= qa.invoke({"query":query})
     
-    return answer['result']
+#     return answer['result']

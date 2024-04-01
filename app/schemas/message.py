@@ -1,15 +1,10 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-class ChatRequestWithOutUserID(BaseModel):
-  
+class ChatRequest(BaseModel):
     session_id: str
     question: str
 
-class ChatRequest(BaseModel):
-    user_id: int
-    session_id: str
-    question: str
     
 class ChatAdd(BaseModel):
     user_id: int
@@ -24,7 +19,6 @@ class SessionSummary(BaseModel):
     summary: str
 
 class Message(BaseModel):
-    id: int
     content: str
     role: str
-    created_date: datetime
+   
