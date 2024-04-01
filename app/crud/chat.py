@@ -17,7 +17,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
             order_by(ChatHistory.created_date.asc()).limit(2).all()
         
         for session_message in session_messages:
-            if(session_message.role == 'Human'):
+            if(session_message.role == 'user'):
                 session_name = session_message.content
             else:
                 session_summary = session_message.content
