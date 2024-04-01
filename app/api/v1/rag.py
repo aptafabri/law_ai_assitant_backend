@@ -30,7 +30,7 @@ async def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer
     """
     
     response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
-    user_id = get_userid_by_token()
+    user_id = get_userid_by_token(dependencies)
     created_date = datetime.now()
     user_message = ChatAdd( user_id = user_id, session_id= message.session_id, content= message.question, role = "Human", created_date=created_date)
     ai_message = ChatAdd( user_id = user_id, session_id= message.session_id, content= response["answer"], role = "AI", created_date= created_date)
