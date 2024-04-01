@@ -15,7 +15,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     for session_id, in session_ids[::-1]:
         session_messages = session.query(ChatHistory).\
             filter(ChatHistory.session_id == session_id).\
-            order_by(ChatHistory.created_date.asc()).limit(2).all()
+            order_by(ChatHistory.created_date.asc()).order_by(ChatHistory.id.asc()).limit(2).all()
         
         for session_message in session_messages:
             if(session_message.role == 'user'):
