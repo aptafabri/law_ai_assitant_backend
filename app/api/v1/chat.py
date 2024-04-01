@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Depends, Request
-from typing import Any, List
+from fastapi.responses import JSONResponse
+from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat import get_sessions_by_userid, get_messages_by_session_id
+from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_messages_by_session_id
 from crud.user import get_userid_by_token
 from schemas.message import SessionSummary, Message
 from core.auth_bearer import JWTBearer
+from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from core.config import settings
-import jwt
+
 router = APIRouter()
 
 @router.post("/get-sessions-by-userid", tags= ["Chat Controller"], response_model= List[SessionSummary], status_code=200)
@@ -24,4 +26,18 @@ async def get_chat_history(request:Request, dependencies=Depends(JWTBearer()), s
     user_id = await get_userid_by_token(dependencies)
     chat_history = get_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
     return chat_history
+
+@router.post("/remove-session", tags=['Chat Controller'], status_code=200)
+async def delete_session(request:Request, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    body = await request.json()
+    session_id = body["session_id"]
+    user_id = await get_userid_by_token(dependencies)
+    print("remove session:", user_id, session_id)
+    remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
+    messages = PostgresChatMessageHistory(
+        connection_string= settings.POSGRES_CHAT_HISTORY_URI,
+        session_id = session_id
+    )
+    messages.clear()
+    return JSONResponse(content= remove_info, status_code=200)
    
