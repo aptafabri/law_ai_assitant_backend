@@ -24,22 +24,27 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
         ) AS subquery
         WHERE row_num <= 2 ORDER BY created_date DESC;
     """
-    results =session.execute(text(query)).fetchall()
-    session_summary_array : List[SessionSummary] = []
-    prev_element = None
-    for index, result in enumerate(results):
-        if prev_element is not None:
-            if(index%2==1): 
-                session_summary = SessionSummary(
-                    session_id=result[2],
-                    name=prev_element[3],
-                    summary=result[3]
-                )
-                
-                session_summary_array.append(session_summary)
-        prev_element = result
-    
-    return session_summary_array
+    try:
+        results =session.execute(text(query)).fetchall()
+        session_summary_array : List[SessionSummary] = []
+        prev_element = None
+        for index, result in enumerate(results):
+            if prev_element is not None:
+                if(index%2==1): 
+                    session_summary = SessionSummary(
+                        session_id=result[2],
+                        name=prev_element[3],
+                        summary=result[3]
+                    )
+                    
+                    session_summary_array.append(session_summary)
+            prev_element = result
+        
+        return session_summary_array
+        
+    except Exception as e:
+        print("An error occurred while querying the database:", str(e))
+        return []
          
     
         
