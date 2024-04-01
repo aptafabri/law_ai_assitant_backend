@@ -28,13 +28,14 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
         )
         
         session_summary_array.append(session_summary)
-        
+    
+    print(session_summary_array)
     return session_summary_array
         
-def get_messages_by_session_id(session_id:str, session: Session)->List[Message]:
+def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     session_messages = session.query(ChatHistory.content, ChatHistory.role)\
-        .filter(ChatHistory.session_id == session_id)\
+        .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id)\
         .order_by(ChatHistory.created_date.asc()).all()
     
     return session_messages

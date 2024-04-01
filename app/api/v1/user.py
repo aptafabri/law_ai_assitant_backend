@@ -7,7 +7,7 @@ from core.auth_bearer import JWTBearer
 from models import User
 from database.session import get_session
 router = APIRouter()
-
+from fastapi.responses import JSONResponse
 
 @router.post(
     "/register",
@@ -15,15 +15,18 @@ router = APIRouter()
 )
 async def register(user: UserCreate, session: Session = Depends(get_session) ):
      
-    return create_user(user, session)
+    create_info = await create_user(user, session)
+    return  JSONResponse(content= create_info ,status_code= 200)
 
 @router.post(
     "/login",
-    tags=["User controller"]
+    tags=["User controller"],
+    status_code= 200
 )
 async def login(user:UserLogin, session: Session = Depends(get_session)):
-       
-    return login_user(user, session)
+    token_info= await login_user(user, session)
+    return  JSONResponse(content= token_info,status_code= 200)
+    
 
 @router.get('/getusers')
 async def getusers( dependencies=Depends(JWTBearer()),session: Session = Depends(get_session)):
@@ -33,18 +36,23 @@ async def getusers( dependencies=Depends(JWTBearer()),session: Session = Depends
 
 @router.post('/change-password')
 async def password_change(user:ChangePassword, dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
-    return change_password(user, session)
+    change_info = await change_password(user, session)
+    return  JSONResponse(content= change_info ,status_code= 200)
 
 
 @router.post('/logout')
 async def logout(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     print("token:",dependencies)
     token = dependencies
-    return logout_user(token, session)
+    logout_info = await logout_user(token, session)
+    return JSONResponse(content= logout_info, status_code=200)
 
 @router.post('/refresh')
 async def refresh(dependencies=Depends(JWTBearer())):
-    return {
-       "access_token":dependencies
-    }
+    return JSONResponse(
+        content= {
+            "access_token":dependencies
+        },
+        status_code= 200
+    )
     
