@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import delete
 from typing import List
 
-def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
+async def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
     query = f"""
         SELECT *
@@ -46,7 +46,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
         print("An error occurred while querying the database:", str(e))
         return []
                  
-def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
+async def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
         session_messages = session.query(ChatHistory.content, ChatHistory.role) \
@@ -57,7 +57,7 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
         print("An error occurred while querying the database:", str(e))
         return []
 
-def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
+async def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
     latest_session_record_subquery = session.query(
         ChatHistory.session_id,
         ChatHistory.created_date
@@ -96,7 +96,7 @@ def add_message(message:ChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
+async def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
         
