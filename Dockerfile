@@ -7,6 +7,6 @@ RUN pip install -r requirements.txt
 COPY ./app .
 
 # Run the initial DB Script to build sqlite.db, then run main app
-CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker main:app"]
+CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker main:app"]
 
 
