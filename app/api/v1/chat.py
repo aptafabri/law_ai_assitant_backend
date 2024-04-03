@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_messages_by_session_id
+from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_messages_by_session_id, get_latest_messages_by_userid
 from crud.user import get_userid_by_token
 from schemas.message import SessionSummary, Message
 from core.auth_bearer import JWTBearer
@@ -40,4 +40,10 @@ async def delete_session(request:Request, dependencies=Depends(JWTBearer()), ses
     )
     messages.clear()
     return JSONResponse(content= remove_info, status_code=200)
-   
+
+@router.post("/get-latest-session", tags=['Chat Controller'], response_model=List[Message], status_code=200)
+async def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    user_id = await get_userid_by_token(dependencies)
+    latest_session_messages = get_latest_messages_by_userid(user_id, session)
+    
+    return latest_session_messages

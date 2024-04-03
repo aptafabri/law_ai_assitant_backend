@@ -11,6 +11,7 @@ from core import settings
 
 
 async def create_user(user:UserCreate, session: Session):
+    
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Eamil already registered")

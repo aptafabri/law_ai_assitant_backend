@@ -45,9 +45,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     except Exception as e:
         print("An error occurred while querying the database:", str(e))
         return []
-         
-    
-        
+                 
 def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
@@ -59,6 +57,27 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
         print("An error occurred while querying the database:", str(e))
         return []
 
+def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
+    latest_session_record_subquery = session.query(
+        ChatHistory.session_id,
+        ChatHistory.created_date
+    ).distinct().filter(
+        ChatHistory.user_id == user_id
+    ).order_by(
+        ChatHistory.created_date.desc()
+    ).subquery()
+
+    latest_session_record = session.query(
+        latest_session_record_subquery.c.session_id,
+        latest_session_record_subquery.c.created_date
+    ).first()
+    session_id = latest_session_record[0]
+    print(session_id)
+    session_messages = get_messages_by_session_id(user_id=user_id,session_id=session_id, session= session)
+    
+    return session_messages
+    
+    
 
 def add_message(message:ChatAdd, session:Session):
     
