@@ -95,7 +95,7 @@ async def logout_user(token:str, session:Session):
         session.refresh(existing_token)
     return {"message":"Logout Successfully"} 
 
-async def get_userid_by_token(token:str)-> int:
+def get_userid_by_token(token:str)-> int:
     payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
     user_id = payload['sub']
     return user_id

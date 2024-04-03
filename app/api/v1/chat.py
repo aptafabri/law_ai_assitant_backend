@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Body
 from fastapi.responses import JSONResponse
 from typing import  List
 from sqlalchemy.orm import Session
@@ -13,17 +13,17 @@ from core.config import settings
 router = APIRouter()
 
 @router.post("/get-sessions-by-userid", tags= ["Chat Controller"], response_model= List[SessionSummary], status_code=200)
-async def get_sessions(dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
-    user_id = await get_userid_by_token(dependencies)
+def get_sessions(dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
+    user_id = get_userid_by_token(dependencies)
     
     sessions = get_sessions_by_userid(user_id, session)
     return sessions
 
 @router.post("/get-chathistory-by-sessionid", tags=['Chat Controller'], response_model=List[Message], status_code=200)
-async def get_chat_history(request:Request, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
-    body = await request.json()
+def get_chat_history(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     session_id = body["session_id"]
-    user_id = await get_userid_by_token(dependencies)
+    print(session_id)
+    user_id = get_userid_by_token(dependencies)
     chat_history = get_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
     return chat_history
 
@@ -42,8 +42,8 @@ async def delete_session(request:Request, dependencies=Depends(JWTBearer()), ses
     return JSONResponse(content= remove_info, status_code=200)
 
 @router.post("/get-latest-session", tags=['Chat Controller'], response_model=List[Message], status_code=200)
-async def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
-    user_id = await get_userid_by_token(dependencies)
+def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    user_id = get_userid_by_token(dependencies)
     latest_session_messages = get_latest_messages_by_userid(user_id, session)
     
     return latest_session_messages
