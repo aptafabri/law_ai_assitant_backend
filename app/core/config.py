@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "AdaletGPT"
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    SQLALCHEMY_DATABASE_URI: str = "postgresql+psycopg://postgres:adminliu0220@167.88.166.111/adaletgpt"
-    POSGRES_CHAT_HISTORY_URI: str = "postgresql://postgres:adminliu0220@167.88.166.111/adaletgpt"
+    SQLALCHEMY_DATABASE_URI: str = "postgresql+psycopg://postgres:adaletgpt0318@database-1.cz0c0omykjh2.eu-central-1.rds.amazonaws.com/adaletgpt"
+    POSGRES_CHAT_HISTORY_URI: str = "postgresql://postgres:adaletgpt0318@database-1.cz0c0omykjh2.eu-central-1.rds.amazonaws.com/adaletgpt"
     OPENAI_API_KEY: str = "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"
     PINECONE_API_KEY: str = "c214371b-cf98-4c07-8afc-95a3623a518d"
     INDEX_NAME: str = "adaletgpt-large-embedding"
