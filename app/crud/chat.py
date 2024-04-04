@@ -132,3 +132,4 @@ def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
+

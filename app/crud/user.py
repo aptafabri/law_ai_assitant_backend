@@ -1,7 +1,7 @@
 from models import User, TokenTable
 from database.session import Base, engine, SessionLocal
 from sqlalchemy.orm import Session
-from schemas.user import UserCreate, UserLogin, ChangePassword
+from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo
 from fastapi import Depends, Response, HTTPException
 from fastapi.responses import JSONResponse
 from core.utils import get_hashed_password, verify_password, create_access_token, create_refresh_token
@@ -99,4 +99,21 @@ def get_userid_by_token(token:str)-> int:
     payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
     user_id = payload['sub']
     return user_id
+
+def get_user_info(token:str, session: Session):
+    
+    user_id = get_userid_by_token(token)
+    try:
+        user_record = session.query(User.email, User.username).filter(User.id == user_id).first()
+        
+        if user_record:
+            user_info= UserInfo(email= user_record[0], user_name=user_record[1])
+            return user_info
+        else:
+            raise HTTPException(status_code=400, detail="User not found.")
+
+    except Exception as e:
+        print("An error occurred while querying the database:", str(e))
+        return []
+    
     

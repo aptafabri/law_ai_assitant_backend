@@ -16,3 +16,7 @@ class ChangePassword(BaseModel):
     old_password:str
     new_password:str
 
+class UserInfo(BaseModel):
+    email:EmailStr
+    user_name:str
+

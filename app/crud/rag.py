@@ -47,7 +47,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             Don't include the source file names that are irrelevant to the final answer.\n
             If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
             If you don't know the answer to a question, please don't share false information.\n
-            Use as much detail as possible when responding and try to make answer in markdown format as much as possible.\n
             
             QUESTION : {question}\n
             
@@ -57,8 +56,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             =================
             
             FINAL ANSWER:
-            
-                       
+                              
     """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
