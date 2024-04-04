@@ -5,6 +5,7 @@ from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import TokenTable
 from database.session import SessionLocal, get_session
+from crud.user import create_access_token, create_refresh_token
 from contextlib import contextmanager
 from core import settings
 
@@ -37,7 +38,18 @@ class JWTBearer(HTTPBearer):
             data=session.query(TokenTable).filter_by(user_id=user_id,access_token=credentials.credentials,status=True).first()
             
             if data:
-                return credentials.credentials    
+                session.query(TokenTable)\
+                    .filter(TokenTable.access_token == credentials.credentials)\
+                    .delete()
+                session.commit()
+                access_token = create_access_token(user_id)
+                refresh_token = create_refresh_token(user_id)
+                token_db = TokenTable(user_id=user_id,  access_token=access_token,  refresh_token=refresh_token, status=True)
+                session.add(token_db)
+                session.commit()
+                session.refresh(token_db)
+                                              
+                return access_token   
            
             else:
                 raise HTTPException(status_code=403, detail="Token blocked.")

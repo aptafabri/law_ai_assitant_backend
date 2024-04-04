@@ -35,8 +35,8 @@ async def getusers( dependencies=Depends(JWTBearer()),session: Session = Depends
 
 
 @router.post('/change-password')
-async def password_change(user:ChangePassword, dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
-    change_info = await change_password(user, session)
+async def password_change(user:ChangePassword, access_token=Depends(JWTBearer()), session:Session = Depends(get_session)):
+    change_info = await change_password(user, access_token, session)
     return  JSONResponse(content= change_info ,status_code= 200)
 
 
