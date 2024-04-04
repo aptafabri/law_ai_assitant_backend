@@ -50,28 +50,22 @@ async def login_user(auth: UserLogin, session:Session):
     return token_info
    
 
-async def change_password(user:ChangePassword, access_token:str, session:Session):
-    user_id = get_userid_by_token(access_token)
-    update_user = session.query(User).filter(User.email == user.email, User.id ==user_id).first()
-    if update_user is None:
-        raise HTTPException(status_code=400, detail={
-            "message":"User not found.",
-            "access_token": access_token
-        })
+async def change_password(user:ChangePassword, session:Session):
+    
+    update_user = session.query(User).filter(User.email == user.email).first()
+    if create_user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
 
     
     if not verify_password(user.old_password, update_user.password):
-        raise HTTPException(status_code=400, detail={
-            "message":"Incorrect Password.",
-            "access_token": access_token
-        })
+        raise HTTPException(status_code=400, detail="Incorrect Password.")
 
     
     encrypted_password = get_hashed_password(user.new_password)
     update_user.password = encrypted_password
     session.commit()
     
-    return {"message": "Password changed successfully", "access_token":access_token}
+    return {"message": "Password changed successfully"}
 
 async def logout_user(token:str, session:Session):
     payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)

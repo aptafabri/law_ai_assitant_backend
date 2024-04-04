@@ -52,16 +52,7 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
         session_messages = session.query(ChatHistory.content, ChatHistory.role) \
             .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
             .order_by(ChatHistory.created_date.asc()).all()
-        chat_history: List[Message] =[]
-        
-        for message in session_messages:
-            new_message = Message(
-                content=message[0],
-                role=message[1]
-            )
-            chat_history.append(new_message)
-        return chat_history
-    
+        return session_messages
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
@@ -105,7 +96,7 @@ def add_message(message:ChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def remove_messages_by_session_id(user_id:int, session_id:str, access_token:str, session: Session)->List[Message]:
+def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
         
@@ -120,7 +111,7 @@ def remove_messages_by_session_id(user_id:int, session_id:str, access_token:str,
             .delete(synchronize_session=False)
         session.commit()
                         
-        return {"message":"Delted session successfully.", "access_token":access_token } 
+        return {"message":"Delted session successfully."} 
 
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
