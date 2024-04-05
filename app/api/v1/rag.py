@@ -25,7 +25,7 @@ def ingestion_doc():
     tags=["RagController"],
     status_code= 200
 )
-async def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
