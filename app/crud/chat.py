@@ -18,7 +18,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     session_summary_array : List[SessionSummary] = []
     results = session.query(SessionsummaryTable)\
         .filter(SessionsummaryTable.user_id == user_id)\
-        .order_by(SessionsummaryTable.created_date.asc()).all()
+        .order_by(SessionsummaryTable.created_date.desc()).all()
     session_summary_array = results
     return session_summary_array
 
