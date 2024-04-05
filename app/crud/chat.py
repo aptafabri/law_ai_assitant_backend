@@ -7,44 +7,21 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import delete
 from typing import List
+from langchain_openai import ChatOpenAI
+from langchain.chains.llm import LLMChain
+from langchain_core.prompts import PromptTemplate
+from models.session_summary import SessionsummaryTable
+from fastapi import HTTPException
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
-    query = f"""
-        SELECT *
-        FROM (
-            SELECT *,
-                   ROW_NUMBER() OVER (PARTITION BY session_id ORDER BY id) AS row_num
-            FROM public.chat_history
-            WHERE session_id IN (
-                SELECT DISTINCT ON (session_id) session_id
-                FROM public.chat_history
-                WHERE user_id = :user_id
-            )
-        ) AS subquery
-        WHERE row_num <= 2 ORDER BY created_date DESC;
-    """
-    try:
-        results =session.execute(text(query), {"user_id": user_id}).fetchall()
-        session_summary_array : List[SessionSummary] = []
-        prev_element = None
-        for index, result in enumerate(results):
-            if prev_element is not None:
-                if(index%2==1): 
-                    session_summary = SessionSummary(
-                        session_id=result[2],
-                        name=prev_element[3],
-                        summary=result[3]
-                    )
-                    
-                    session_summary_array.append(session_summary)
-            prev_element = result
-        
-        return session_summary_array
-        
-    except Exception as e:
-        print("An error occurred while querying the database:", str(e))
-        return []
+    session_summary_array : List[SessionSummary] = []
+    results = session.query(SessionsummaryTable)\
+        .filter(SessionsummaryTable.user_id == user_id)\
+        .order_by(SessionsummaryTable.created_date.asc()).all()
+    session_summary_array = results
+    return session_summary_array
+
                  
 def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
@@ -133,3 +110,59 @@ def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)
         print("An error occurred while querying the database:", str(e))
         return []
 
+def summarize_session( question:str, answer:str):
+    llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
+    # Define prompt
+    prompt_template = """
+        I want you to make concise summary using following conversation.
+        You must write concise summary as title format with a 5-8 in turkish
+        CONVERSATION:
+        ============
+        Human:{question}
+        AI:{answer}
+        ============
+        CONCISE Summary:
+    """
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    # Define LLM chain
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+
+    response = llm_chain.invoke({
+        "question":question,
+        "answer":answer
+    })
+
+    return response['text']
+
+def add_session_summary(session_id: str, user_id: int,summary:str, session:Session):
+    
+    
+    chat_session_db = SessionsummaryTable(user_id=user_id,session_id =session_id, summary= summary)
+    session.add(chat_session_db)
+    session.commit()
+    session.refresh(chat_session_db)
+    
+    return {
+        "session_id":session_id,
+        "summary": summary
+    }
+
+def remove_session_summary(session_id:str, session:Session):
+    
+    existing_session_summary = session.query(SessionsummaryTable)\
+        .filter(SessionsummaryTable.session_id == session_id)\
+        .delete()
+    session.commit()
+
+def session_exist(session_id:str, session: Session):
+    existing_session = session.query(SessionsummaryTable)\
+        .filter(SessionsummaryTable.session_id == session_id).first()
+    print("existing session:", existing_session)
+    if existing_session:
+        return True
+    else :
+        return False
+
+    
+    

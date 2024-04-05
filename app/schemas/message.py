@@ -14,11 +14,17 @@ class ChatAdd(BaseModel):
     created_date: datetime
 
 class SessionSummary(BaseModel):
+    user_id:int
     session_id: str
-    name: str
     summary: str
+    created_date: datetime
 
 class Message(BaseModel):
     content: str
     role: str
+    
+class SessionSummaryRequest(BaseModel):
+    session_id:str
+    question:str
+    answer:str
    

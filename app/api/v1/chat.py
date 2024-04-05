@@ -3,9 +3,9 @@ from fastapi.responses import JSONResponse
 from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_messages_by_session_id, get_latest_messages_by_userid
+from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, summarize_session, add_session_summary
 from crud.user import get_userid_by_token
-from schemas.message import SessionSummary, Message
+from schemas.message import SessionSummary, Message, SessionSummaryRequest
 from core.auth_bearer import JWTBearer
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from core.config import settings
@@ -30,6 +30,7 @@ def get_chat_history(body:dict = Body(), dependencies=Depends(JWTBearer()), sess
 async def delete_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
+    remove_session_summary(session_id= session_id, session= session)
     remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
     messages = PostgresChatMessageHistory(
         connection_string= settings.POSGRES_CHAT_HISTORY_URI,
@@ -44,3 +45,9 @@ def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Dep
     latest_session_messages = get_latest_messages_by_userid(user_id, session)
     
     return latest_session_messages
+
+# @router.post("/session-summarize", tags=['Chat Controller'], status_code=200)
+# def summarize_session(chat_session:SessionSummaryRequest ,dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+#     summary = summarize_session(question=chat_session.question, answer= chat_session.answer)
+#     added_summary = add_session_summary(session_id= chat_session.session_id, summary= summary)
+#     return JSONResponse(content= added_summary, status_code=200 )

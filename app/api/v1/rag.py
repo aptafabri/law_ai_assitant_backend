@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink
-from crud.chat import add_message
+from crud.chat import add_message, summarize_session, add_session_summary, session_exist
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd
@@ -38,13 +39,32 @@ async def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer
     add_message(user_message, session)
     add_message(ai_message, session)
     
+    print(session_exist(session_id=message.session_id, session= session))
+    if(session_exist(session_id=message.session_id, session= session)==True):
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": message.session_id,
+                "question":message.question,
+                "answer":response["answer"]
+            },
+            status_code= 200
+        )
+    else:
+        summary = summarize_session(question=message.question, answer= response["answer"])
+        add_session_summary(user_id=user_id, session_id= message.session_id, summary= summary, session=session)
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": message.session_id,
+                "question":message.question,
+                "answer":response["answer"],
+                "title":summary
+            },
+            status_code= 200
+        )
+
        
-    return {
-        "user_id": user_id,
-        "session_id": message.session_id,
-        "question":message.question,
-        "answer":response["answer"]
-    }
     
     
 
