@@ -40,7 +40,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           source: ".env.prod"
-          target: ".env"
+          target: "~/.env"
 
       - name: Copy docker-compose.yml to AWS EC2
         uses: appleboy/scp-action@v0.1.4
@@ -49,7 +49,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           source: "docker-compose.yml"
-          target: "docker-compose.yml"
+          target: .
           
       - name: run docker-compose
         uses: appleboy/ssh-action@v1.0.0
