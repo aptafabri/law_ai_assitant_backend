@@ -41,14 +41,14 @@ jobs:
           key: ${{ secrets.KEY }}
           source: "docker-compose.yml, .env.prod:.env"
           target: .
-      # - name: run docker-compose
-      #   uses: appleboy/ssh-action@v1.0.0
-      #   with:
-      #     host: ${{ secrets.HOST }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.KEY }}
-      #     script: |
-      #       docker compose down
-      #       docker rmi -f $(docker images -q)
-      #       docker compose pull
-      #       docker compose up -d      
+      - name: run docker-compose
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            docker compose down
+            docker rmi -f $(docker images -q)
+            docker compose pull
+            docker compose up -d      
