@@ -15,8 +15,6 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain.memory import ChatMessageHistory
 from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import FlashrankRerank
 from core.config import settings
 from pinecone import Pinecone
 import langchain
@@ -94,14 +92,12 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
   
     question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
 
+
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key= "chat_history",
         return_messages= "on",
-        chat_memory=PostgresChatMessageHistory(
-            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-            session_id=session_id
-        ),
+        chat_memory=get_session_history(session_id),
         max_token_limit=3000,
         output_key = "answer",
         ai_prefix="Question",
@@ -115,12 +111,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         embedding=embeddings,
         index_name=settings.INDEX_NAME,
     )
-
-    # compressor = FlashrankRerank()
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 4})
-    # )
-
 
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
