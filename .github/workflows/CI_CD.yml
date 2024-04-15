@@ -33,14 +33,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: copy file via ssh key
+      - name: Copy .env.prod to AWS EC2 and rename to .env
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: "docker-compose.yml, .env"
-          target: .
+          source: ".env.prod"
+          target: ".env"
+
+      - name: Copy docker-compose.yml to AWS EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          source: "docker-compose.yml"
+          target: "docker-compose.yml"
+          
       - name: run docker-compose
         uses: appleboy/ssh-action@v1.0.0
         with:
