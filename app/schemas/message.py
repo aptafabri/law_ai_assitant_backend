@@ -18,6 +18,8 @@ class SessionSummary(BaseModel):
     session_id: str
     summary: str
     created_date: datetime
+    is_favourite: bool
+    favourite_date: datetime
 
 class Message(BaseModel):
     content: str

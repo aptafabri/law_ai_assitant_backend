@@ -12,13 +12,15 @@ from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from models.session_summary import SessionsummaryTable
 from fastapi import HTTPException
+from datetime import datetime, timezone
+ 
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
     session_summary_array : List[SessionSummary] = []
     results = session.query(SessionsummaryTable)\
         .filter(SessionsummaryTable.user_id == user_id)\
-        .order_by(SessionsummaryTable.created_date.desc()).all()
+        .order_by(SessionsummaryTable.favourite_date.desc()).all()
     session_summary_array = results
     return session_summary_array
 
@@ -163,6 +165,41 @@ def session_exist(session_id:str, session: Session):
         return True
     else :
         return False
+
+def upvote_chat_session(session_id:str, user_id:int, session:Session):
+    try:
+        update_session = session.query(SessionsummaryTable)\
+            .filter(SessionsummaryTable.session_id == session_id, SessionsummaryTable.user_id == user_id).first()
+
+        update_session.is_favourite = True
+        update_session.favourite_date =  datetime.now()
+
+        session.commit()
+
+        return {"success": True}
+    
+    except SQLAlchemyError as e:
+
+        return {"success": False}
+
+def devote_chat_session(session_id:str, user_id:int, session:Session):
+    try:
+        update_session = session.query(SessionsummaryTable)\
+            .filter(SessionsummaryTable.session_id == session_id, SessionsummaryTable.user_id == user_id).first()
+
+        update_session.is_favourite = False
+        update_session.favourite_date =  update_session.created_date
+
+        session.commit()
+
+        return {"success": True}
+    
+    except SQLAlchemyError as e:
+
+        return {"success": False} 
+
+
+
 
     
     

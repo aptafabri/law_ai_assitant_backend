@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean
 from database.session import Base
 import datetime
 
@@ -10,3 +10,5 @@ class SessionsummaryTable(Base):
     session_id = Column(String(100), nullable=False)
     summary = Column(String, nullable=False)
     created_date = Column(DateTime, default=datetime.datetime.now)
+    is_favourite = Column (Boolean, default= False)
+    favourite_date = Column(DateTime, default=datetime.datetime.now)

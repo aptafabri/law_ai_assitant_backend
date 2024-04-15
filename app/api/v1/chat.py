@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, summarize_session, add_session_summary
+from crud.chat import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, upvote_chat_session, devote_chat_session
 from crud.user import get_userid_by_token
 from schemas.message import SessionSummary, Message, SessionSummaryRequest
 from core.auth_bearer import JWTBearer
@@ -46,8 +46,16 @@ def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Dep
     
     return latest_session_messages
 
-# @router.post("/session-summarize", tags=['Chat Controller'], status_code=200)
-# def summarize_session(chat_session:SessionSummaryRequest ,dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
-#     summary = summarize_session(question=chat_session.question, answer= chat_session.answer)
-#     added_summary = add_session_summary(session_id= chat_session.session_id, summary= summary)
-#     return JSONResponse(content= added_summary, status_code=200 )
+@router.post("/upvote-chat-session", tags=['Chat Controller'], status_code=200)
+def upvote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    session_id = body["session_id"]
+    user_id = get_userid_by_token(dependencies)
+    updated_status = upvote_chat_session(session_id= session_id, user_id= user_id, session= session)
+    return JSONResponse(content= updated_status, status_code=200)
+ 
+@router.post("/devote-chat-session", tags=['Chat Controller'], status_code=200)
+def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    session_id = body["session_id"]
+    user_id = get_userid_by_token(dependencies)
+    updated_status = devote_chat_session(session_id= session_id, user_id= user_id, session= session)
+    return JSONResponse(content= updated_status, status_code=200)
