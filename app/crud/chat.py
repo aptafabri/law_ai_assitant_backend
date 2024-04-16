@@ -30,7 +30,7 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
     try:
         results = session.query(ChatHistory.content, ChatHistory.role) \
             .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
-            .order_by(ChatHistory.created_date.asc()).all()
+            .order_by(ChatHistory.created_date.asc()).order_by(ChatHistory.id.asc()).all()
         
         message_array :List[Message] = []
         for result in results:
