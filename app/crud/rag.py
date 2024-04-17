@@ -118,7 +118,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     compressor = FlashrankRerank()
     compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 4})
     )
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
