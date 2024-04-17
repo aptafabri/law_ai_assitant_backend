@@ -15,8 +15,6 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain.memory import ChatMessageHistory
 from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import FlashrankRerank
 from core.config import settings
 from pinecone import Pinecone
 import langchain
@@ -53,7 +51,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             QUESTION : {question}\n
             
             =================
-            {context}\n
+            CONTEXT : {context}\n
             CONVESATION: {chat_history}\n
             =================
             
@@ -128,6 +126,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     
     return qa.invoke({"question": question})
 
+
 # def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):
 #     """
 #     making answer witn relevant documents and custom prompt with memory(chat_history)
@@ -173,30 +172,30 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 #     return qa.invoke({"question": question, "chat_history": chat_history})
 
 
-def run_llm_retrieval_qa(query: str):
-    """
-    We can't use memory in retreivalqa chain...
-    making answer witn relevant documents and custom prompt without memory(chat_history)
-    """
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-    docsearch = PineconeLangChain.from_existing_index(
-        embedding=embeddings,
-        index_name=settings.INDEX_NAME
-    )
-    chat = ChatOpenAI(
-        verbose=True,
-        temperature=0,
-    )
+# def run_llm_retrieval_qa(query: str):
+#     """
+#     We can't use memory in retreivalqa chain...
+#     making answer witn relevant documents and custom prompt without memory(chat_history)
+#     """
+#     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+#     docsearch = PineconeLangChain.from_existing_index(
+#         embedding=embeddings,
+#         index_name=settings.INDEX_NAME
+#     )
+#     chat = ChatOpenAI(
+#         verbose=True,
+#         temperature=0,
+#     )
     
-    qa= RetrievalQA.from_chain_type(
+#     qa= RetrievalQA.from_chain_type(
         
-        llm=chat,
-        chain_type="stuff",
-        retriever=docsearch.as_retriever(search_kwargs={'k': 2}),
-        return_source_documents=True,
-        chain_type_kwargs={'prompt':prompt}
-    )
+#         llm=chat,
+#         chain_type="stuff",
+#         retriever=docsearch.as_retriever(search_kwargs={'k': 2}),
+#         return_source_documents=True,
+#         chain_type_kwargs={'prompt':prompt}
+#     )
     
-    answer= qa.invoke({"query":query})
+#     answer= qa.invoke({"query":query})
     
-    return answer['result']
+#     return answer['result']
