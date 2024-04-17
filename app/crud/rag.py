@@ -42,7 +42,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     qa_prompt_template = """"
             #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following conversations and pieces of context, create the final answer the question at the end.\n
+            Given the following pieces of context, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
             If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
@@ -54,7 +54,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             
             =================
             CONTEXT : {context}\n
-            CONVESATION: {chat_history}\n
             =================
             
             FINAL ANSWER:
