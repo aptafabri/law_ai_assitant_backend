@@ -42,7 +42,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     qa_prompt_template = """"
             #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following pieces of context, create the final answer the question at the end.\n
+            Given the following pieces of context and conversations, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
             If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
@@ -53,13 +53,13 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             QUESTION : {question}\n
             
             =================
-            CONTEXT : {context}\n
+            {context}\n
+            CONVESATION: {chat_history}\n
             =================
             
             FINAL ANSWER:
                               
     """
-    
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
@@ -67,7 +67,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
-        verbose=True
+        verbose=False
     )
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
@@ -99,10 +99,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key= "chat_history",
         return_messages= "on",
-        chat_memory=PostgresChatMessageHistory(
-            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-            session_id=session_id
-        ),
+        chat_memory=get_session_history(session_id),
         max_token_limit=3000,
         output_key = "answer",
         ai_prefix="Question",
@@ -117,25 +114,19 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = FlashrankRerank()
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 4})
-    )
-
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
         question_generator= question_generator_chain,
         callbacks=None,
-        verbose=True,
+        verbose=False,
         retriever= docsearch.as_retriever(search_kwargs={"k": 4}),
-        return_source_documents=True,
+        return_source_documents=False,
         memory= memory
     )
 
 
     
     return qa.invoke({"question": question})
-
 
 # def run_llm_conversational_retrievalchain(question: str, chat_history: List[Dict[str, Any]] = []):
 #     """
