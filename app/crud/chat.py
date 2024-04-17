@@ -44,18 +44,15 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
 
 def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
     try:
-        latest_session_record_subquery = session.query(
-            ChatHistory.session_id,
-            ChatHistory.created_date
-        ).distinct().filter(
-            ChatHistory.user_id == user_id
-        ).order_by(
-            ChatHistory.created_date.desc()
-        ).subquery()
+        
+        latest_session_record_subquery = session.query(SessionsummaryTable.session_id, SessionsummaryTable.favourite_date)\
+        .filter(SessionsummaryTable.user_id == user_id)\
+        .order_by(SessionsummaryTable.favourite_date.desc())\
+        .subquery()
 
         latest_session_record = session.query(
             latest_session_record_subquery.c.session_id,
-            latest_session_record_subquery.c.created_date
+            latest_session_record_subquery.c.favourite_date
         ).first()
         
         if latest_session_record:
