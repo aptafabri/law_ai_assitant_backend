@@ -127,7 +127,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
         verbose=False,
         retriever= docsearch.as_retriever(search_kwargs={"k": 4}),
-        return_source_documents=False,
+        return_source_documents=True,
         memory= memory
     )
 
