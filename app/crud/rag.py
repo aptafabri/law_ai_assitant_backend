@@ -120,12 +120,13 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 4})
     )
+
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
         question_generator= question_generator_chain,
         callbacks=None,
-        verbose=False,
-        retriever= compression_retriever,
+        verbose=True,
+        retriever= docsearch.as_retriever(search_kwargs={"k": 4},
         return_source_documents=True,
         memory= memory
     )
