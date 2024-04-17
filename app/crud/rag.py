@@ -66,7 +66,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
-        verbose=False
+        verbose=True
     )
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
@@ -116,16 +116,16 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         index_name=settings.INDEX_NAME,
     )
 
-    # compressor = FlashrankRerank()
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
-    # )
+    compressor = FlashrankRerank()
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
+    )
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
         question_generator= question_generator_chain,
         callbacks=None,
         verbose=False,
-        retriever= docsearch.as_retriever(search_kwargs={"k": 4}),
+        retriever= compression_retriever,
         return_source_documents=True,
         memory= memory
     )
