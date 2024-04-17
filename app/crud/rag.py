@@ -40,15 +40,15 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     """
         
     qa_prompt_template = """"
-            #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following pieces of context and conversations, create the final answer the question at the end.\n
+            Use the following conversation and pieces of retrieved context   to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
-            You must answer in turkish.
-            If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
-            Don't include the source file names that are irrelevant to the final answer.\n
-            If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
-            If you don't know the answer to a question, please don't share false information.\n
+            Generate your answer by following the rules below:\n
+            1. You must answer in turkish.\n
+            2. If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
+            3. Don't include the source file names that are irrelevant to the final answer.\n
+            4. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
+
             
             QUESTION : {question}\n
             
