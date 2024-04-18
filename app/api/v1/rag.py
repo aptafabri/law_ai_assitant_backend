@@ -29,9 +29,8 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
-    
-    # response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
-    response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
+    response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
+    # response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
 
     print("response", response)
     user_id = get_userid_by_token(dependencies)

@@ -114,12 +114,23 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         index_name=settings.INDEX_NAME,
     )
 
+    compressor = FlashrankRerank(top_n=10)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
+    )
+
+    compressed_docs = compression_retriever.get_relevant_documents(
+       question
+    )
+
+    print(compressed_docs)
+
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
         question_generator= question_generator_chain,
         callbacks=None,
         verbose=False,
-        retriever= docsearch.as_retriever(search_kwargs={"k": 4}),
+        retriever=compression_retriever,
         return_source_documents=False,
         memory= memory
     )
@@ -144,7 +155,6 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
             
             =================
             {context}\n
-            CONVESATION: {chat_history}\n
             =================
             
             FINAL ANSWER:
@@ -187,9 +197,9 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     print(compressed_docs)
 
     qa = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
         retriever=compression_retriever,
-        return_source_documents=False,
+        return_source_documents=True,
         combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
         memory = memory
     )
