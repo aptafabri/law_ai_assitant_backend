@@ -17,8 +17,6 @@ from langchain.memory import ConversationSummaryBufferMemory, ConversationBuffer
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from core.config import settings
 from pinecone import Pinecone
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import FlashrankRerank
 import langchain
 langchain.debug = True
 
@@ -174,20 +172,10 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = FlashrankRerank(top_n=10)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
-    )
-
-    compressed_docs = compression_retriever.get_relevant_documents(
-       question
-    )
-
-    print(compressed_docs)
-
+    
     qa = ConversationalRetrievalChain.from_llm(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
-        retriever=compression_retriever,
+        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
         return_source_documents=True,
         combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
         memory = memory
