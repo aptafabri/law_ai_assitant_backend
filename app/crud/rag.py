@@ -4,17 +4,16 @@ load_dotenv()
 from typing import Any, Dict, List
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.chains.retrieval_qa.base import RetrievalQA
-from langchain.chains.qa_with_sources.retrieval import RetrievalQAWithSourcesChain
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.chains.llm import LLMChain
 from langchain_community.llms import OpenAI
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.vectorstores.pinecone import Pinecone as PineconeLangChain
 from langchain_core.chat_history import BaseChatMessageHistory
-from langchain.memory import ChatMessageHistory
-from langchain.memory import ConversationSummaryBufferMemory, ConversationBufferMemory
+from langchain.memory import ConversationSummaryBufferMemory
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
+from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
+from langchain_cohere import CohereRerank
 from core.config import settings
 from pinecone import Pinecone
 import langchain
@@ -112,12 +111,17 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         index_name=settings.INDEX_NAME,
     )
 
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 20})
+    )
+
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
         question_generator= question_generator_chain,
         callbacks=None,
         verbose=False,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        retriever=compression_retriever,
         return_source_documents=False,
         memory= memory
     )
@@ -132,24 +136,51 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     """
         
     qa_prompt_template = """"
-            #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following pieces of context, create the final answer the question at the end.\n
-            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+            Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
             You must answer in turkish.
-            
-            QUESTION : {question}\n
-            
-            =================
-            {context}\n
-            =================
-            
-            FINAL ANSWER:
-                              
+
+            {context}
+
+            Question : {question}\n
+            Helpful Answer:   
     """
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
+    document_llm_chain = LLMChain(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        prompt=QA_CHAIN_PROMPT,
+        callbacks=None,
+        verbose=False
+    )
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source"],
+        template="Context:\nContent:{page_content}\n Source file name:{source}",
+    )
+
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=document_llm_chain,
+        document_variable_name="context",
+        document_prompt=document_prompt,
+        callbacks=None,
+    )
+    
+    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+
+    Chat History:
+    {chat_history}
+    Follow Up question: {question}
+    Standalone question:
+    """
+
+    condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
+
+    
+    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
+
+    
+
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key= "chat_history",
@@ -165,20 +196,25 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     )
     
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        
     
     docsearch = PineconeLangChain.from_existing_index(
         embedding=embeddings,
         index_name=settings.INDEX_NAME,
     )
 
-    
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 20})
+    )
+
+    qa = ConversationalRetrievalChain(
+        combine_docs_chain= combine_documents_chain,
+        question_generator= question_generator_chain,
+        callbacks=None,
+        verbose=False,
+        retriever=compression_retriever,
         return_source_documents=True,
-        combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
-        memory = memory
+        memory= memory
     )
 
     

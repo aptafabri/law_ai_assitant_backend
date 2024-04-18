@@ -14,5 +14,6 @@ python-jose
 bcrypt==3.2.2
 pyjwt
 pydantic[email]
-flashrank
+cohere
+langchain_cohere
 httpx[socks]

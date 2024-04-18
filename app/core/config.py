@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     ALGORITHM :str = "HS256"
     JWT_SECRET_KEY: str = "narscbjim@$@&^@&%^&RFghgjvbdsha"
     JWT_REFRESH_SECRET_KEY :str = "13ugfdfgh@#$%^@&jkl45678902"
+    COHERE_API_KEY : str = 'gEQh9HeL9vZqYxJwVZBPbEFOlUN5wOovotuiwcKC'
     class Config:
         env_file = ".env"
 
