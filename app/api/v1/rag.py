@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink
+from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink, run_llm_conversational_retrievalchain_without_sourcelink
 from crud.chat import add_message, summarize_session, add_session_summary, session_exist
 from crud.user import get_userid_by_token
 from database.session import get_session
@@ -30,7 +30,9 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
     
-    response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
+    # response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
+    response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
+
     print("response", response)
     user_id = get_userid_by_token(dependencies)
     created_date = datetime.now()
@@ -66,7 +68,11 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
         )
 
        
-    
+@router.post("/chat-test")
+def rag_test(message:ChatRequest):
+    response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
+    return response
+
     
 
 

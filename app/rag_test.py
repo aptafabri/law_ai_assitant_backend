@@ -20,7 +20,7 @@ from langchain.retrievers.document_compressors import FlashrankRerank
 from core.config import settings
 from pinecone import Pinecone
 import langchain
-langchain.debug = False
+langchain.debug = True
 
 pc = Pinecone( api_key=settings.PINECONE_API_KEY )
 
@@ -34,7 +34,7 @@ def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
         )
     return session_store[session_id]
 
-def run_llm_conversational_retrievalchain_with_sourcelink(question: str):
+def run_llm_conversational_retrievalchain(question: str, session_id: str):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """
@@ -42,13 +42,14 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str):
     qa_prompt_template = """"
             #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following pieces of context and conversations, create the final answer the question at the end.\n
+            Given the following pieces of context, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
+            
             QUESTION : {question}\n
             
             =================
-            CONTEXT : {context}\n
+            {context}\n
             CONVESATION: {chat_history}\n
             =================
             
@@ -58,19 +59,19 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str):
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
-    # memory = ConversationSummaryBufferMemory(
-    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-    #     memory_key= "chat_history",
-    #     return_messages= "on",
-    #     chat_memory=PostgresChatMessageHistory(
-    #         connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-    #         session_id=session_id
-    #     ),
-    #     max_token_limit=3000,
-    #     output_key = "answer",
-    #     ai_prefix="Question",
-    #     human_prefix="Answer"
-    # )
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        memory_key= "chat_history",
+        return_messages= "on",
+        chat_memory=PostgresChatMessageHistory(
+            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
+            session_id=session_id
+        ),
+        max_token_limit=3000,
+        output_key = "answer",
+        ai_prefix="Question",
+        human_prefix="Answer"
+    )
     
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
         
@@ -80,22 +81,26 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str):
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = FlashrankRerank()
+    compressor = FlashrankRerank(top_n=10)
     compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 4})
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 10})
     )
+
+    compressed_docs = compression_retriever.get_relevant_documents(
+       question
+    )
+
+    print(compressed_docs)
 
     qa = ConversationalRetrievalChain.from_llm(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
-        return_source_documents=True,
-        combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT}
+        retriever=compression_retriever,
+        return_source_documents=False,
+        combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
+        memory = memory
     )
 
     
-    return qa.invoke({"question": question, "chat_history":[]})
+    return qa.invoke({"question": question})
 
 
-response = run_llm_conversational_retrievalchain_with_sourcelink(question="Kişisel Verilerin Korunması Kanunu'nun 31. maddesinin içeriği nedir?")
-
-print(response["answer"])
