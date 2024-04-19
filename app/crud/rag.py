@@ -78,7 +78,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
     
     question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
-
     Chat History:
     {chat_history}
     Follow Up question: {question}
@@ -87,9 +86,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
-  
     question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview"), prompt=condense_question_prompt)
-
 
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
