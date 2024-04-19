@@ -14,6 +14,7 @@ from langchain.memory import ConversationSummaryBufferMemory
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_cohere import CohereRerank
+from langchain.retrievers.multi_query import MultiQueryRetriever
 from core.config import settings
 from pinecone import Pinecone
 import langchain
@@ -23,14 +24,6 @@ pc = Pinecone( api_key=settings.PINECONE_API_KEY )
 
 session_store = {}
 
-def get_session_history(session_id: str = None ) -> BaseChatMessageHistory:
-    if session_id not in session_store:
-        session_store[session_id] = PostgresChatMessageHistory(
-            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-            session_id=session_id
-        )
-    return session_store[session_id]
-
 def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session_id: str = None):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
@@ -39,7 +32,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     qa_prompt_template = """"
             #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following conversations pieces of context, create the final answer the question at the end.\n
+            Given the following conversation and pieces of context, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
             If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
@@ -60,6 +53,18 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
+    ######  Setting Multiquery retriever as base retriver ######
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template="""You are an AI language model assistant. Your task is 
+        to generate 3 different versions of the given user question in turkish
+        to retrieve relevant documents from a vector  database. 
+        By generating multiple perspectives on the user question, 
+        your goal is to help the user overcome some of the limitations 
+        of distance-based similarity search. Provide these alternative 
+        questions separated by newlines. Original question: {question}""",
+    )
+
     document_llm_chain = LLMChain(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         prompt=QA_CHAIN_PROMPT,
@@ -78,7 +83,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
     )
     
-    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question in its origin language, if the follow up question is already a standalone question, just return the follow up question.
 
     Chat History:
     {chat_history}
@@ -113,9 +118,13 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    base_retriever = MultiQueryRetriever.from_llm(
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
+    )
+
+    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
+        base_compressor=compressor, base_retriever=base_retriever
     )
 
     qa = ConversationalRetrievalChain(
@@ -124,32 +133,96 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
         verbose=False,
         retriever=compression_retriever,
-        return_source_documents=True,
+        return_source_documents=False,
         memory= memory
     )  
 
     return qa.invoke({"question": question})
 
 def run_llm_conversational_retrievalchain_without_sourcelink(question: str, session_id: str = None):
-    """
-    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
-    """
-        
+
     qa_prompt_template = """"
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            Use the following conversation and context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
             You must answer in turkish.
 
             Context: {context} \n
+            Conversation: {chat_history} \n
 
             Question : {question}\n
             Helpful Answer:   
     """
+
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
-    memory = ConversationSummaryBufferMemory(
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+        
+    docsearch = PineconeLangChain.from_existing_index(
+        embedding=embeddings,
+        index_name=settings.INDEX_NAME,
+    )
+
+    ######  Setting Multiquery retriever as base retriver ######
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template="""You are an AI language model assistant. Your task is 
+        to generate 3 different versions of the given user question in turkish
+        to retrieve relevant documents from a vector  database. 
+        By generating multiple perspectives on the user question, 
+        your goal is to help the user overcome some of the limitations 
+        of distance-based similarity search. Provide these alternative 
+        questions separated by newlines. Original question: {question}""",
+    )
+
+    document_llm_chain = LLMChain(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        prompt=QA_CHAIN_PROMPT,
+        callbacks=None,
+        verbose=False
+    )
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source"],
+        template="Context:\ncontent:{page_content}\nsource file name:{source}",
+    )
+
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=document_llm_chain,
+        document_variable_name="context",
+        document_prompt=document_prompt,
+        callbacks=None,
+    )
+
+    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, if the follow up question is already a standalone question, just return the follow up question.
+    
+    Chat History:
+    {chat_history}
+    Follow Up question: {question}
+    Standalone question:
+    """
+
+    condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
+
+  
+    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
+
+
+    base_retriever = MultiQueryRetriever.from_llm(
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
+    )
+
+    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=base_retriever
+    )
+    # reranked_docs = compression_retriever.get_relevant_documents(query= question)
+    # print("Multiquery retriever doc count:", len(reranked_docs))
+    # print("Source Documents:", reranked_docs)
+   
+
+    memory = ConversationSummaryBufferMemory(
+        llm=llm, 
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=PostgresChatMessageHistory(
@@ -162,26 +235,25 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         human_prefix="Answer"
     )
     
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        
-    docsearch = PineconeLangChain.from_existing_index(
-        embedding=embeddings,
-        index_name=settings.INDEX_NAME,
-    )
+    # qa = ConversationalRetrievalChain.from_llm(
+    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature= 0.2),
+    #     retriever=compression_retriever,
+    #     return_source_documents=True,
+    #     condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
+    #     combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
+    #     memory = memory
+    # )
 
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
-    )
-    
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
+    qa = ConversationalRetrievalChain(
+        combine_docs_chain= combine_documents_chain,
+        question_generator= question_generator_chain,
+        callbacks=None,
+        verbose=False,
         retriever=compression_retriever,
-        return_source_documents=True,
-        condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
-        combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
-        memory = memory
-    )
+        return_source_documents=False,
+        memory= memory
+    )  
+
     
     return qa.invoke({"question": question})
 
