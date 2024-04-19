@@ -38,20 +38,19 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         
     qa_prompt_template = """"
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following pieces of context, create the final answer the question at the end.\n
-            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+            Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
             If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
             Don't include the source file names that are irrelevant to the final answer.\n
             If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
             If you don't know the answer to a question, please don't share false information.\n
             
-            QUESTION : {question}\n
-            
             =================
-            CONTEXT : {context}\n
+            {context}\n
             =================
             
+            Question : {question}\n
+
             FINAL ANSWER:
                               
     """
@@ -59,14 +58,15 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
     document_llm_chain = LLMChain(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
     )
+
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\nContent:{page_content}\n Source file name:{source}",
+        template="Context:\nContent:{page_content}\n Source file name:{source}"
     )
 
     combine_documents_chain = StuffDocumentsChain(
@@ -87,14 +87,17 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
   
-    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview"), prompt=condense_question_prompt)
 
 
     memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
         memory_key= "chat_history",
         return_messages= "on",
-        chat_memory=get_session_history(session_id),
+        chat_memory=PostgresChatMessageHistory(
+            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
+            session_id=session_id
+        ),
         max_token_limit=3000,
         output_key = "answer",
         ai_prefix="Question",
@@ -133,10 +136,10 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         
     qa_prompt_template = """"
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            Use the following context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
             You must answer in turkish.
 
-            {context}
+            Context: {context} \n
 
             Question : {question}\n
             Helpful Answer:   
@@ -165,20 +168,21 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
     )
     
     qa = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
         retriever=compression_retriever,
         return_source_documents=True,
-        condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
         combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
         memory = memory
     )
 
+    print(memory.load_memory_variables({}))
     
     return qa.invoke({"question": question})
 
