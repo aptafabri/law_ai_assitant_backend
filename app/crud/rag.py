@@ -38,15 +38,14 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         
     qa_prompt_template = """"
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+            Use the following conversation and pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
             You must answer in turkish.
-            If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
+            If you find the answer, add the list of source file name that are **directly** used to derive the final answer.\n
             Don't include the source file names that are irrelevant to the final answer.\n
-            If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
-            If you don't know the answer to a question, please don't share false information.\n
             
             =================
             {context}\n
+            Conversation: {chat_history}\n
             =================
             
             Question : {question}\n
@@ -66,7 +65,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\nContent:{page_content}\n Source file name:{source}"
+        template="Context:\nContent:{page_content}\n Source File{source}"
     )
 
     combine_documents_chain = StuffDocumentsChain(
@@ -123,7 +122,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
         verbose=False,
         retriever=compression_retriever,
-        return_source_documents=False,
+        return_source_documents=True,
         memory= memory
     )  
 
@@ -136,10 +135,11 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         
     qa_prompt_template = """"
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            Use the following conversation and context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
             You must answer in turkish.
 
             Context: {context} \n
+            Conversation: {chat_history}\n
 
             Question : {question}\n
             Helpful Answer:   
@@ -168,7 +168,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         index_name=settings.INDEX_NAME,
     )
 
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
     )
@@ -182,7 +182,6 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         memory = memory
     )
 
-    print(memory.load_memory_variables({}))
     
     return qa.invoke({"question": question})
 
