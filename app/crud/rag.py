@@ -44,7 +44,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             
             =================
             CONTEXT : {context}\n
-            CONVESATION: {chat_history}\n
+            CONVERSATION: {chat_history}\n
             =================
             
             FINAL ANSWER:
@@ -65,8 +65,11 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         questions separated by newlines. Original question: {question}""",
     )
 
+    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+
+
     document_llm_chain = LLMChain(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=llm,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -97,7 +100,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
 
     memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
+        llm=llm,
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=PostgresChatMessageHistory(
