@@ -37,21 +37,23 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     """
         
     qa_prompt_template = """"
+            #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following conversation and pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+            Given the following conversations pieces of context, create the final answer the question at the end.\n
+            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
             You must answer in turkish.
             If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
             Don't include the source file names that are irrelevant to the final answer.\n
             If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
             If you don't know the answer to a question, please don't share false information.\n
             
+            QUESTION : {question}\n
+            
             =================
-            {context}\n
-            Conversation: {chat_history} \n
+            CONTEXT : {context}\n
+            CONVESATION: {chat_history}\n
             =================
             
-            Question : {question}\n
-
             FINAL ANSWER:
                               
     """
@@ -59,15 +61,14 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
     document_llm_chain = LLMChain(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
     )
-
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\nContent:{page_content}\n Source file name:{source}"
+        template="Context:\ncontent:{page_content}\nsource file name:{source}",
     )
 
     combine_documents_chain = StuffDocumentsChain(
@@ -78,6 +79,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
     
     question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
+
     Chat History:
     {chat_history}
     Follow Up question: {question}
@@ -86,7 +88,8 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
-    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview"), prompt=condense_question_prompt)
+  
+    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
 
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview"),
@@ -121,7 +124,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
         verbose=False,
         retriever=compression_retriever,
-        return_source_documents=False,
+        return_source_documents=True,
         memory= memory
     )  
 
