@@ -40,7 +40,6 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     """
         
     qa_prompt_template = """"
-            #### Instruction #####
             You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
             Given the following conversation and pieces of context, create the final answer the question at the end.\n
             If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
@@ -74,11 +73,11 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         Original question: {question}""",
     )
 
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-
+    llm_4 = ChatOpenAI(model_name="gpt-4-turbo-2024-04-09", temperature=0)
+    llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
 
     document_llm_chain = LLMChain(
-        llm=llm,
+        llm=llm_3,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -106,12 +105,12 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
   
-    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(llm=llm_4, prompt=condense_question_prompt)
 
     chat_memory = init_postgres_chat_memory(session_id=session_id)
 
     memory = ConversationSummaryBufferMemory(
-        llm=llm,
+        llm=llm_3,
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=chat_memory,
@@ -130,7 +129,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm_3, prompt = QUERY_PROMPT
     )
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
@@ -169,7 +168,8 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
             Helpful Answer:   
     """
 
-    llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    llm_4 = ChatOpenAI(model_name="gpt-4-turbo-2024-04-09", temperature=0)
+    llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
@@ -191,7 +191,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     )
 
     document_llm_chain = LLMChain(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        llm=llm_3,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -219,11 +219,11 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
   
-    question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(llm=llm_4, prompt=condense_question_prompt)
 
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm_3, prompt = QUERY_PROMPT
     )
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
@@ -235,7 +235,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     # print("Source Documents:", reranked_docs)
     chat_memory = init_postgres_chat_memory(session_id= session_id)
     memory = ConversationSummaryBufferMemory(
-        llm=llm, 
+        llm=llm_3, 
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=chat_memory,
@@ -244,15 +244,6 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         ai_prefix="Question",
         human_prefix="Answer"
     )
-    
-    # qa = ConversationalRetrievalChain.from_llm(
-    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature= 0.2),
-    #     retriever=compression_retriever,
-    #     return_source_documents=True,
-    #     condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
-    #     combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
-    #     memory = memory
-    # )
 
     qa = ConversationalRetrievalChain(
         combine_docs_chain= combine_documents_chain,
