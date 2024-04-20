@@ -76,7 +76,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
 
     document_llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-    question_generator_llm =  ChatOpenAI(model_name="gpt-4", temperature=0.8)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     
     document_llm_chain = LLMChain(
         llm=document_llm,
@@ -170,7 +170,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     """
 
     document_llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.8)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
@@ -210,7 +210,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         callbacks=None,
     )
 
-    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, if the follow up question is already a standalone question, just return the follow up question.
+    question_prompt_template = """"Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question, in its original language.
     
     Chat History:
     {chat_history}
