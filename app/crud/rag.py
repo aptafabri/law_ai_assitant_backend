@@ -73,11 +73,12 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         Original question: {question}""",
     )
 
-    llm_4 = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
 
     document_llm_chain = LLMChain(
-        llm=llm_4,
+        llm=document_llm,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -94,10 +95,9 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         callbacks=None,
     )
     
-    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question in its origin language, if the follow up question is already a standalone question, just return the follow up question.
-
-    Chat History:{chat_history}
-
+    question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question in its origin language.
+    Chat History:
+    {chat_history}
     Follow Up question: {question}
     Standalone question:
     """
@@ -105,7 +105,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
   
-    question_generator_chain = LLMChain(llm=llm_4, prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(llm=question_generator_llm, prompt=condense_question_prompt)
 
     chat_memory = init_postgres_chat_memory(session_id=session_id)
 
@@ -168,7 +168,8 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     Helpful Answer:   
     """
 
-    llm_4 = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
@@ -192,7 +193,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     )
 
     document_llm_chain = LLMChain(
-        llm=llm_4,
+        llm=document_llm,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -220,7 +221,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     condense_question_prompt = PromptTemplate.from_template(question_prompt_template)
 
   
-    question_generator_chain = LLMChain(llm=llm_4, prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(llm=question_generator_llm, prompt=condense_question_prompt)
 
 
     base_retriever = MultiQueryRetriever.from_llm(
