@@ -125,7 +125,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
     )
 
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
@@ -215,7 +215,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm, prompt = QUERY_PROMPT
     )
 
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
@@ -253,7 +253,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         callbacks=None,
         verbose=False,
         retriever=compression_retriever,
-        return_source_documents=False,
+        return_source_documents=True,
         memory= memory
     )  
 
