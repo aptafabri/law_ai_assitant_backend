@@ -18,6 +18,8 @@ from pinecone import Pinecone
 from langchain_postgres import PostgresChatMessageHistory
 from langsmith import traceable
 from crud.chat import init_postgres_chat_memory
+import langchain
+langchain.debug = True
 
 pc = Pinecone( api_key=settings.PINECONE_API_KEY )
 
@@ -73,8 +75,8 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         Original question: {question}""",
     )
 
-    document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
-    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    document_llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4", temperature=0.8)
     
     document_llm_chain = LLMChain(
         llm=document_llm,
@@ -167,8 +169,8 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     Helpful Answer:   
     """
 
-    document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
-    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    document_llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4", temperature=0.8)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
