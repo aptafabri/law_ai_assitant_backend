@@ -33,7 +33,7 @@ async def delete_session(body:dict = Body(), dependencies=Depends(JWTBearer()), 
     remove_session_summary(session_id= session_id, session= session)
     remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
     messages = PostgresChatMessageHistory(
-        connection_string= settings.POSGRES_CHAT_HISTORY_URI,
+        connection_string= settings.POSTGRES_CHAT_HISTORY_URI,
         session_id = session_id
     )
     messages.clear()
