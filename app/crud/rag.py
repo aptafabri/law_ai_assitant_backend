@@ -77,7 +77,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
 
     document_llm_chain = LLMChain(
-        llm=llm_3,
+        llm=llm_4,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
@@ -187,12 +187,12 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
         By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
         Provide these alternative questions separated by newlines.\n
-        
+
         Original question: {question}""",
     )
 
     document_llm_chain = LLMChain(
-        llm=llm_3,
+        llm=llm_4,
         prompt=QA_CHAIN_PROMPT,
         callbacks=None,
         verbose=False
