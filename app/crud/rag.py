@@ -73,7 +73,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
         Original question: {question}""",
     )
 
-    llm_4 = ChatOpenAI(model_name="gpt-4-turbo-2024-04-09", temperature=0)
+    llm_4 = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
 
     document_llm_chain = LLMChain(
@@ -168,7 +168,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     Helpful Answer:   
     """
 
-    llm_4 = ChatOpenAI(model_name="gpt-4-turbo-2024-04-09", temperature=0)
+    llm_4 = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
