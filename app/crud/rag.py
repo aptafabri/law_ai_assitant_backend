@@ -40,25 +40,25 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     """
         
     qa_prompt_template = """"
-            You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Given the following conversation and pieces of context, create the final answer the question at the end.\n
-            If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
-            You must answer in turkish.
-            If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
-            Don't include the source file names that are irrelevant to the final answer.\n
-            If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
-            If you don't know the answer to a question, please don't share false information.\n
-            
-            Question : {question}\n
-            
-            =================
-            {context}\n
+    You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
+    Given the following conversation and pieces of context, create the final answer the question at the end.\n
+    If you don't know the answer, just say that you don't know, don't try to make up an answer.\n
+    You must answer in turkish.
+    If you find the answer, write the answer in copious and add the list of source file name that are **directly** used to derive the final answer.\n
+    Don't include the source file names that are irrelevant to the final answer.\n
+    If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
+    If you don't know the answer to a question, please don't share false information.\n
+    
+    Question : {question}\n
+    
+    =================
+    {context}\n
 
-            Conversation: {chat_history}\n
-            =================
-            
-            Final Answer:
-                              
+    Conversation: {chat_history}\n
+    =================
+    
+    Final Answer:
+                        
     """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
@@ -157,15 +157,15 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 def run_llm_conversational_retrievalchain_without_sourcelink(question: str, session_id: str = None):
 
     qa_prompt_template = """"
-            You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
-            Use the following conversation and context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
-            You must answer in turkish.
+    You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
+    Use the following conversation and context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    You must answer in turkish.
 
-            Context: {context} \n
-            Conversation: {chat_history} \n
+    Context: {context} \n
+    Conversation: {chat_history} \n
 
-            Question : {question}\n
-            Helpful Answer:   
+    Question : {question}\n
+    Helpful Answer:   
     """
 
     llm_4 = ChatOpenAI(model_name="gpt-4-turbo-2024-04-09", temperature=0)
@@ -187,6 +187,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
         Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
         By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
         Provide these alternative questions separated by newlines.\n
+        
         Original question: {question}""",
     )
 
@@ -198,7 +199,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     )
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\ncontent:{page_content}\nsource file name:{source}",
+        template="Context:\n Content:{page_content}\n Source File Name:{source}",
     )
 
     combine_documents_chain = StuffDocumentsChain(
@@ -230,9 +231,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
-    # reranked_docs = compression_retriever.get_relevant_documents(query= question)
-    # print("Multiquery retriever doc count:", len(reranked_docs))
-    # print("Source Documents:", reranked_docs)
+
     chat_memory = init_postgres_chat_memory(session_id= session_id)
     memory = ConversationSummaryBufferMemory(
         llm=llm_3, 
