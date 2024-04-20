@@ -75,8 +75,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
     question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-    llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
-
+    
     document_llm_chain = LLMChain(
         llm=document_llm,
         prompt=QA_CHAIN_PROMPT,
@@ -110,7 +109,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     chat_memory = init_postgres_chat_memory(session_id=session_id)
 
     memory = ConversationSummaryBufferMemory(
-        llm=llm_3,
+        llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=chat_memory,
@@ -129,7 +128,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm_3, prompt = QUERY_PROMPT
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
     )
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
@@ -170,7 +169,6 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
 
     document_llm = ChatOpenAI(model_name="gpt-4-turbo", temperature=0)
     question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-    llm_3 = ChatOpenAI(model_name="gpt-3.5-turbo-0125", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
@@ -225,7 +223,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
 
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm=llm_3, prompt = QUERY_PROMPT
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
     )
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
@@ -235,7 +233,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
 
     chat_memory = init_postgres_chat_memory(session_id= session_id)
     memory = ConversationSummaryBufferMemory(
-        llm=llm_3, 
+        llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), 
         memory_key= "chat_history",
         return_messages= "on",
         chat_memory=chat_memory,
