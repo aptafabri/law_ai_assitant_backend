@@ -170,7 +170,7 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     """
 
     document_llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
-    question_generator_llm =  ChatOpenAI(model_name="gpt-4", temperature=0.8)
+    question_generator_llm =  ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
     
     QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template defined above
     
