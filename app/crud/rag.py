@@ -9,21 +9,31 @@ from langchain.chains.llm import LLMChain
 from langchain_community.llms import OpenAI
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.vectorstores.pinecone import Pinecone as PineconeLangChain
-from langchain_core.chat_history import BaseChatMessageHistory
 from langchain.memory import ConversationSummaryBufferMemory
-from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_cohere import CohereRerank
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from core.config import settings
 from pinecone import Pinecone
-import langchain
-langchain.debug = True
+from langchain_postgres import PostgresChatMessageHistory
+from langsmith import traceable
+from crud.chat import init_postgres_chat_memory
 
 pc = Pinecone( api_key=settings.PINECONE_API_KEY )
 
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
+
 session_store = {}
 
+
+@traceable(
+    run_type= "llm",
+    name = "RAG with source link",
+    project_name= "adaletgpt"
+)
 def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session_id: str = None):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
@@ -40,14 +50,15 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
             If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct.\n
             If you don't know the answer to a question, please don't share false information.\n
             
-            QUESTION : {question}\n
+            Question : {question}\n
             
             =================
-            CONTEXT : {context}\n
-            CONVERSATION: {chat_history}\n
+            {context}\n
+
+            Conversation: {chat_history}\n
             =================
             
-            FINAL ANSWER:
+            Final Answer:
                               
     """
 
@@ -56,13 +67,11 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     ######  Setting Multiquery retriever as base retriver ######
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
-        template="""You are an AI language model assistant. Your task is 
-        to generate 3 different versions of the given user question in turkish
-        to retrieve relevant documents from a vector  database. 
-        By generating multiple perspectives on the user question, 
-        your goal is to help the user overcome some of the limitations 
-        of distance-based similarity search. Provide these alternative 
-        questions separated by newlines. Original question: {question}""",
+        template="""You are an AI language model assistant.\n
+        Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
+        By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+        Provide these alternative questions separated by newlines.\n
+        Original question: {question}""",
     )
 
     llm = ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0)
@@ -76,7 +85,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     )
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\ncontent:{page_content}\nsource file name:{source}",
+        template="Context:\n Content:{page_content}\n Source File Name:{source}",
     )
 
     combine_documents_chain = StuffDocumentsChain(
@@ -88,8 +97,8 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     
     question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question in its origin language, if the follow up question is already a standalone question, just return the follow up question.
 
-    Chat History:
-    {chat_history}
+    Chat History:{chat_history}
+
     Follow Up question: {question}
     Standalone question:
     """
@@ -99,14 +108,13 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
   
     question_generator_chain = LLMChain(llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt=condense_question_prompt)
 
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
+
     memory = ConversationSummaryBufferMemory(
         llm=llm,
         memory_key= "chat_history",
         return_messages= "on",
-        chat_memory=PostgresChatMessageHistory(
-            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-            session_id=session_id
-        ),
+        chat_memory=chat_memory,
         max_token_limit=3000,
         output_key = "answer",
         ai_prefix="Question",
@@ -142,6 +150,11 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
 
     return qa.invoke({"question": question})
 
+@traceable(
+    run_type= "llm",
+    name = "RAG Test without source link",
+    project_name= "adaletgpt"
+)
 def run_llm_conversational_retrievalchain_without_sourcelink(question: str, session_id: str = None):
 
     qa_prompt_template = """"
@@ -170,13 +183,11 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     ######  Setting Multiquery retriever as base retriver ######
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
-        template="""You are an AI language model assistant. Your task is 
-        to generate 3 different versions of the given user question in turkish
-        to retrieve relevant documents from a vector  database. 
-        By generating multiple perspectives on the user question, 
-        your goal is to help the user overcome some of the limitations 
-        of distance-based similarity search. Provide these alternative 
-        questions separated by newlines. Original question: {question}""",
+        template="""You are an AI language model assistant.\n
+        Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
+        By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+        Provide these alternative questions separated by newlines.\n
+        Original question: {question}""",
     )
 
     document_llm_chain = LLMChain(
@@ -222,16 +233,12 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
     # reranked_docs = compression_retriever.get_relevant_documents(query= question)
     # print("Multiquery retriever doc count:", len(reranked_docs))
     # print("Source Documents:", reranked_docs)
-   
-
+    chat_memory = init_postgres_chat_memory(session_id= session_id)
     memory = ConversationSummaryBufferMemory(
         llm=llm, 
         memory_key= "chat_history",
         return_messages= "on",
-        chat_memory=PostgresChatMessageHistory(
-            connection_string=settings.POSGRES_CHAT_HISTORY_URI,
-            session_id=session_id
-        ),
+        chat_memory=chat_memory,
         max_token_limit=3000,
         output_key = "answer",
         ai_prefix="Question",

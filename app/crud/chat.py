@@ -1,18 +1,17 @@
 from models import ChatHistory
-from database.session import get_session
 from schemas.message import ChatAdd, SessionSummary, Message
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import func
-from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import delete
 from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from models.session_summary import SessionsummaryTable
-from fastapi import HTTPException
-from datetime import datetime, timezone
+from datetime import datetime
+from langchain_postgres import PostgresChatMessageHistory
+import psycopg
+from core.config import settings
+
  
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
@@ -194,6 +193,18 @@ def devote_chat_session(session_id:str, user_id:int, session:Session):
     except SQLAlchemyError as e:
 
         return {"success": False} 
+
+def init_postgres_chat_memory(session_id:str):
+    table_name='message_store'
+    sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
+    PostgresChatMessageHistory.create_tables(sync_connection, table_name)
+    chat_memory=PostgresChatMessageHistory(
+            table_name,
+            session_id,
+            sync_connection = sync_connection
+    )
+
+    return chat_memory
 
 
 

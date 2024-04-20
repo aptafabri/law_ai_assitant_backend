@@ -17,3 +17,5 @@ pydantic[email]
 cohere
 langchain_cohere
 httpx[socks]
+langsmith
+langchain-postgres
