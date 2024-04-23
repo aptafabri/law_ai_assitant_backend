@@ -18,6 +18,7 @@ INDEX_NAME = os.environ.get("INDEX_NAME")
 DATASET= "../dataset/"
 
 
+
 def ingest_docs():
     """
     Embed all files in the dataset directory

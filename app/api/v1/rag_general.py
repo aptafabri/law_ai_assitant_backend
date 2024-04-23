@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from crud.rag import run_llm_conversational_retrievalchain_with_sourcelink, run_llm_conversational_retrievalchain_without_sourcelink
+from app.crud.rag_general import run_llm_conversational_retrievalchain_with_sourcelink, run_llm_conversational_retrievalchain_without_sourcelink
 from crud.chat import add_message, summarize_session, add_session_summary, session_exist
 from crud.user import get_userid_by_token
 from database.session import get_session
@@ -10,15 +10,6 @@ from datetime import datetime
 from core.auth_bearer import JWTBearer
 router = APIRouter()
 
-@router.post(
-    "/ingest",
-    tags=["RagController"]
-)
-def ingestion_doc():
-    """
-    Ingest datasources for RAG such as pdf, txt, doc into Pinecone vectorestore.
-    """
-    return {"success":"true"}
 
 @router.post(
     "/chat",
