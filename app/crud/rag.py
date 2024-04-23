@@ -16,7 +16,7 @@ from core.config import settings
 from pinecone import Pinecone
 from langchain_postgres import PostgresChatMessageHistory
 from langsmith import traceable
-from crud.chat import init_postgres_chat_memory
+from crud.chat_general import init_postgres_chat_memory
 import langchain
 langchain.debug = True
 
@@ -35,7 +35,7 @@ session_store = {}
     name = "RAG with source link",
     project_name= "adaletgpt"
 )
-def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session_id: str = None):
+def rag_general_chat(question: str, session_id: str = None):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """    
@@ -151,7 +151,7 @@ def run_llm_conversational_retrievalchain_with_sourcelink(question: str, session
     name = "RAG Test without source link",
     project_name= "adaletgpt"
 )
-def run_llm_conversational_retrievalchain_without_sourcelink(question: str, session_id: str = None):
+def rag_test_chat(question: str, session_id: str = None):
 
     qa_prompt_template = """"
     You are a trained bot to guide people about Turkish Law and your name is AdaletGPT.
@@ -253,3 +253,69 @@ def run_llm_conversational_retrievalchain_without_sourcelink(question: str, sess
 
     
     return qa.invoke({"question": question})
+
+
+@traceable(
+    run_type= "llm",
+    name = "RAG with Legal Cases",
+    project_name= "adaletgpt"
+)
+def rag_legal_chat(question: str, session_id: str = None):
+
+    qa_prompt_template = """"
+    You are a trained legal research assistant to guide people about Turkish Law and your name is AdaletGPT.
+    Use the following conversation and legal cases to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    You must answer in turkish.
+
+    Legal Cases: {context} \n
+    Conversation: {chat_history} \n
+
+    Question : {question}\n
+    Helpful Answer:
+    """   
+
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(qa_prompt_template) # prompt_template 
+    
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+        
+    docsearch = PineconeLangChain.from_existing_index(
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    # #####  Setting Multiquery retriever as base retriver ######
+    # QUERY_PROMPT = PromptTemplate(
+    #     input_variables=["question"],
+    #     template="""You are an AI language model assistant.\n
+    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
+    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+    #     Provide these alternative questions separated by newlines.\n
+
+    #     Original question: {question}""",
+    # )
+    # base_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
+    # )
+    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
+    )
+    # chat_memory = init_postgres_chat_memory(session_id= session_id)
+    # memory = ConversationSummaryBufferMemory(
+    #     llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), 
+    #     memory_key= "chat_history",
+    #     return_messages= "on",
+    #     chat_memory=chat_memory,
+    #     max_token_limit=3000,
+    #     output_key = "answer",
+    #     ai_prefix="Question",
+    #     human_prefix="Answer"
+    # )
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature= 0.2),
+        retriever=compression_retriever,
+        return_source_documents=True,
+        condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
+        combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
+    )
+    return qa.invoke({"question": question, "chat_history":[]})

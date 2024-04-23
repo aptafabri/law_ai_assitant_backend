@@ -205,6 +205,17 @@ def init_postgres_chat_memory(session_id:str):
     )
 
     return chat_memory
+def init_postgres_legal_chat_memory(session_id:str):
+    table_name='legal_message_store'
+    sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
+    PostgresChatMessageHistory.create_tables(sync_connection, table_name)
+    chat_memory=PostgresChatMessageHistory(
+            table_name,
+            session_id,
+            sync_connection = sync_connection
+    )
+
+    return chat_memory
 
 
 

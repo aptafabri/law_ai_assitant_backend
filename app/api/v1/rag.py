@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from crud.rag_general import run_llm_conversational_retrievalchain_with_sourcelink, run_llm_conversational_retrievalchain_without_sourcelink
-from crud.chat import add_message, summarize_session, add_session_summary, session_exist
+from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat 
+from crud.chat_general import add_message, summarize_session, add_session_summary, session_exist
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd
 from datetime import datetime
 from core.auth_bearer import JWTBearer
 router = APIRouter()
-
 
 @router.post(
     "/chat",
@@ -20,7 +19,7 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
     """
     Chat with doc in Vectore Store using similarity search and OpenAI embedding.
     """
-    response = run_llm_conversational_retrievalchain_with_sourcelink(question=message.question, session_id= message.session_id)
+    response = rag_general_chat(question=message.question, session_id= message.session_id)
     #response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
 
     print("response", response)
@@ -57,12 +56,28 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
             status_code= 200
         )
 
-       
+@router.post('/chat-legal', tags = ['RagController'], status_code = 200 )
+def chat_with_legal(message:ChatRequest, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    response = rag_legal_chat(question=message.question, session_id= message.session_id)
+    user_id = get_userid_by_token(dependencies)
+    print(response)
+    return response
+    # return JSONResponse(
+    #         content={
+    #             "user_id": user_id,
+    #             "session_id": message.session_id,
+    #             "question":message.question,
+    #             "answer":response["answer"],
+    #             "documents": response["source_documents"]
+    #         },
+    #         status_code= 200
+    # )
+
+
 @router.post("/chat-test")
 def rag_test(message:ChatRequest):
-    response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
+    response = rag_test_chat(question=message.question, session_id= message.session_id)
     return response
-
     
 
 

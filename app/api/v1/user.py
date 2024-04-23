@@ -28,30 +28,30 @@ async def login(user:UserLogin, session: Session = Depends(get_session)):
     return  JSONResponse(content= token_info,status_code= 200)
     
 
-@router.get('/getusers')
+@router.get('/getusers',  tags=["User controller"], status_code=200)
 async def getusers( dependencies=Depends(JWTBearer()),session: Session = Depends(get_session)):
     user = session.query(User).all()
     return user
 
 
-@router.post('/change-password')
+@router.post('/change-password',  tags=["User controller"], status_code=200)
 async def password_change(user:ChangePassword, dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
     change_info = await change_password(user, session)
     return  JSONResponse(content= change_info ,status_code= 200)
 
 
-@router.post('/logout')
+@router.post('/logout',  tags=["User controller"], status_code=200)
 async def logout(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     print("token:",dependencies)
     token = dependencies
     logout_info = await logout_user(token, session)
-    return JSONResponse(content= logout_info, status_code=200)
-@router.post("/get-user-information",response_model=UserInfo)
+    return JSONResponse(content= logout_info, status_code=200, tags= ["User controller"])
+@router.post("/get-user-information",response_model=UserInfo ,  tags= ["User controller"])
 def get_user( access_token = Depends(JWTBearer()),session: Session = Depends(get_session)):
     user_info = get_user_info(access_token, session)
     return user_info
 
-@router.post('/refresh')
+@router.post('/refresh', tags= ["User controller"] )
 async def refresh(dependencies=Depends(JWTBearer())):
     return JSONResponse(
         content= {
