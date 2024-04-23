@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from api.v1 import user, chat
-from app.api.v1 import rag_general
+from api.v1 import rag_general
 from initialiser import init
 
 init()
