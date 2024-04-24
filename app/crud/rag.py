@@ -17,6 +17,7 @@ from pinecone import Pinecone
 from langchain_postgres import PostgresChatMessageHistory
 from langsmith import traceable
 from crud.chat_general import init_postgres_chat_memory
+from crud.chat_legal import init_postgres_legal_chat_memory
 import langchain
 langchain.debug = True
 
@@ -300,22 +301,24 @@ def rag_legal_chat(question: str, session_id: str = None):
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
     )
-    # chat_memory = init_postgres_chat_memory(session_id= session_id)
-    # memory = ConversationSummaryBufferMemory(
-    #     llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), 
-    #     memory_key= "chat_history",
-    #     return_messages= "on",
-    #     chat_memory=chat_memory,
-    #     max_token_limit=3000,
-    #     output_key = "answer",
-    #     ai_prefix="Question",
-    #     human_prefix="Answer"
-    # )
+    chat_memory = init_postgres_legal_chat_memory(session_id= session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), 
+        memory_key= "chat_history",
+        return_messages= "on",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key = "answer",
+        ai_prefix="Question",
+        human_prefix="Answer"
+    )
+
     qa = ConversationalRetrievalChain.from_llm(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature= 0.2),
         retriever=compression_retriever,
         return_source_documents=True,
         condense_question_llm= ChatOpenAI(model_name="gpt-4-1106-preview"),
         combine_docs_chain_kwargs={"prompt":QA_CHAIN_PROMPT},
+        memory = memory
     )
     return qa.invoke({"question": question, "chat_history":[]})

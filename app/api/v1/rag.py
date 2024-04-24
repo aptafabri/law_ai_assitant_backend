@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat 
 from crud.chat_general import add_message, summarize_session, add_session_summary, session_exist
+from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd
@@ -60,7 +61,37 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
 def chat_with_legal(message:ChatRequest, dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
     response = rag_legal_chat(question=message.question, session_id= message.session_id)
     user_id = get_userid_by_token(dependencies)
-    print(response)
+    created_date = datetime.now()
+    user_message = ChatAdd( user_id = user_id, session_id= message.session_id, content= message.question, role = "user", created_date=created_date)
+    ai_message = ChatAdd( user_id = user_id, session_id= message.session_id, content= response["answer"], role = "assistant", created_date= created_date)
+    
+    add_legal_message(user_message, session)
+    add_legal_message(ai_message, session)
+    
+    print(legal_session_exist(session_id=message.session_id, session= session))
+    if(legal_session_exist(session_id=message.session_id, session= session)==True):
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": message.session_id,
+                "question":message.question,
+                "answer":response["answer"],
+            },
+            status_code= 200
+        )
+    else:
+        summary = summarize_session(question=message.question, answer= response["answer"])
+        add_legal_session_summary(user_id=user_id, session_id= message.session_id, summary= summary, session=session)
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": message.session_id,
+                "question":message.question,
+                "answer":response["answer"],
+                "title":summary,
+            },
+            status_code= 200
+        )
     return response
     # return JSONResponse(
     #         content={

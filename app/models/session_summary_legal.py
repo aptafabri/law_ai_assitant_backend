@@ -3,8 +3,8 @@ from database.session import Base
 import datetime
 
 
-class SessionSummary(Base):
-    __tablename__='session_summary' 
+class LegalSessionSummary(Base):
+    __tablename__='legal_session_summary' 
     id = Column(Integer, primary_key=True, index=True)
     user_id =Column(Integer, nullable= False)
     session_id = Column(String(100), nullable=False)

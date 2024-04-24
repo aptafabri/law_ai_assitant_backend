@@ -6,7 +6,7 @@ from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
-from models.session_summary import SessionsummaryTable
+from models.session_summary import SessionSummary
 from datetime import datetime
 from langchain_postgres import PostgresChatMessageHistory
 import psycopg
@@ -17,9 +17,9 @@ from core.config import settings
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
     session_summary_array : List[SessionSummary] = []
-    results = session.query(SessionsummaryTable)\
-        .filter(SessionsummaryTable.user_id == user_id)\
-        .order_by(SessionsummaryTable.favourite_date.desc()).all()
+    results = session.query(SessionSummary)\
+        .filter(SessionSummary.user_id == user_id)\
+        .order_by(SessionSummary.favourite_date.desc()).all()
     session_summary_array = results
     return session_summary_array
 
@@ -44,9 +44,9 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
 def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
     try:
         
-        latest_session_record_subquery = session.query(SessionsummaryTable.session_id, SessionsummaryTable.favourite_date)\
-        .filter(SessionsummaryTable.user_id == user_id)\
-        .order_by(SessionsummaryTable.favourite_date.desc())\
+        latest_session_record_subquery = session.query(SessionSummary.session_id, SessionSummary.favourite_date)\
+        .filter(SessionSummary.user_id == user_id)\
+        .order_by(SessionSummary.favourite_date.desc())\
         .subquery()
 
         latest_session_record = session.query(
@@ -136,7 +136,7 @@ def summarize_session( question:str, answer:str):
 def add_session_summary(session_id: str, user_id: int,summary:str, session:Session):
     
     
-    chat_session_db = SessionsummaryTable(user_id=user_id,session_id =session_id, summary= summary)
+    chat_session_db = SessionSummary(user_id=user_id,session_id =session_id, summary= summary)
     session.add(chat_session_db)
     session.commit()
     session.refresh(chat_session_db)
@@ -148,14 +148,14 @@ def add_session_summary(session_id: str, user_id: int,summary:str, session:Sessi
 
 def remove_session_summary(session_id:str, session:Session):
     
-    existing_session_summary = session.query(SessionsummaryTable)\
-        .filter(SessionsummaryTable.session_id == session_id)\
+    existing_session_summary = session.query(SessionSummary)\
+        .filter(SessionSummary.session_id == session_id)\
         .delete()
     session.commit()
 
 def session_exist(session_id:str, session: Session):
-    existing_session = session.query(SessionsummaryTable)\
-        .filter(SessionsummaryTable.session_id == session_id).first()
+    existing_session = session.query(SessionSummary)\
+        .filter(SessionSummary.session_id == session_id).first()
     print("existing session:", existing_session)
     if existing_session:
         return True
@@ -164,8 +164,8 @@ def session_exist(session_id:str, session: Session):
 
 def upvote_chat_session(session_id:str, user_id:int, session:Session):
     try:
-        update_session = session.query(SessionsummaryTable)\
-            .filter(SessionsummaryTable.session_id == session_id, SessionsummaryTable.user_id == user_id).first()
+        update_session = session.query(SessionSummary)\
+            .filter(SessionSummary.session_id == session_id, SessionSummary.user_id == user_id).first()
 
         update_session.is_favourite = True
         update_session.favourite_date =  datetime.now()
@@ -180,8 +180,8 @@ def upvote_chat_session(session_id:str, user_id:int, session:Session):
 
 def devote_chat_session(session_id:str, user_id:int, session:Session):
     try:
-        update_session = session.query(SessionsummaryTable)\
-            .filter(SessionsummaryTable.session_id == session_id, SessionsummaryTable.user_id == user_id).first()
+        update_session = session.query(SessionSummary)\
+            .filter(SessionSummary.session_id == session_id, SessionSummary.user_id == user_id).first()
 
         update_session.is_favourite = False
         update_session.favourite_date =  update_session.created_date
@@ -205,17 +205,7 @@ def init_postgres_chat_memory(session_id:str):
     )
 
     return chat_memory
-def init_postgres_legal_chat_memory(session_id:str):
-    table_name='legal_message_store'
-    sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
-    PostgresChatMessageHistory.create_tables(sync_connection, table_name)
-    chat_memory=PostgresChatMessageHistory(
-            table_name,
-            session_id,
-            sync_connection = sync_connection
-    )
 
-    return chat_memory
 
 
 
