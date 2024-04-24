@@ -39,7 +39,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: "docker-compose.yml, .env.prod"
+          source: "docker-compose.yml, .env"
           target: .
 
       - name: run docker-compose
@@ -49,7 +49,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            mv .env.prod .env
             docker compose down
             docker rmi -f $(docker images -q)
             docker compose pull
