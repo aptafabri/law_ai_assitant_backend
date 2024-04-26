@@ -19,6 +19,7 @@ from langsmith import traceable
 from crud.chat_general import init_postgres_chat_memory
 from crud.chat_legal import init_postgres_legal_chat_memory
 import langchain
+from typing import List
 langchain.debug = True
 
 pc = Pinecone( api_key=settings.PINECONE_API_KEY )
@@ -29,7 +30,6 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
-
 
 @traceable(
     run_type= "llm",
@@ -234,7 +234,7 @@ def rag_test_chat(question: str, session_id: str = None):
     memory = ConversationSummaryBufferMemory(
         llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), 
         memory_key= "chat_history",
-        return_messages= "on",
+        return_messages= True,
         chat_memory=chat_memory,
         max_token_limit=3000,
         output_key = "answer",
@@ -322,3 +322,72 @@ def rag_legal_chat(question: str, session_id: str = None):
         memory = memory
     )
     return qa.invoke({"question": question, "chat_history":[]})
+
+@traceable(
+    run_type= "llm",
+    name = "Get Relevant Legal Cases",
+    project_name= "adaletgpt"
+)
+def  get_relevant_legal_cases(session_id: str):
+    chat_memory = init_postgres_legal_chat_memory(session_id= session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        memory_key= "chat_history",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        return_messages=False,
+        output_key = "answer",
+        ai_prefix="AI",
+        human_prefix="Human"
+    )
+    messages = memory.load_memory_variables({})
+    if messages["chat_history"] == "":
+        return []
+    print("chat_history", messages["chat_history"])
+    prompt_template = """Write a summary of the following conversation in turkish to find relevant legal cases.
+    Chat History: {conversation}\n
+    SUMMARY:"""
+    prompt = PromptTemplate(
+    input_variables=["conversation"], template=prompt_template
+    )
+    
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4-1106-preview")
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+
+    response = llm_chain.invoke({"conversation":messages["chat_history"]})
+    conversation_summary = response["text"]
+    print(conversation_summary, type(conversation_summary))
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+        
+    
+    docsearch = PineconeLangChain.from_existing_index(
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    # MULTI_QUERY_PROMPT = PromptTemplate(
+    #     input_variables=["question"],
+    #     template="""You are an AI language model assistant.\n
+    #     Your task is to generate 3 different versions of the given legal case summary in turkish to retrieve relevant documents from a vector  database.\n 
+    #     By generating multiple perspectives on the legal case summary, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+    #     Provide these alternative legal case summary separated by newlines.\n
+    #     Original Legal Case Summary: {question}""",
+    # )
+
+    # base_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = MULTI_QUERY_PROMPT
+    # )
+
+    compressor = CohereRerank(top_n=5, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=docsearch.as_retriever(search_kwargs={"k": 50})
+    )
+
+    reranked_docs = compression_retriever.get_relevant_documents( query = conversation_summary)
+    legal_caese_docs : List[str]= []
+    for doc in reranked_docs:
+        legal_caese_docs.append(doc.page_content)
+
+    return legal_caese_docs
+   
+

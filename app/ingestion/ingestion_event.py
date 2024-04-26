@@ -9,6 +9,7 @@ from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain_openai import ChatOpenAI
+from core.config import setting
 from langchain_community.vectorstores import Pinecone as PineconeLangChain
 from pinecone import Pinecone
 import os
@@ -21,7 +22,7 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 INDEX_NAME = "adaletgpt-summarized-event"
 DATASET = "../../dataset/"
-MIN_FILE_SIZE = 5 * 1024  # 5KB in bytes
+MIN_FILE_SIZE = 40 * 1024  # 5KB in bytes
 
 
 def get_subfolders(root_folder):
@@ -69,7 +70,7 @@ def summarize_legal_case(file_path):
     # Define LLM chain
     llm = ChatOpenAI(temperature=0, model_name="gpt-4-1106-preview")
     llm_chain = LLMChain(llm=llm, prompt=prompt)
-    
+
     # Define StuffDocumentsChain
     stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
     loader = TextLoader(file_path, encoding='utf-8')
@@ -79,7 +80,6 @@ def summarize_legal_case(file_path):
     with open(file_path, 'w', encoding='utf-8' ) as file:
         file.write(response["output_text"])
         print("Summarizing docs where is bigger than 5kbyte:", file_path)
-
 
 if __name__ == "__main__":
     ingest_docs()

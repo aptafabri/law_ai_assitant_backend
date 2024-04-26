@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat 
+from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat , get_relevant_legal_cases
 from crud.chat_general import add_message, summarize_session, add_session_summary, session_exist
 from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist
 from crud.user import get_userid_by_token
@@ -92,22 +92,23 @@ def chat_with_legal(message:ChatRequest, dependencies=Depends(JWTBearer()), sess
             },
             status_code= 200
         )
-    return response
-    # return JSONResponse(
-    #         content={
-    #             "user_id": user_id,
-    #             "session_id": message.session_id,
-    #             "question":message.question,
-    #             "answer":response["answer"],
-    #             "documents": response["source_documents"]
-    #         },
-    #         status_code= 200
-    # )
 
+@router.post('/get-legal-cases', tags= ['RagController'])
+def  get_legal_cases(body:dict = Body() , dependencies=Depends(JWTBearer())):
+    session_id = body["session_id"]
+    legal_cases = get_relevant_legal_cases(session_id= session_id)
+    return JSONResponse(
+            content={
+                "session_id": session_id,
+                "legal_cases": legal_cases
+            },
+            status_code= 200
+        )
 
 @router.post("/chat-test")
 def rag_test(message:ChatRequest):
     response = rag_test_chat(question=message.question, session_id= message.session_id)
+    
     return response
     
 
