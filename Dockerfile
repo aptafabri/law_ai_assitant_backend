@@ -3,10 +3,10 @@ FROM python:3.11
 WORKDIR /app
 COPY ./requirements.txt /app
 # Update package lists
-RUN apt-get update
+RUN sudo apt-get update
 
 # Install required packages
-RUN apt-get install -y \
+RUN sudo apt-get install -y \
     tesseract-ocr \
     tesseract \
 
