@@ -2,7 +2,7 @@ FROM python:3.11
 
 WORKDIR /app
 COPY ./requirements.txt /app
- # Install system dependencies
+
 RUN apt-get update && \
     apt-get install -y \
         poppler-utils \
