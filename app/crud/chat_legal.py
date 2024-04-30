@@ -15,7 +15,9 @@ import boto3
 import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
-tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
