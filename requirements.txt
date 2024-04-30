@@ -19,3 +19,7 @@ langchain_cohere
 httpx[socks]
 langsmith
 langchain-postgres
+boto3
+pytesseract
+pdf2image
+python-multipart

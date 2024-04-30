@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, File, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat , get_relevant_legal_cases
 from crud.chat_general import add_message, summarize_session, add_session_summary, session_exist
-from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist
+from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist, read_pdf
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd
@@ -94,7 +94,7 @@ def chat_with_legal(message:ChatRequest, dependencies=Depends(JWTBearer()), sess
         )
 
 @router.post('/get-legal-cases', tags= ['RagController'])
-def  get_legal_cases(body:dict = Body() , dependencies=Depends(JWTBearer())):
+def  get_legal_cases(body:dict = Body(), dependencies=Depends(JWTBearer())):
     session_id = body["session_id"]
     legal_cases = get_relevant_legal_cases(session_id= session_id)
     return JSONResponse(
@@ -106,10 +106,15 @@ def  get_legal_cases(body:dict = Body() , dependencies=Depends(JWTBearer())):
         )
 
 @router.post("/chat-test")
-def rag_test(message:ChatRequest):
-    response = rag_test_chat(question=message.question, session_id= message.session_id)
+async def rag_test(message:ChatRequest, file:UploadFile = File(...)):
+    pdf_contents = await file.read()
+    extracted_text = read_pdf(pdf_contents)
+    print(extracted_text)
+
+    return {"ocr_text":extracted_text}
+    # response = rag_test_chat(question=message.question, session_id= message.session_id)
     
-    return response
+    # return response
     
 
 

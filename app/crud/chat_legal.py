@@ -11,7 +11,10 @@ from datetime import datetime
 from langchain_postgres import PostgresChatMessageHistory
 import psycopg
 from core.config import settings
-
+import boto3
+import pytesseract as tess
+from PIL import Image
+from pdf2image import convert_from_bytes
  
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
@@ -205,3 +208,30 @@ def init_postgres_legal_chat_memory(session_id:str):
     )
 
     return chat_memory
+
+def upload_legal_description(file_content, bucket_name, user_id, session_id, file_name):
+    s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
+    folder_name= "legalcase"
+    s3_key=f"{folder_name}/{user_id}/{session_id}/{file_name}"
+    s3_client.put_object(Bucket="adaletgpt", Body=file_content, Key=s3_key)
+
+def read_pdf(file_contents):
+    pages = []
+
+    try:
+        # Convert PDF bytes to images
+        images = convert_from_bytes(file_contents)
+        print(images)
+        # Extract text from each image
+        for i, image in enumerate(images):
+            # Generating filename for each image
+            filename = f"page_{i}.jpeg"
+            image.save(filename, "JPEG")
+            # Extract text from each image using pytesseract
+            text = tess.image_to_string(Image.open(filename))
+            pages.append(text)
+
+    except Exception as e:
+        print(e)
+    return "\n".join(pages)

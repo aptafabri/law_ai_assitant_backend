@@ -17,7 +17,7 @@ from pinecone import Pinecone
 from langchain_postgres import PostgresChatMessageHistory
 from langsmith import traceable
 from crud.chat_general import init_postgres_chat_memory
-from crud.chat_legal import init_postgres_legal_chat_memory
+from crud.chat_legal import init_postgres_legal_chat_memory, upload_legal_description,read_pdf
 import langchain
 from typing import List
 langchain.debug = True
@@ -359,7 +359,6 @@ def  get_relevant_legal_cases(session_id: str):
     print(conversation_summary, type(conversation_summary))
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
         
-    
     docsearch = PineconeLangChain.from_existing_index(
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,

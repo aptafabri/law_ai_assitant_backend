@@ -9,7 +9,6 @@ from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain_openai import ChatOpenAI
-from core.config import setting
 from langchain_community.vectorstores import Pinecone as PineconeLangChain
 from pinecone import Pinecone
 import os
@@ -20,7 +19,7 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-INDEX_NAME = "adaletgpt-summarized-event"
+INDEX_NAME = "adaletgpt-events-data"
 DATASET = "../../dataset/"
 MIN_FILE_SIZE = 40 * 1024  # 5KB in bytes
 
