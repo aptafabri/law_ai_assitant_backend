@@ -106,7 +106,7 @@ def  get_legal_cases(body:dict = Body(), dependencies=Depends(JWTBearer())):
         )
 
 @router.post("/chat-test")
-async def rag_test(message:ChatRequest, file:UploadFile = File(...)):
+async def rag_test(file:UploadFile = File(...)):
     pdf_contents = await file.read()
     extracted_text = read_pdf(pdf_contents)
     print(extracted_text)

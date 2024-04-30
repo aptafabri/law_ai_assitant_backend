@@ -15,7 +15,7 @@ import boto3
 import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
- 
+tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
@@ -221,15 +221,12 @@ def read_pdf(file_contents):
 
     try:
         # Convert PDF bytes to images
+        # images = convert_from_bytes(file_contents, poppler_path=r"C:\Users\Administrator\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin")
         images = convert_from_bytes(file_contents)
         print(images)
         # Extract text from each image
         for i, image in enumerate(images):
-            # Generating filename for each image
-            filename = f"page_{i}.jpeg"
-            image.save(filename, "JPEG")
-            # Extract text from each image using pytesseract
-            text = tess.image_to_string(Image.open(filename))
+            text = tess.image_to_string(image=image)
             pages.append(text)
 
     except Exception as e:
