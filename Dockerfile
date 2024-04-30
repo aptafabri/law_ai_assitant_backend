@@ -6,7 +6,7 @@ COPY ./requirements.txt /app
 RUN apt-get update && apt-get install
 
 # Install required packages
-#RUN apt-get install poppler-utils tesseract-ocr tesseract
+RUN apt-get install poppler-utils
 
 RUN pip install -r requirements.txt
 
