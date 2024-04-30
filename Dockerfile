@@ -3,10 +3,10 @@ FROM python:3.11
 WORKDIR /app
 COPY ./requirements.txt /app
 # Update package lists
-RUN sudo apt-get update && apt-get install
+RUN apt-get update && apt-get install
 
 # Install required packages
-RUN sudo apt-get install poppler-utils tesseract-ocr tesseract
+RUN apt-get install poppler-utils tesseract-ocr tesseract
 
 RUN pip install -r requirements.txt
 
