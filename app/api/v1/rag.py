@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Body, File, UploadFile
+from fastapi import APIRouter, Depends, Body, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from crud.rag import rag_general_chat, rag_legal_chat, rag_test_chat , get_relevant_legal_cases
 from crud.chat_general import add_message, summarize_session, add_session_summary, session_exist
-from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist, read_pdf
+from crud.chat_legal import add_legal_message, add_legal_session_summary, legal_session_exist, read_pdf, upload_legal_description
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd
@@ -106,12 +106,20 @@ def  get_legal_cases(body:dict = Body(), dependencies=Depends(JWTBearer())):
         )
 
 @router.post("/chat-test")
-async def rag_test(file:UploadFile = File(...)):
+async def rag_test(session_id:str = Form(), question:str= Form(), file:UploadFile = File(...)):
+    legal_question = ""
+    user_id = 2
     pdf_contents = await file.read()
-    extracted_text = read_pdf(pdf_contents)
-    print(extracted_text)
+    if pdf_contents:
+        print(file.filename)
+        # upload_legal_description(pdf_contents, user_id=user_id, session_id =session_id, file_name = file.filename)
+        legal_description = read_pdf(pdf_contents)
+        legal_question =f"{legal_description}\n " 
+        print(session_id,question)
 
-    return {"ocr_text":extracted_text}
+    total_question = legal_question +  question
+    print("total-question:", total_question)
+    return {"ocr_text":total_question}
     # response = rag_test_chat(question=message.question, session_id= message.session_id)
     
     # return response

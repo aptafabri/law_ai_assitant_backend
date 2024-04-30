@@ -211,7 +211,7 @@ def init_postgres_legal_chat_memory(session_id:str):
 
     return chat_memory
 
-def upload_legal_description(file_content, bucket_name, user_id, session_id, file_name):
+def upload_legal_description(file_content, user_id, session_id, file_name):
     s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                       aws_secret_access_key=settings.AWS_SECRET_KEY)
     folder_name= "legalcase"
@@ -225,7 +225,6 @@ def read_pdf(file_contents):
         # Convert PDF bytes to images
         # images = convert_from_bytes(file_contents, poppler_path=r"C:\Users\Administrator\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin")
         images = convert_from_bytes(file_contents)
-        print(images)
         # Extract text from each image
         for i, image in enumerate(images):
             text = tess.image_to_string(image=image)
