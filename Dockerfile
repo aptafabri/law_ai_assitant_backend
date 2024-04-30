@@ -2,6 +2,14 @@ FROM python:3.11
 
 WORKDIR /app
 COPY ./requirements.txt /app
+# Update package lists
+RUN apt-get update
+
+# Install required packages
+RUN apt-get install -y \
+    tesseract-ocr \
+    tesseract \
+
 RUN pip install -r requirements.txt
 
 COPY ./app .
