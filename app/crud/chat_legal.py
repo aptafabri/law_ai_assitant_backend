@@ -222,7 +222,6 @@ def read_pdf(file_contents):
     pages = []
 
     try:
-        # Convert PDF bytes to images
         # images = convert_from_bytes(file_contents, poppler_path=r"C:\Users\Administrator\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin")
         images = convert_from_bytes(file_contents)
         # Extract text from each image
