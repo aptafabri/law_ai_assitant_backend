@@ -18,6 +18,8 @@ from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
 # tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
+s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     
@@ -230,23 +232,26 @@ def init_postgres_legal_chat_memory(session_id:str):
 
     return chat_memory
 
-def upload_legal_description(file_content, user_id, session_id, legal_s3_key):
-    s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
+def upload_legal_description(file_content, user_id, session_id, legal_s3_key):  
     s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
     s3_client.put_object(Bucket=settings.AWS_BUCKET_NAME, Body=file_content, Key=s3_key)
 
 def download_legal_description(user_id, session_id, legal_s3_key):
-    s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
     s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
-    file = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=s3_key )
-    return file
+    print("s3_key:", s3_key)
+    data = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=s3_key )
+    
+    return data
 
+def delete_s3_bucket_folder(user_id, session_id):
+    objects = s3_client.list_objects(Bucket=settings.AWS_BUCKET_NAME, Prefix = f"{user_id}/{session_id}")
+    print(objects)
+    if objects.get('Contents') is not None:
+        for o in objects.get('Contents'):
+            s3_client.delete_object(Bucket=settings.AWS_BUCKET_NAME, Key=o.get('Key'))  
 
 def read_pdf(file_contents):
     pages = []
-
     try:
         # images = convert_from_bytes(file_contents, poppler_path=r"C:\Users\Administrator\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin")
         images = convert_from_bytes(file_contents)

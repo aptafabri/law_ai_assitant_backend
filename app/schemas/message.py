@@ -50,4 +50,5 @@ class SessionSummaryRequest(BaseModel):
 class DownloadLegalPdf(BaseModel):
     session_id:str
     legal_s3_key: str
+    legal_file_name: str
    

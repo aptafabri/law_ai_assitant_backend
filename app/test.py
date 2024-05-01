@@ -11,18 +11,16 @@ secret_key = "IUQwyrZm49Z9+uT4wGL1cTH0o+YzpBNWl4IEYRYg"
 
 s3_client = boto3.client(service_name='s3', aws_access_key_id=access_key_id,
                                        aws_secret_access_key=secret_key)
-with open(source_file_path, 'rb') as f:
-    s3_client.put_object(Bucket="adaletgpt", Body=f, Key="legalcase/1.txt")
+# with open(source_file_path, 'rb') as f:
+#     s3_client.put_object(Bucket="adaletgpt", Body=f, Key="legalcase/1.txt")
 
-objects = s3_client.list_objects(Bucket = "adaletgpt", Prefix = 'legalcase')
+
+objects = s3_client.list_objects(Bucket = "adaletgpt", Prefix = '2/3565c5cd-63ef-42dc-859e-938b6f3269a7')
 for o in objects.get('Contents'):
     data = s3_client.get_object(Bucket="adaletgpt", Key=o.get('Key'))
     contents = data['Body'].read()
-    print(contents.decode("utf-8"))
-
-    location =s3_client.get_bucket_location(Bucket="adaletgpt")['LocationConstraint']
-    url = "https://s3-%s.amazonaws.com/%s/%s" % (location, "adaletgpt", o.get('Key'))
-    print("s3blob url:", url)
+    print(contents)
+    # s3_client.delete_object(Bucket="adaletgpt", Key=o.get('Key'))
 
 
 def read_pdf(file_contents):

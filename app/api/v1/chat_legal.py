@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Request, Body
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat_legal import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, upvote_chat_session, devote_chat_session, init_postgres_legal_chat_memory, download_legal_description
+from crud.chat_legal import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, upvote_chat_session, devote_chat_session, init_postgres_legal_chat_memory, download_legal_description, delete_s3_bucket_folder
 from crud.user import get_userid_by_token
 from schemas.message import SessionSummary, Message, SessionSummaryRequest, DownloadLegalPdf, LegalMessage
 from core.auth_bearer import JWTBearer
@@ -30,7 +30,8 @@ async def delete_session(body:dict = Body(), dependencies=Depends(JWTBearer()), 
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
     remove_session_summary(session_id= session_id, session= session)
-    remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
+    delete_s3_bucket_folder(user_id= user_id, session_id= session_id)
+    remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session) 
     session_memory = init_postgres_legal_chat_memory(session_id = session_id)
     session_memory.clear()
     return JSONResponse(content= remove_info, status_code=200)
@@ -57,10 +58,14 @@ def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), sessio
     return JSONResponse(content= updated_status, status_code=200)
 
 @router.get("/download-legal-pdf", tags=['ChatLegalController'], status_code=200 )
-def download_pdf(download_request:DownloadLegalPdf, dependencies=Depends(JWTBearer())):
+def download_pdf(download_request:DownloadLegalPdf, dependencies = Depends(JWTBearer())):
     user_id= get_userid_by_token(dependencies)
     session_id = download_request.session_id
     legal_s3_key = download_request.legal_s3_key
-    s3_key= f"{user_id}/{session_id}/{legal_s3_key}"
-    download_legal_description(s3_key= s3_key)
-
+    legal_file_name = download_request.legal_file_name
+    data = download_legal_description(user_id = user_id, session_id = session_id, legal_s3_key=legal_s3_key)
+    # Set response headers
+    headers = {
+            'Content-Disposition': f'attachment; filename="{legal_file_name}"'
+    }
+    return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
