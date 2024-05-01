@@ -13,6 +13,16 @@ class ChatAdd(BaseModel):
     role: str
     created_date: datetime
 
+class LegalChatAdd(BaseModel):
+    user_id: int
+    session_id: str
+    content: str
+    role: str
+    legal_file_name: str
+    legal_s3_key: str
+    legal_attached: bool
+    created_date: datetime
+
 class SessionSummary(BaseModel):
     user_id:int
     session_id: str
@@ -24,9 +34,20 @@ class SessionSummary(BaseModel):
 class Message(BaseModel):
     content: str
     role: str
+
+class LegalMessage(BaseModel):
+    content: str
+    role: str
+    legal_attached: bool
+    legal_file_name: str
+    legal_s3_key: str
     
 class SessionSummaryRequest(BaseModel):
     session_id:str
     question:str
     answer:str
+
+class DownloadLegalPdf(BaseModel):
+    session_id:str
+    legal_s3_key: str
    

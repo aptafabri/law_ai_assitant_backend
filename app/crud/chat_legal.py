@@ -1,4 +1,3 @@
-from schemas.message import ChatAdd, SessionSummary, Message
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
@@ -15,6 +14,7 @@ import boto3
 import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
+from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
 # tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
@@ -29,16 +29,16 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     return session_summary_array
 
                  
-def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
+def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[LegalMessage]:
     
     try:
-        results = session.query(LegalChatHistory.content, LegalChatHistory.role) \
+        results = session.query(LegalChatHistory.content, LegalChatHistory.role, LegalChatHistory.legal_attached, LegalChatHistory.legal_file_name, LegalChatHistory.legal_s3_key) \
             .filter(LegalChatHistory.session_id == session_id, LegalChatHistory.user_id == user_id) \
             .order_by(LegalChatHistory.created_date.asc()).order_by(LegalChatHistory.id.asc()).all()
         
-        message_array :List[Message] = []
+        message_array :List[LegalMessage] = []
         for result in results:
-            message = Message(content=result[0], role=result[1])
+            message = LegalMessage(content=result[0], role=result[1], legal_attached= result[2], legal_file_name = result[3], legal_s3_key=result[4])
             message_array.append(message)
             
         return message_array
@@ -46,7 +46,7 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
         print("An error occurred while querying the database:", str(e))
         return []
 
-def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
+def get_latest_messages_by_userid(user_id:int, session: Session)->List[LegalMessage]:
     try:
         
         latest_session_record_subquery = session.query(LegalSessionSummary.session_id, LegalSessionSummary.favourite_date)\
@@ -74,8 +74,7 @@ def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
         # Handle other exceptions
         print(f"An error occurred: {e}")
         return []
-    
-    
+
 def add_legal_message(message:ChatAdd, session:Session):
     
     try:
@@ -93,7 +92,27 @@ def add_legal_message(message:ChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
+def add_legal_chat_message(message:LegalChatAdd, session:Session):
+    
+    try:
+        new_message = LegalChatHistory(
+            user_id=message.user_id,
+            session_id=message.session_id,
+            content=message.content,
+            role=message.role,
+            legal_attached=message.legal_attached,
+            legal_file_name=message.legal_file_name,
+            legal_s3_key= message.legal_s3_key,
+            created_date=message.created_date
+        )
+        session.add(new_message)
+        session.commit()
+        session.refresh(new_message)
+    except SQLAlchemyError as e:
+        print("An error occurred while adding a message to the database:", str(e))
+        session.rollback()
+
+def remove_messages_by_session_id(user_id:int, session_id:str, session: Session):
     
     try:
         
@@ -211,12 +230,19 @@ def init_postgres_legal_chat_memory(session_id:str):
 
     return chat_memory
 
-def upload_legal_description(file_content, user_id, session_id, file_name):
+def upload_legal_description(file_content, user_id, session_id, legal_s3_key):
     s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                       aws_secret_access_key=settings.AWS_SECRET_KEY)
-    folder_name= "legalcase"
-    s3_key=f"{folder_name}/{user_id}/{session_id}/{file_name}"
-    s3_client.put_object(Bucket="adaletgpt", Body=file_content, Key=s3_key)
+    s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
+    s3_client.put_object(Bucket=settings.AWS_BUCKET_NAME, Body=file_content, Key=s3_key)
+
+def download_legal_description(user_id, session_id, legal_s3_key):
+    s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
+    s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
+    file = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=s3_key )
+    return file
+
 
 def read_pdf(file_contents):
     pages = []
