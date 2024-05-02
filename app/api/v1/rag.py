@@ -71,33 +71,33 @@ async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:Up
         file_name = file.filename 
         time_stamp = created_date.timestamp()
         legal_s3_key = f"{time_stamp}_{file_name}"
-        upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
+        #upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
         legal_question = read_pdf(pdf_contents)
     total_question = legal_question +  question
     response = rag_legal_chat(question=total_question, session_id= session_id)
     answer = response["answer"]
-    user_message = LegalChatAdd(
-        user_id= user_id,
-        session_id= session_id,
-        content=question,
-        role= 'user',
-        legal_attached=attached_pdf,
-        legal_file_name=file_name,
-        legal_s3_key= legal_s3_key,
-        created_date = created_date
-    )
-    ai_message = LegalChatAdd(
-        user_id= user_id,
-        session_id= session_id,
-        content= answer,
-        role= 'assistant',
-        legal_attached=False,
-        legal_file_name='',
-        legal_s3_key= '',
-        created_date = created_date
-    )
-    add_legal_chat_message(user_message, session)
-    add_legal_chat_message(ai_message, session)
+    # user_message = LegalChatAdd(
+    #     user_id= user_id,
+    #     session_id= session_id,
+    #     content=question,
+    #     role= 'user',
+    #     legal_attached=attached_pdf,
+    #     legal_file_name=file_name,
+    #     legal_s3_key= legal_s3_key,
+    #     created_date = created_date
+    # )
+    # ai_message = LegalChatAdd(
+    #     user_id= user_id,
+    #     session_id= session_id,
+    #     content= answer,
+    #     role= 'assistant',
+    #     legal_attached=False,
+    #     legal_file_name='',
+    #     legal_s3_key= '',
+    #     created_date = created_date
+    # )
+    # add_legal_chat_message(user_message, session)
+    # add_legal_chat_message(ai_message, session)
 
     print("total-question:", total_question)
     if(legal_session_exist(session_id=session_id, session= session)==True):
