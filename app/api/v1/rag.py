@@ -58,20 +58,20 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
         )
 
 @router.post('/chat-legal', tags = ['RagController'], status_code = 200 )
-async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:UploadFile = File(...), dependencies = Depends(JWTBearer()),  session: Session = Depends(get_session)):
+def chat_with_legal(session_id:str = Form(), question:str= Form(), file:UploadFile = File(...), dependencies = Depends(JWTBearer()),  session: Session = Depends(get_session)):
     legal_question = ""
     legal_s3_key = ""
     file_name = ""
     attached_pdf = False
     user_id = get_userid_by_token(dependencies)
     created_date = datetime.now()
-    pdf_contents = await file.read()
+    pdf_contents = file.read()
     if pdf_contents:
         attached_pdf = True
         file_name = file.filename 
         time_stamp = created_date.timestamp()
         legal_s3_key = f"{time_stamp}_{file_name}"
-        #upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
+        upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
         legal_question = read_pdf(pdf_contents)
     total_question = legal_question +  question
     response = rag_legal_chat(question=total_question, session_id= session_id)
