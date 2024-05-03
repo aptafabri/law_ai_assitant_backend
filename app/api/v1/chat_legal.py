@@ -63,6 +63,11 @@ def download_pdf(download_request:DownloadLegalPdf, dependencies = Depends(JWTBe
     session_id = download_request.session_id
     legal_s3_key = download_request.legal_s3_key
     legal_file_name = download_request.legal_file_name
+    # user_id = 2
+    # session_id = "3565c5cd-63ef-42dc-859e-938b6f3269a6"
+    # legal_file_name = "Profile.pdf"
+    # legal_s3_key = "1714729956.563352_Profile.pdf"
+    
     data = download_legal_description(user_id = user_id, session_id = session_id, legal_s3_key=legal_s3_key)
     # Set response headers
     headers = {
