@@ -57,17 +57,17 @@ def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), sessio
     updated_status = devote_chat_session(session_id= session_id, user_id= user_id, session= session)
     return JSONResponse(content= updated_status, status_code=200)
 
-@router.post("/download-legal-pdf", tags=['ChatLegalController'], status_code=200 )
-def download_pdf(download_request:DownloadLegalPdf, dependencies = Depends(JWTBearer())):
+@router.get("/download-legal-pdf/", tags=['ChatLegalController'], status_code=200 )
+def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_name: str = None, dependencies = Depends(JWTBearer())):
     user_id= get_userid_by_token(dependencies)
-    session_id = download_request.session_id
-    legal_s3_key = download_request.legal_s3_key
-    legal_file_name = download_request.legal_file_name
+    # session_id = download_request.session_id
+    # legal_s3_key = download_request.legal_s3_key
+    # legal_file_name = download_request.legal_file_name
     # user_id = 2
     # session_id = "3565c5cd-63ef-42dc-859e-938b6f3269a6"
     # legal_file_name = "Profile.pdf"
     # legal_s3_key = "1714729956.563352_Profile.pdf"
-    
+    print(user_id, session_id, legal_s3_key, legal_file_name)
     data = download_legal_description(user_id = user_id, session_id = session_id, legal_s3_key=legal_s3_key)
     # Set response headers
     headers = {
