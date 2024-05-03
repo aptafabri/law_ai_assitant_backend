@@ -212,9 +212,6 @@ async def rag_test(session_id:str = Form(), question:str= Form(), file:UploadFil
             status_code= 200
         )
 
-    
-
-
 
 
 

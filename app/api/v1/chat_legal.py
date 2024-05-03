@@ -57,7 +57,7 @@ def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), sessio
     updated_status = devote_chat_session(session_id= session_id, user_id= user_id, session= session)
     return JSONResponse(content= updated_status, status_code=200)
 
-@router.get("/download-legal-pdf", tags=['ChatLegalController'], status_code=200 )
+@router.post("/download-legal-pdf", tags=['ChatLegalController'], status_code=200 )
 def download_pdf(download_request:DownloadLegalPdf, dependencies = Depends(JWTBearer())):
     user_id= get_userid_by_token(dependencies)
     session_id = download_request.session_id
