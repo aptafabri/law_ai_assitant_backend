@@ -59,7 +59,7 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
 
 @router.post('/chat-legal', tags = ['RagController'], status_code = 200 )
 async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:UploadFile = File(...), dependencies = Depends(JWTBearer()),  session: Session = Depends(get_session)):
-    legal_question = ""
+    standalone_question = ""
     legal_s3_key = ""
     file_name = ""
     attached_pdf = False
@@ -73,9 +73,11 @@ async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:Up
         time_stamp = created_date.timestamp()
         legal_s3_key = f"{time_stamp}_{file_name}"
         upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
-        legal_question = read_pdf(pdf_contents)
-    total_question = legal_question +  question
-    response = rag_legal_chat(question=total_question, session_id= session_id)
+        pdf_contents = read_pdf(pdf_contents)
+        standalone_question = generate_question(pdf_contents=pdf_contents, question= question)
+    else :
+        standalone_question = question
+    response = rag_legal_chat(question=standalone_question, session_id= session_id)
     answer = response["answer"]
     user_message = LegalChatAdd(
         user_id= user_id,
@@ -113,7 +115,7 @@ async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:Up
             status_code= 200
         )
     else:
-        summary = summarize_session(question=total_question, answer= answer)
+        summary = summarize_session(question=standalone_question, answer= answer)
         add_legal_session_summary(user_id=user_id, session_id= session_id, summary= summary, session=session)
         return JSONResponse(
             content={
@@ -162,7 +164,6 @@ async def rag_test(session_id:str = Form(), question:str= Form(), file:UploadFil
         standalone_question = question
     response = rag_legal_chat(question=standalone_question, session_id= session_id)
     answer = response["answer"]
-    # answer = "My name is AdaletGPT."
     user_message = LegalChatAdd(
         user_id= user_id,
         session_id= session_id,
@@ -211,10 +212,6 @@ async def rag_test(session_id:str = Form(), question:str= Form(), file:UploadFil
             status_code= 200
         )
 
-    return {"ocr_text":total_question}
-    # response = rag_test_chat(question=message.question, session_id= message.session_id)
-    
-    # return response
     
 
 

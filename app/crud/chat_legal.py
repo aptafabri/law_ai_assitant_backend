@@ -1,3 +1,4 @@
+import os
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
@@ -15,8 +16,15 @@ import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
 from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
+from langsmith import traceable
 # tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
+
 
 s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                       aws_secret_access_key=settings.AWS_SECRET_KEY)
@@ -264,6 +272,11 @@ def read_pdf(file_contents):
         print(e)
     return "\n".join(pages)
 
+@traceable(
+    run_type= "llm",
+    name = "Generate question with legal pdf and question",
+    project_name= "adaletgpt"
+)
 def generate_question(pdf_contents, question):
     llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
     # Define prompt
