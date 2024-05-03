@@ -263,3 +263,24 @@ def read_pdf(file_contents):
     except Exception as e:
         print(e)
     return "\n".join(pages)
+
+def generate_question(pdf_contents, question):
+    llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
+    # Define prompt
+    prompt_template = """
+        Given the following legal description context and question, rephrase the follow up question to be a standalone question.\n
+        Legal Description Context: {pdf_contents}\n
+        Folllow Up question: {question}\n
+        Standalone question:
+    """
+    prompt = PromptTemplate.from_template(prompt_template)
+
+    # Define LLM chain
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+
+    response = llm_chain.invoke({
+        "question":question,
+        "pdf_contents":pdf_contents
+    })
+
+    return response['text']
