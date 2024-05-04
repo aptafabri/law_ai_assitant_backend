@@ -9,6 +9,7 @@ from schemas.message import SessionSummary, Message, SessionSummaryRequest, Down
 from core.auth_bearer import JWTBearer
 from langchain_community.chat_message_histories.postgres import PostgresChatMessageHistory
 from core.config import settings
+import urllib.parse
 
 router = APIRouter()
 
@@ -60,10 +61,18 @@ def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), sessio
 @router.get("/download-legal-pdf", tags=['ChatLegalController'], status_code=200 )
 def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_name: str = None, dependencies = Depends(JWTBearer())):
     user_id= get_userid_by_token(dependencies)
-    print(user_id, session_id, legal_s3_key, legal_file_name)
-    data = download_legal_description(user_id = user_id, session_id = session_id, legal_s3_key=legal_s3_key)
+    # user_id = 2
+    # session_id = "3565c5cd-63ef-42dc-859e-938b6f3269a6"
+    # legal_file_name = "Profile.pdf"
+    # legal_s3_key = "1714729956.563352_Profile.pdf"
+    data = download_legal_description(user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
+    encoded_filename = urllib.parse.quote(legal_file_name)
+    print("encoded file_name:", encoded_filename)
     # Set response headers
+    # headers = {
+    #         'Content-Disposition': f'attachment; filename="{legal_file_name}"'
+    # }
     headers = {
-            'Content-Disposition': f'attachment; filename="{legal_file_name}"'
+        'Content-Disposition': f'attachment; filename*=UTF-8\'\'{encoded_filename}'
     }
     return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
