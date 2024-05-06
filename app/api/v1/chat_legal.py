@@ -68,18 +68,13 @@ def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_nam
     data = download_legal_description(user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
     encoded_filename = urllib.parse.quote(legal_file_name)
     print("encoded file_name:", encoded_filename)
-    # Set response headers
-    # headers = {
-    #         'Content-Disposition': f'attachment; filename="{legal_file_name}"'
-    # }
+    
     headers = {
         'Content-Disposition': f'attachment; filename*=UTF-8\'\'{encoded_filename}'
     }
-    # return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
-
-    # return FileResponse(data["Body"], filename=legal_file_name, media_type='application/octet-stream')
-    return Response(
-        data["Body"].read(),
-        media_type = 'application/pdf',
-        headers = headers            
-    )
+    return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
+    # return Response(
+    #     data["Body"].read(),
+    #     media_type = 'application/pdf',
+    #     headers = headers            
+    # )
