@@ -80,6 +80,6 @@ def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_nam
     # return FileResponse(data["Body"], filename=legal_file_name, media_type='application/octet-stream')
     return Response(
         data["Body"].read(),
-        media_type = 'application/octet-stream',
+        media_type = 'application/pdf',
         headers = headers            
     )
