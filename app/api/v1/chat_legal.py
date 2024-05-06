@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Body
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse, Response
 from typing import  List
 from sqlalchemy.orm import Session
 from database.session import get_session
@@ -75,4 +75,11 @@ def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_nam
     headers = {
         'Content-Disposition': f'attachment; filename*=UTF-8\'\'{encoded_filename}'
     }
-    return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
+    # return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
+
+    # return FileResponse(data["Body"], filename=legal_file_name, media_type='application/octet-stream')
+    return Response(
+        data["Body"].read(),
+        media_type = 'application/octet-stream',
+        headers = headers            
+    )
