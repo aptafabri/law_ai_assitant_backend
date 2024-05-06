@@ -65,6 +65,7 @@ async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:Up
     attached_pdf = False
     user_id = get_userid_by_token(dependencies)
     created_date = datetime.now()
+    if not file:
         standalone_question = question
         print("no file attahed!!!")
     else :
