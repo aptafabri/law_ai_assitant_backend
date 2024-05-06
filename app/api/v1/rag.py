@@ -58,25 +58,25 @@ def chat_with_document(message:ChatRequest, dependencies=Depends(JWTBearer()), s
         )
 
 @router.post('/chat-legal', tags = ['RagController'], status_code = 200 )
-async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:UploadFile = File(...), dependencies = Depends(JWTBearer()),  session: Session = Depends(get_session)):
+async def chat_with_legal(session_id:str = Form(), question:str= Form(), file:UploadFile = File(None), dependencies = Depends(JWTBearer()),  session: Session = Depends(get_session)):
     standalone_question = ""
     legal_s3_key = ""
     file_name = ""
     attached_pdf = False
     user_id = get_userid_by_token(dependencies)
     created_date = datetime.now()
-
-    pdf_contents = await file.read()
-    if pdf_contents:
+        standalone_question = question
+        print("no file attahed!!!")
+    else :
+        pdf_contents = await file.read()
         attached_pdf = True
-        file_name = file.filename 
+        file_name = file.filename
+        print(file_name)
         time_stamp = created_date.timestamp()
         legal_s3_key = f"{time_stamp}_{file_name}"
         upload_legal_description(file_content=pdf_contents, user_id = user_id, session_id= session_id, legal_s3_key= legal_s3_key)
         pdf_contents = read_pdf(pdf_contents)
         standalone_question = generate_question(pdf_contents=pdf_contents, question= question)
-    else :
-        standalone_question = question
     response = rag_legal_chat(question=standalone_question, session_id= session_id)
     answer = response["answer"]
     user_message = LegalChatAdd(
