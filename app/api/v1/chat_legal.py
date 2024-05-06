@@ -72,9 +72,9 @@ def download_pdf(session_id:str = None, legal_s3_key: str = None, legal_file_nam
     headers = {
         'Content-Disposition': f'attachment; filename*=UTF-8\'\'{encoded_filename}'
     }
-    return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
-    # return Response(
-    #     data["Body"].read(),
-    #     media_type = 'application/pdf',
-    #     headers = headers            
-    # )
+    # return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
+    return Response(
+        data["Body"].read(),
+        media_type = 'application/pdf',
+        headers = headers            
+    )
