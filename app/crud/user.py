@@ -10,7 +10,7 @@ import jwt
 from core import settings
 
 
-async def create_user(user:UserCreate, session: Session):
+def create_user(user:UserCreate, session: Session):
     
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
@@ -25,7 +25,7 @@ async def create_user(user:UserCreate, session: Session):
 
     return { "message":"user created successfully" }
 
-async def login_user(auth: UserLogin, session:Session):
+def login_user(auth: UserLogin, session:Session):
     user = session.query(User).filter(User.email == auth.email).first()
     if user is None:
         raise HTTPException(status_code=400, detail="Incorrect Email")
@@ -57,8 +57,8 @@ async def change_password(user:ChangePassword, session:Session):
         raise HTTPException(status_code=400, detail="User not found.")
 
     
-    if not verify_password(user.old_password, update_user.password):
-        raise HTTPException(status_code=400, detail="Incorrect Password.")
+    # if not verify_password(user.old_password, update_user.password):
+    #     raise HTTPException(status_code=400, detail="Incorrect Password.")
 
     
     encrypted_password = get_hashed_password(user.new_password)

@@ -13,10 +13,13 @@ from fastapi.responses import JSONResponse
     "/register",
     tags=["User controller"]
 )
-async def register(user: UserCreate, session: Session = Depends(get_session) ):
+def register(user: UserCreate, session: Session = Depends(get_session) ):
      
-    create_info = await create_user(user, session)
-    return  JSONResponse(content= create_info ,status_code= 200)
+    create_info = create_user(user, session)
+    auth_user = UserLogin(email =user.email, password= user.password )
+    token_info = login_user(auth_user, session)
+    
+    return  JSONResponse(content= token_info ,status_code= 200)
 
 @router.post(
     "/login",
@@ -24,7 +27,8 @@ async def register(user: UserCreate, session: Session = Depends(get_session) ):
     status_code= 200
 )
 async def login(user:UserLogin, session: Session = Depends(get_session)):
-    token_info= await login_user(user, session)
+    token_info= login_user(user, session)
+
     return  JSONResponse(content= token_info,status_code= 200)
     
 
