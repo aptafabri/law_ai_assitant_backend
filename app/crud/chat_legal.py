@@ -16,6 +16,8 @@ import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
 from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
+from core.config import settings
+from core.prompt import summary_legal_session_prompt_template
 from langsmith import traceable
 # tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
@@ -276,17 +278,10 @@ def read_pdf(file_contents):
     run_type= "llm",
     name = "Generate question with legal pdf and question",
     project_name= "adaletgpt"
-)
+) 
 def generate_question(pdf_contents, question):
-    llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
-    # Define prompt
-    prompt_template = """
-        Given the following legal description context and question, rephrase the follow up question to be a standalone question.\n
-        Legal Description Context: {pdf_contents}\n
-        Folllow Up question: {question}\n
-        Standalone question:
-    """
-    prompt = PromptTemplate.from_template(prompt_template)
+    llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
+    prompt = PromptTemplate.from_template(summary_legal_session_prompt_template)
 
     # Define LLM chain
     llm_chain = LLMChain(llm=llm, prompt=prompt)
