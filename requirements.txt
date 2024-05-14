@@ -22,4 +22,6 @@ langchain-postgres
 boto3
 pytesseract
 pdf2image
+fastapi-mail
 python-multipart
+secure-smtplib

@@ -13,9 +13,21 @@ class UserLogin(BaseModel):
 
 class ChangePassword(BaseModel):
     email:EmailStr
+    old_pasword: str
+    new_password:str
+
+
+class ResetPasswordRequest(BaseModel):
+    email:EmailStr
     new_password:str
 
 class UserInfo(BaseModel):
     email:EmailStr
     user_name:str
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class VerificationCodeRequest(BaseModel):
+    email:str
+    verify_code:str

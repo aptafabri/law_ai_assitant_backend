@@ -19,9 +19,9 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
-INDEX_NAME = "adaletgpt-events-data"
+INDEX_NAME = "adaletgpt-legalcase-data"
 DATASET = "../../dataset/"
-MIN_FILE_SIZE = 40 * 1024  # 5KB in bytes
+MIN_FILE_SIZE = 40 * 1024  # 40KB in bytes
 
 
 def get_subfolders(root_folder):
@@ -59,6 +59,14 @@ def embedding_doc(file_path):
         PineconeLangChain.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
         print("Inserting doc:", file_path)
         os.remove(file_path)
+    else:
+        loader = TextLoader(file_path, encoding='utf-8')
+        raw_documents = loader.load()
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+        PineconeLangChain.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
+        print("Inserting doc:", file_path)
+        os.remove(file_path)
+
 
 def summarize_legal_case(file_path):
     prompt_template = """Write a concise summary of the following legal case in turkish:

@@ -5,11 +5,12 @@ from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo
 from fastapi import Depends, Response, HTTPException
 from fastapi.responses import JSONResponse
 from core.utils import get_hashed_password, verify_password, create_access_token, create_refresh_token
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import jwt
 from core import settings
-
-
+import secrets
+from crud.notify import send_reset_password_mail
+import asyncio
 def create_user(user:UserCreate, session: Session):
     
     existing_user = session.query(User).filter_by(email=user.email).first()
@@ -50,18 +51,18 @@ def login_user(auth: UserLogin, session:Session):
     return token_info
    
 
-async def change_password(user:ChangePassword, session:Session):
+async def change_password(req:ChangePassword, session:Session):
     
-    update_user = session.query(User).filter(User.email == user.email).first()
-    if create_user is None:
+    update_user = session.query(User).filter(User.email == req.email).first()
+    if update_user is None:
         raise HTTPException(status_code=400, detail="User not found.")
 
     
-    # if not verify_password(user.old_password, update_user.password):
-    #     raise HTTPException(status_code=400, detail="Incorrect Password.")
+    if not verify_password(req.old_password, update_user.password):
+        raise HTTPException(status_code=400, detail="Incorrect Password.")
 
     
-    encrypted_password = get_hashed_password(user.new_password)
+    encrypted_password = get_hashed_password(req.new_password)
     update_user.password = encrypted_password
     session.commit()
     
@@ -115,5 +116,51 @@ def get_user_info(token:str, session: Session):
     except Exception as e:
         print("An error occurred while querying the database:", str(e))
         return []
+
+async def generate_verification_code():
+    return secrets.token_hex(3)
+
+
+async def reset_password_request(email:str, session: Session):
+    update_user = session.query(User).filter(User.email == email).first()
+    if update_user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
+    verify_code = await generate_verification_code()
+    print(verify_code, type(verify_code))
+    update_user.verify_code = verify_code
+    update_user.verify_code_expiry = datetime.now() + timedelta(minutes= 5)
+    session.commit()
+
+    await send_reset_password_mail(recipient_email= update_user.email, user_name=update_user.username, verify_code=verify_code)
+
+    return {"message":"Password reset code sent."}
+
+def verify_forgot_code(email: str, code: str, session: Session):
+    user = session.query(User).filter(User.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
     
+    if user.verify_code == code:
+        if user.verify_code_expiry > datetime.now():
+            user.reset_verified = True
+            session.commit()
+            return True
+    return False
+
+def reset_password(email:str, new_password:str,  session:Session):
     
+    user = session.query(User).filter(User.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=400, detail="User not found.")
+    if user.reset_verified != True:
+        raise HTTPException(status_code=400, detail="Invalid request")
+
+    encrypted_password = get_hashed_password(new_password)
+    user.password = encrypted_password
+    user.verify_code = None
+    user.verify_code_expiry = None
+    user.reset_verified = False
+    session.commit()
+    
+    return {"message": "Password reseted successfully"}
+

@@ -1,8 +1,8 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
-from crud.user import create_user, login_user, change_password, logout_user, get_user_info
-from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo
+from crud.user import create_user, login_user, change_password,reset_password, logout_user, get_user_info, reset_password_request, verify_forgot_code
+from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo, ResetPasswordRequest, ForgotPasswordRequest, VerificationCodeRequest
 from core.auth_bearer import JWTBearer
 from models import User
 from database.session import get_session
@@ -34,8 +34,8 @@ async def login(user:UserLogin, session: Session = Depends(get_session)):
 
 @router.get('/getusers',  tags=["User controller"], status_code=200)
 async def getusers( dependencies=Depends(JWTBearer()),session: Session = Depends(get_session)):
-    user = session.query(User).all()
-    return user
+    users = session.query(User).all()
+    return users
 
 
 @router.post('/change-password',  tags=["User controller"], status_code=200)
@@ -63,4 +63,25 @@ async def refresh(dependencies=Depends(JWTBearer())):
         },
         status_code= 200
     )
-   
+
+@router.post("/request_password_reset", tags= ["User controller"] )
+async def request_password_reset(req: ForgotPasswordRequest, session: Session = Depends(get_session)):
+    email_status = await reset_password_request(email= req.email, session=session)
+    return JSONResponse(
+        content= email_status,
+        status_code= 200
+    )
+
+@router.post("/verify-code", tags= ["User controller"] )
+def verify_reset_code(req: VerificationCodeRequest, session:Session = Depends(get_session)):
+    if not verify_forgot_code(req.email, req.verify_code, session= session):
+        raise HTTPException(status_code=400, detail="Invalid request")
+    
+    return {"message": "Verification code is valid"}
+@router.post("/reset-password", tags= ["User controller"])
+def password_reset(req:ResetPasswordRequest, session: Session = Depends(get_session)):
+    reset_info = reset_password(req.email, req.new_password, session = session)
+    return JSONResponse(
+        content= reset_info,
+        status_code= 200
+    )

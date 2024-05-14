@@ -11,9 +11,8 @@ class Settings(BaseSettings):
     POSTGRES_CHAT_HISTORY_URI: str = "postgresql://postgres:adaletgpt0318@database-1.cz0c0omykjh2.eu-central-1.rds.amazonaws.com/adaletgpt"
     OPENAI_API_KEY: str = "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"
     PINECONE_API_KEY: str = "c214371b-cf98-4c07-8afc-95a3623a518d"
-    INDEX_NAME: str = "adaletgpt-large-embedding"
-    LEGAL_CASE_INDEX_NAME : str = "adaletgpt-events-data"
-    LEGAL_CASE_SUMMARIZE_INDEX_NAME: str = "adaletgpt-summarized-event"
+    INDEX_NAME: str = "adaletgpt-ceza-embeddings"
+    LEGAL_CASE_INDEX_NAME : str = "adaletgpt-legalcase-data"
     ACCESS_TOKEN_EXPIRE_MINUTES : int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES :int = 60*24
     ALGORITHM :str = "HS256"
@@ -23,6 +22,12 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID : str = 'AKIA5FTZBZ7ZO36ZRH6Z'
     AWS_SECRET_KEY : str = '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'
     AWS_BUCKET_NAME : str = 'adaletgpt'
+    MAIL_USERNAME: str="auth@adaletgpt.com"
+    MAIL_PASSWORD : str ="fzdi cczq oiwj ayuy"
+    MAIL_FROM:str="auth@adaletgpt.com"
+    MAIL_PORT:int =587
+    MAIL_SERVER: str="smtp.gmail.com"
+    MAIL_FROM_NAME : str ="Liu Chin Lung"
     class Config:
         env_file = ".env"
 
