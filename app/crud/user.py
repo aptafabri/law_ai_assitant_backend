@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from core import settings
 import secrets
-from crud.notify import send_reset_password_mail
+# from crud.notify import send_reset_password_mail
 import asyncio
 def create_user(user:UserCreate, session: Session):
     
@@ -131,7 +131,7 @@ async def reset_password_request(email:str, session: Session):
     update_user.verify_code_expiry = datetime.now() + timedelta(minutes= 5)
     session.commit()
 
-    await send_reset_password_mail(recipient_email= update_user.email, user_name=update_user.username, verify_code=verify_code)
+    # await send_reset_password_mail(recipient_email= update_user.email, user_name=update_user.username, verify_code=verify_code)
 
     return {"message":"Password reset code sent."}
 
