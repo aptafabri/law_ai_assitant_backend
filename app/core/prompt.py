@@ -47,20 +47,3 @@ legal_chat_qa_prompt_template = """"
 summary_legal_conversation_prompt_template = """Write a summary of the following conversation in turkish to find relevant legal cases.
     Chat History: {conversation}\n
     SUMMARY:"""
-
-summary_session_prompt_template = """
-        I want you to make concise summary using following conversation.
-        You must write concise summary as title format with a 5-8 words in turkish
-        CONVERSATION:
-        ============
-        Human:{question}
-        AI:{answer}
-        ============
-        CONCISE Summary:
-    """
-summary_legal_session_prompt_template = """
-        Given the following legal description context and question, rephrase the follow up question to be a standalone question.\n
-        Legal Description Context: {pdf_contents}\n
-        Folllow Up question: {question}\n
-        Standalone question:
-    """
