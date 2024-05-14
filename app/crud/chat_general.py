@@ -11,6 +11,7 @@ from datetime import datetime
 from langchain_postgres import PostgresChatMessageHistory
 import psycopg
 from core.config import settings
+from core.prompt import summary_session_prompt_template
 
  
 
@@ -109,19 +110,8 @@ def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)
         return []
 
 def summarize_session( question:str, answer:str):
-    llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
-    # Define prompt
-    prompt_template = """
-        I want you to make concise summary using following conversation.
-        You must write concise summary as title format with a 5-8 in turkish
-        CONVERSATION:
-        ============
-        Human:{question}
-        AI:{answer}
-        ============
-        CONCISE Summary:
-    """
-    prompt = PromptTemplate.from_template(prompt_template)
+    llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
+    prompt = PromptTemplate.from_template(summary_session_prompt_template)
 
     # Define LLM chain
     llm_chain = LLMChain(llm=llm, prompt=prompt)
