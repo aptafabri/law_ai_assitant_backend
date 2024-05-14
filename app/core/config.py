@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     LEGAL_CASE_INDEX_NAME : str = "adaletgpt-legalcase-data"
     ACCESS_TOKEN_EXPIRE_MINUTES : int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES :int = 60*24
+    LLM_MODEL_NAME:str = "gpt-4-1106-preview"
     ALGORITHM :str = "HS256"
     JWT_SECRET_KEY: str = "narscbjim@$@&^@&%^&RFghgjvbdsha"
     JWT_REFRESH_SECRET_KEY :str = "13ugfdfgh@#$%^@&jkl45678902"
