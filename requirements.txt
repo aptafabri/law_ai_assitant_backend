@@ -2,7 +2,7 @@ gunicorn
 uvicorn
 fastapi
 python-dotenv
-langchain
+langchain == 0.1.16
 langchain_openai
 pinecone-client
 pydantic_settings
