@@ -9,8 +9,8 @@ from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain_openai import ChatOpenAI
-from langchain_community.vectorstores import Pinecone as PineconeLangChain
-from pinecone import Pinecone
+from langchain_pinecone import PineconeVectorStore
+from core.config import settings
 import os
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -18,12 +18,17 @@ os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
-pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 INDEX_NAME = "adaletgpt-legalcase-data"
 DATASET = "../../dataset/"
 MIN_FILE_SIZE = 40 * 1024  # 40KB in bytes
 
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
+pc = PineconeVectorStore(
+    pinecone_api_key=settings.PINECONE_API_KEY,
+    embedding=embeddings,
+    index_name=INDEX_NAME,
+)
 def get_subfolders(root_folder):
     for item in os.listdir(root_folder):
         item_path = os.path.join(root_folder, item)
@@ -56,14 +61,14 @@ def embedding_doc(file_path):
         loader = TextLoader(file_path, encoding='utf-8')
         raw_documents = loader.load()
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        PineconeLangChain.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
+        PineconeVectorStore.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
         print("Inserting doc:", file_path)
         os.remove(file_path)
     else:
         loader = TextLoader(file_path, encoding='utf-8')
         raw_documents = loader.load()
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        PineconeLangChain.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
+        PineconeVectorStore.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
         print("Inserting doc:", file_path)
         os.remove(file_path)
 

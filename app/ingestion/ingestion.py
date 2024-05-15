@@ -5,15 +5,18 @@ from langchain_community.document_loaders.pdf import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Pinecone as PineconeLangChain
-from pinecone import Pinecone
-
-# Initialize Pinecone
-pc= Pinecone(
-    api_key=os.environ.get("PINECONE_API_KEY")
-)
+from langchain_pinecone import PineconeVectorStore
+from core.config import settings
 
 INDEX_NAME = os.environ.get("INDEX_NAME")
 DATASET = "../../dataset/"
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+pc = PineconeVectorStore(
+    pinecone_api_key=settings.PINECONE_API_KEY,
+    embedding=embeddings,
+    index_name=INDEX_NAME,
+)
 
 def load_pdfs_recursively(directory):
     """
@@ -39,10 +42,9 @@ def ingest_docs():
         documents.extend(loader.load())
     splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     print(f"Going to add {len(chunks)} to Pinecone")
     
-    PineconeLangChain.from_documents(chunks, embeddings, index_name=INDEX_NAME)
+    PineconeVectorStore.from_documents(documents, embeddings, index_name=INDEX_NAME)
     
     print("****Loading to vectorstore done ***")
 
