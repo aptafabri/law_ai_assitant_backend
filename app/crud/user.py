@@ -86,7 +86,7 @@ async def logout_user(token:str, session:Session):
         This loop iterates through each token record and checks if its creation date is older than one day. If so, it appends the corresponding user ID to the info list.
     """
     if info:
-        existing_token = session.query(TokenTable).where(TokenTable.user_id.in_(info)).delete()
+        session.query(TokenTable).where(TokenTable.user_id.in_(info)).delete()
         session.commit()
         
     existing_token = session.query(TokenTable).filter(TokenTable.user_id == user_id, TokenTable.access_token==token).first()
@@ -133,6 +133,12 @@ def reset_password_request(email:str, session: Session):
 
     send_reset_password_mail(recipient_email= update_user.email, user_name=update_user.username, verify_code=verify_code)
     access_token = create_access_token(update_user.id)
+
+    token_db = TokenTable(user_id=update_user.id,  access_token=access_token,  refresh_token=access_token, status=True)
+    session.add(token_db)
+    session.commit()
+    session.refresh(token_db)
+
     return {
         "message":"Password reset code sent.",
         "access_token":access_token    
@@ -165,6 +171,11 @@ def reset_password(token: str, email:str, new_password:str,  session:Session):
     user.verify_code_expiry = None
     user.reset_verified = False
     session.commit()
+    # Delete access_token
+    session.query(TokenTable).where(TokenTable.user_id ==user_id, TokenTable.access_token == token).delete()
+    session.commit()
+
+
     
     return {"message": "Password reseted successfully"}
 
