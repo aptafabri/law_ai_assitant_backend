@@ -28,3 +28,4 @@ pytesseract
 pdf2image
 fastapi-mail==1.4.1
 python-multipart
+sendgrid

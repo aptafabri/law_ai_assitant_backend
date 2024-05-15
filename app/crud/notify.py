@@ -1,61 +1,38 @@
-
 import os
-from dotenv import load_dotenv
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Attachment, To
 from core.config import settings
-import asyncio
-import smtplib as smtp
 
-SENDER_GMAIL = settings.MAIL_FROM
-SENDER_GMAIL_PASSWORD = settings.MAIL_PASSWORD
-dirname = os.path.dirname(__file__)
-templates_folder = os.path.join(dirname, '../email_template')
+def send_reset_password_mail(recipient_email,user_name, verify_code):
+    
+    # Get the parent directory of the current script
+    parent_dir = os.path.dirname(os.path.abspath(__file__))
+    email_template_dir = os.path.join(parent_dir, '..', 'email_template')
 
-print(SENDER_GMAIL, SENDER_GMAIL_PASSWORD)
-# conf = ConnectionConfig(
-#     MAIL_USERNAME = SENDER_GMAIL,
-#     MAIL_PASSWORD = SENDER_GMAIL_PASSWORD,
-#     MAIL_FROM = SENDER_GMAIL,
-#     MAIL_PORT = 587,
-#     MAIL_SERVER = "smtp.gmail.com",
-#     MAIL_STARTTLS = True,
-#     MAIL_SSL_TLS = False,
-#     USE_CREDENTIALS = True,
-#     VALIDATE_CERTS = False,
-#     TEMPLATE_FOLDER = templates_folder,
-# )
+    # Construct the relative path to the HTML file
+    html_file_path = os.path.join(email_template_dir, 'reset_password_email.html')
 
-conf = ConnectionConfig(
-    MAIL_USERNAME =SENDER_GMAIL,
-    MAIL_PASSWORD =  SENDER_GMAIL_PASSWORD,
-    MAIL_FROM = SENDER_GMAIL,
-    MAIL_PORT = 465,
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = False,
-    MAIL_SSL_TLS = True,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True,
-    TEMPLATE_FOLDER= templates_folder
-)
+    # Open the HTML file
+    with open(html_file_path, 'r') as file:
+        html_content = file.read()
+    added_user_name = html_content.replace("user_name", user_name)
+    final_html_content = added_user_name.replace("verify_code",verify_code)
+    message = Mail(
+                from_email='hello@multilyser.com',
+                to_emails=[To(recipient_email)],
+                subject='Forgot Your Password',
+                is_multiple=True,
+                html_content=final_html_content)
 
-
-async def send_reset_password_mail(recipient_email, user_name, verify_code):
-    template_body = {
-        "user_name": user_name,
-        "verify_code": verify_code
-    }
-    print('start')
     try:
-        message = MessageSchema(
-            subject="FastAPI forgot password application reset password",
-            recipients=[recipient_email],
-            template_body=template_body,
-            subtype=MessageType.html
-        )
-        print("message",message)
-        print(conf)
-        fm = FastMail(conf)
-        print(fm)
-        await fm.send_message(message, template_name="reset_password_email.html")
+        sendgrid_api_key = settings.SENDGRID_API_KEY
+        sg = SendGridAPIClient(api_key = sendgrid_api_key)
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+ 
+        return response.status_code
     except Exception as e:
-       print("Error:", e)
+                print(e)    
+

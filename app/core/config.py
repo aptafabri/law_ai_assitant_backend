@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID : str = 'AKIA5FTZBZ7ZO36ZRH6Z'
     AWS_SECRET_KEY : str = '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'
     AWS_BUCKET_NAME : str = 'adaletgpt'
+    SENDGRID_API_KEY :str = ""
     MAIL_USERNAME: str="auth@adaletgpt.com"
     MAIL_PASSWORD : str ="fzdi cczq oiwj ayuy"
     MAIL_FROM:str="auth@adaletgpt.com"
