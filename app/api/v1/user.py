@@ -74,14 +74,14 @@ def request_password_reset(req: ForgotPasswordRequest, session: Session = Depend
 
 @router.post("/verify-code", tags= ["User controller"] )
 def verify_reset_code(req: VerificationCodeRequest, dependencies = Depends(JWTBearer()), session:Session = Depends(get_session)):
-    if not verify_forgot_code(dependencies,req.email, req.verify_code, session= session):
+    if not verify_forgot_code(dependencies, req.verify_code, session= session):
         raise HTTPException(status_code=400, detail="Invalid request")
     
     return {"message": "Verification code is valid"}
 @router.post("/reset-password", tags= ["User controller"])
 def password_reset(req:ResetPasswordRequest, dependencies = Depends(JWTBearer()), session: Session = Depends(get_session)):
     
-    reset_info = reset_password(token= dependencies, email=req.email, new_password=req.new_password, session = session)
+    reset_info = reset_password(token= dependencies,new_password=req.new_password, session = session)
     return JSONResponse(
         content= reset_info,
         status_code= 200

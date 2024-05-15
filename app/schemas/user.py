@@ -18,7 +18,6 @@ class ChangePassword(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    email:EmailStr
     new_password:str
 
 class UserInfo(BaseModel):
@@ -29,5 +28,4 @@ class ForgotPasswordRequest(BaseModel):
     email: str
 
 class VerificationCodeRequest(BaseModel):
-    email:str
     verify_code:str

@@ -144,9 +144,9 @@ def reset_password_request(email:str, session: Session):
         "access_token":access_token    
     }
 
-def verify_forgot_code(token:str, email: str, code: str, session: Session):
+def verify_forgot_code(token:str, code: str, session: Session):
     user_id = get_userid_by_token(token)
-    user = session.query(User).filter(User.id == user_id, User.email == email).first()
+    user = session.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=400, detail="User not found.")
     
@@ -157,9 +157,9 @@ def verify_forgot_code(token:str, email: str, code: str, session: Session):
             return True
     return False
 
-def reset_password(token: str, email:str, new_password:str,  session:Session):
+def reset_password(token: str, new_password:str,  session:Session):
     user_id = get_userid_by_token(token)
-    user = session.query(User).filter(User.id ==user_id,User.email == email).first()
+    user = session.query(User).filter(User.id ==user_id).first()
     if user is None:
         raise HTTPException(status_code=400, detail="User not found.")
     if user.reset_verified != True:
@@ -175,7 +175,5 @@ def reset_password(token: str, email:str, new_password:str,  session:Session):
     session.query(TokenTable).where(TokenTable.user_id ==user_id, TokenTable.access_token == token).delete()
     session.commit()
 
-
-    
     return {"message": "Password reseted successfully"}
 
