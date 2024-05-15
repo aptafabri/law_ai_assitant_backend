@@ -15,6 +15,7 @@ def send_reset_password_mail(recipient_email,user_name, verify_code):
     # Open the HTML file
     with open(html_file_path, 'r') as file:
         html_content = file.read()
+        
     added_user_name = html_content.replace("user_name", user_name)
     final_html_content = added_user_name.replace("verify_code",verify_code)
     message = Mail(

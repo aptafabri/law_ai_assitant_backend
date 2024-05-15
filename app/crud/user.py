@@ -118,7 +118,7 @@ def get_user_info(token:str, session: Session):
         print("An error occurred while querying the database:", str(e))
         return []
 
-async def generate_verification_code():
+def generate_verification_code():
     return secrets.token_hex(3)
 
 def reset_password_request(email:str, session: Session):

@@ -65,8 +65,8 @@ async def refresh(dependencies=Depends(JWTBearer())):
     )
 
 @router.post("/request_password_reset", tags= ["User controller"] )
-async def request_password_reset(req: ForgotPasswordRequest, session: Session = Depends(get_session)):
-    email_status = await reset_password_request(email= req.email, session=session)
+def request_password_reset(req: ForgotPasswordRequest, session: Session = Depends(get_session)):
+    email_status = reset_password_request(email= req.email, session=session)
     return JSONResponse(
         content= email_status,
         status_code= 200
