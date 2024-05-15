@@ -11,6 +11,7 @@ from core import settings
 import secrets
 from crud.notify import send_reset_password_mail
 import asyncio
+from core.utils import create_access_token
 def create_user(user:UserCreate, session: Session):
     
     existing_user = session.query(User).filter_by(email=user.email).first()
@@ -120,23 +121,26 @@ def get_user_info(token:str, session: Session):
 async def generate_verification_code():
     return secrets.token_hex(3)
 
-
-async def reset_password_request(email:str, session: Session):
+def reset_password_request(email:str, session: Session):
     update_user = session.query(User).filter(User.email == email).first()
     if update_user is None:
         raise HTTPException(status_code=400, detail="User not found.")
-    verify_code = await generate_verification_code()
+    verify_code = generate_verification_code()
     print(verify_code, type(verify_code))
     update_user.verify_code = verify_code
     update_user.verify_code_expiry = datetime.now() + timedelta(minutes= 5)
     session.commit()
 
     send_reset_password_mail(recipient_email= update_user.email, user_name=update_user.username, verify_code=verify_code)
+    access_token = create_access_token(update_user.id)
+    return {
+        "message":"Password reset code sent.",
+        "access_token":access_token    
+    }
 
-    return {"message":"Password reset code sent."}
-
-def verify_forgot_code(email: str, code: str, session: Session):
-    user = session.query(User).filter(User.email == email).first()
+def verify_forgot_code(token:str, email: str, code: str, session: Session):
+    user_id = get_userid_by_token(token)
+    user = session.query(User).filter(User.id == user_id, User.email == email).first()
     if user is None:
         raise HTTPException(status_code=400, detail="User not found.")
     
@@ -147,9 +151,9 @@ def verify_forgot_code(email: str, code: str, session: Session):
             return True
     return False
 
-def reset_password(email:str, new_password:str,  session:Session):
-    
-    user = session.query(User).filter(User.email == email).first()
+def reset_password(token: str, email:str, new_password:str,  session:Session):
+    user_id = get_userid_by_token(token)
+    user = session.query(User).filter(User.id ==user_id,User.email == email).first()
     if user is None:
         raise HTTPException(status_code=400, detail="User not found.")
     if user.reset_verified != True:
