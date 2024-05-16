@@ -15,8 +15,7 @@ from core.prompt import summary_session_prompt_template
 
  
 
-def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
-    
+def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:    
     session_summary_array : List[SessionSummary] = []
     results = session.query(SessionSummary)\
         .filter(SessionSummary.user_id == user_id)\
@@ -24,9 +23,7 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     session_summary_array = results
     return session_summary_array
 
-                 
 def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
-    
     try:
         results = session.query(ChatHistory.content, ChatHistory.role) \
             .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
@@ -44,12 +41,10 @@ def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->L
 
 def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
     try:
-        
         latest_session_record_subquery = session.query(SessionSummary.session_id, SessionSummary.favourite_date)\
         .filter(SessionSummary.user_id == user_id)\
         .order_by(SessionSummary.favourite_date.desc())\
         .subquery()
-
         latest_session_record = session.query(
             latest_session_record_subquery.c.session_id,
             latest_session_record_subquery.c.favourite_date
@@ -62,11 +57,9 @@ def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
         else:
             return []
     except SQLAlchemyError as e:
-        # Handle SQLAlchemy errors
         print(f"SQLAlchemy error occurred: {e}")
         return []
     except Exception as e:
-        # Handle other exceptions
         print(f"An error occurred: {e}")
         return []
     
@@ -91,57 +84,49 @@ def add_message(message:ChatAdd, session:Session):
 def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
     
     try:
-        
         session_messages = session.query(ChatHistory.id) \
             .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
             .all()
-        
-        message_ids =  [msg_id for (msg_id,) in session_messages]
-        
+        message_ids =  [msg_id for (msg_id,) in session_messages]     
         session.query(ChatHistory)\
             .filter(ChatHistory.id.in_(message_ids))\
             .delete(synchronize_session=False)
-        session.commit()
-                        
+        session.commit()                
         return {"message":"Delted session successfully."} 
-
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
-
+    
 def summarize_session( question:str, answer:str):
     llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
-
-    # Define LLM chain
     llm_chain = LLMChain(llm=llm, prompt=prompt)
-
     response = llm_chain.invoke({
         "question":question,
         "answer":answer
     })
-
     return response['text']
 
-def add_session_summary(session_id: str, user_id: int,summary:str, session:Session):
-    
-    
+def add_session_summary(session_id: str, user_id: int,summary:str, session:Session):    
     chat_session_db = SessionSummary(user_id=user_id,session_id =session_id, summary= summary)
     session.add(chat_session_db)
     session.commit()
     session.refresh(chat_session_db)
-    
     return {
         "session_id":session_id,
         "summary": summary
     }
 
 def remove_session_summary(session_id:str, session:Session):
-    
-    existing_session_summary = session.query(SessionSummary)\
-        .filter(SessionSummary.session_id == session_id)\
-        .delete()
-    session.commit()
+    try:
+        existing_session_summary = session.query(SessionSummary)\
+            .filter(SessionSummary.session_id == session_id)\
+            .delete()
+        session.commit()
+        return {"success": True}
+    except SQLAlchemyError as e:
+        return {"success": False}
+
 
 def session_exist(session_id:str, session: Session):
     existing_session = session.query(SessionSummary)\
@@ -156,16 +141,11 @@ def upvote_chat_session(session_id:str, user_id:int, session:Session):
     try:
         update_session = session.query(SessionSummary)\
             .filter(SessionSummary.session_id == session_id, SessionSummary.user_id == user_id).first()
-
         update_session.is_favourite = True
         update_session.favourite_date =  datetime.now()
-
         session.commit()
-
         return {"success": True}
-    
     except SQLAlchemyError as e:
-
         return {"success": False}
 
 def devote_chat_session(session_id:str, user_id:int, session:Session):

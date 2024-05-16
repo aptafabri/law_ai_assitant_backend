@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     ALGORITHM :str = "HS256"
     JWT_SECRET_KEY: str = "narscbjim@$@&^@&%^&RFghgjvbdsha"
     JWT_REFRESH_SECRET_KEY :str = "13ugfdfgh@#$%^@&jkl45678902"
-    COHERE_API_KEY : str = 'gEQh9HeL9vZqYxJwVZBPbEFOlUN5wOovotuiwcKC'
+    COHERE_API_KEY : str = 'ntWFpAliup6EdbZH6mt7xJHnYKvgQviJXywzOtTM'
     AWS_ACCESS_KEY_ID : str = 'AKIA5FTZBZ7ZO36ZRH6Z'
     AWS_SECRET_KEY : str = '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'
     AWS_BUCKET_NAME : str = 'adaletgpt'
