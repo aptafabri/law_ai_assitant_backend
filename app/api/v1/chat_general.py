@@ -1,9 +1,18 @@
 from fastapi import APIRouter, Depends, Request, Body
 from fastapi.responses import JSONResponse
-from typing import  List
+from typing import List
 from sqlalchemy.orm import Session
 from database.session import get_session
-from crud.chat_general import get_sessions_by_userid, get_messages_by_session_id, remove_session_summary, remove_messages_by_session_id, get_latest_messages_by_userid, upvote_chat_session, devote_chat_session, init_postgres_chat_memory
+from crud.chat_general import (
+    get_sessions_by_userid,
+    get_messages_by_session_id,
+    remove_session_summary,
+    remove_messages_by_session_id,
+    get_latest_messages_by_userid,
+    upvote_chat_session,
+    devote_chat_session,
+    init_postgres_chat_memory,
+)
 from crud.user import get_userid_by_token
 from schemas.message import SessionSummary, Message, SessionSummaryRequest
 from core.auth_bearer import JWTBearer
@@ -11,47 +20,95 @@ from core.config import settings
 
 router = APIRouter()
 
-@router.post("/get-sessions-by-userid", tags= ["ChatController"], response_model= List[SessionSummary], status_code=200)
-def get_sessions(dependencies=Depends(JWTBearer()), session:Session = Depends(get_session)):
+
+@router.post(
+    "/get-sessions-by-userid",
+    tags=["ChatController"],
+    response_model=List[SessionSummary],
+    status_code=200,
+)
+def get_sessions(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
     user_id = get_userid_by_token(dependencies)
-    
+
     sessions = get_sessions_by_userid(user_id, session)
     return sessions
 
-@router.post("/get-chathistory-by-sessionid", tags=['ChatController'], response_model=List[Message], status_code=200)
-def get_chat_history(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+
+@router.post(
+    "/get-chathistory-by-sessionid",
+    tags=["ChatController"],
+    response_model=List[Message],
+    status_code=200,
+)
+def get_chat_history(
+    body: dict = Body(),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
     session_id = body["session_id"]
-    user_id =  get_userid_by_token(dependencies)
-    chat_history = get_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
+    user_id = get_userid_by_token(dependencies)
+    chat_history = get_messages_by_session_id(
+        user_id=user_id, session_id=session_id, session=session
+    )
     return chat_history
 
-@router.post("/remove-session", tags=['ChatController'], status_code=200)
-async def delete_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+
+@router.post("/remove-session", tags=["ChatController"], status_code=200)
+async def delete_session(
+    body: dict = Body(),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
-    remove_session_summary(session_id= session_id, session= session)
-    remove_info = remove_messages_by_session_id(user_id= user_id,session_id=session_id, session=session)
-    session_memory = init_postgres_chat_memory(session_id= session_id)
+    remove_session_summary(session_id=session_id, session=session)
+    remove_info = remove_messages_by_session_id(
+        user_id=user_id, session_id=session_id, session=session
+    )
+    session_memory = init_postgres_chat_memory(session_id=session_id)
     session_memory.clear()
-    return JSONResponse(content= remove_info, status_code=200)
+    return JSONResponse(content=remove_info, status_code=200)
 
-@router.post("/get-latest-session", tags=['ChatController'], response_model=List[Message], status_code=200)
-def get_latest_session(dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+
+@router.post(
+    "/get-latest-session",
+    tags=["ChatController"],
+    response_model=List[Message],
+    status_code=200,
+)
+def get_latest_session(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
     user_id = get_userid_by_token(dependencies)
     latest_session_messages = get_latest_messages_by_userid(user_id, session)
-    
     return latest_session_messages
 
-@router.post("/upvote-chat-session", tags=['ChatController'], status_code=200)
-def upvote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+
+@router.post("/upvote-chat-session", tags=["ChatController"], status_code=200)
+def upvote_session(
+    body: dict = Body(),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
-    updated_status = upvote_chat_session(session_id= session_id, user_id= user_id, session= session)
-    return JSONResponse(content= updated_status, status_code=200)
- 
-@router.post("/devote-chat-session", tags=['ChatController'], status_code=200)
-def devote_session(body:dict = Body(), dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)):
+    updated_status = upvote_chat_session(
+        session_id=session_id, user_id=user_id, session=session
+    )
+    return JSONResponse(content=updated_status, status_code=200)
+
+
+@router.post("/devote-chat-session", tags=["ChatController"], status_code=200)
+def devote_session(
+    body: dict = Body(),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
-    updated_status = devote_chat_session(session_id= session_id, user_id= user_id, session= session)
-    return JSONResponse(content= updated_status, status_code=200)
+    updated_status = devote_chat_session(
+        session_id=session_id, user_id=user_id, session=session
+    )
+    return JSONResponse(content=updated_status, status_code=200)

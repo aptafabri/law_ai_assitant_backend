@@ -19,6 +19,7 @@ from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
 from core.config import settings
 from core.prompt import summary_legal_session_prompt_template
 from langsmith import traceable
+
 # tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
@@ -28,53 +29,87 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 
-s3_client = boto3.client(service_name='s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                                      aws_secret_access_key=settings.AWS_SECRET_KEY)
+s3_client = boto3.client(
+    service_name="s3",
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_KEY,
+)
+
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
-    
-    session_summary_array : List[SessionSummary] = []
-    results = session.query(LegalSessionSummary)\
-        .filter(LegalSessionSummary.user_id == user_id)\
-        .order_by(LegalSessionSummary.favourite_date.desc()).all()
+
+    session_summary_array: List[SessionSummary] = []
+    results = (
+        session.query(LegalSessionSummary)
+        .filter(LegalSessionSummary.user_id == user_id)
+        .order_by(LegalSessionSummary.favourite_date.desc())
+        .all()
+    )
     session_summary_array = results
     return session_summary_array
 
-                 
-def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[LegalMessage]:
-    
+
+def get_messages_by_session_id(
+    user_id: int, session_id: str, session: Session
+) -> List[LegalMessage]:
+
     try:
-        results = session.query(LegalChatHistory.content, LegalChatHistory.role, LegalChatHistory.legal_attached, LegalChatHistory.legal_file_name, LegalChatHistory.legal_s3_key) \
-            .filter(LegalChatHistory.session_id == session_id, LegalChatHistory.user_id == user_id) \
-            .order_by(LegalChatHistory.created_date.asc()).order_by(LegalChatHistory.id.asc()).all()
-        
-        message_array :List[LegalMessage] = []
+        results = (
+            session.query(
+                LegalChatHistory.content,
+                LegalChatHistory.role,
+                LegalChatHistory.legal_attached,
+                LegalChatHistory.legal_file_name,
+                LegalChatHistory.legal_s3_key,
+            )
+            .filter(
+                LegalChatHistory.session_id == session_id,
+                LegalChatHistory.user_id == user_id,
+            )
+            .order_by(LegalChatHistory.created_date.asc())
+            .order_by(LegalChatHistory.id.asc())
+            .all()
+        )
+
+        message_array: List[LegalMessage] = []
         for result in results:
-            message = LegalMessage(content=result[0], role=result[1], legal_attached= result[2], legal_file_name = result[3], legal_s3_key=result[4])
+            message = LegalMessage(
+                content=result[0],
+                role=result[1],
+                legal_attached=result[2],
+                legal_file_name=result[3],
+                legal_s3_key=result[4],
+            )
             message_array.append(message)
-            
+
         return message_array
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
 
-def get_latest_messages_by_userid(user_id:int, session: Session)->List[LegalMessage]:
+
+def get_latest_messages_by_userid(user_id: int, session: Session) -> List[LegalMessage]:
     try:
-        
-        latest_session_record_subquery = session.query(LegalSessionSummary.session_id, LegalSessionSummary.favourite_date)\
-        .filter(LegalSessionSummary.user_id == user_id)\
-        .order_by(LegalSessionSummary
-                  .favourite_date.desc())\
-        .subquery()
+
+        latest_session_record_subquery = (
+            session.query(
+                LegalSessionSummary.session_id, LegalSessionSummary.favourite_date
+            )
+            .filter(LegalSessionSummary.user_id == user_id)
+            .order_by(LegalSessionSummary.favourite_date.desc())
+            .subquery()
+        )
 
         latest_session_record = session.query(
             latest_session_record_subquery.c.session_id,
-            latest_session_record_subquery.c.favourite_date
+            latest_session_record_subquery.c.favourite_date,
         ).first()
-        
+
         if latest_session_record:
             session_id = latest_session_record[0]
-            session_messages = get_messages_by_session_id(user_id=user_id, session_id=session_id, session=session)
+            session_messages = get_messages_by_session_id(
+                user_id=user_id, session_id=session_id, session=session
+            )
             return session_messages
         else:
             return []
@@ -87,15 +122,16 @@ def get_latest_messages_by_userid(user_id:int, session: Session)->List[LegalMess
         print(f"An error occurred: {e}")
         return []
 
-def add_legal_message(message:ChatAdd, session:Session):
-    
+
+def add_legal_message(message: ChatAdd, session: Session):
+
     try:
         new_message = LegalChatHistory(
             user_id=message.user_id,
             session_id=message.session_id,
             content=message.content,
             role=message.role,
-            created_date=message.created_date
+            created_date=message.created_date,
         )
         session.add(new_message)
         session.commit()
@@ -104,8 +140,9 @@ def add_legal_message(message:ChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def add_legal_chat_message(message:LegalChatAdd, session:Session):
-    
+
+def add_legal_chat_message(message: LegalChatAdd, session: Session):
+
     try:
         new_message = LegalChatHistory(
             user_id=message.user_id,
@@ -114,8 +151,8 @@ def add_legal_chat_message(message:LegalChatAdd, session:Session):
             role=message.role,
             legal_attached=message.legal_attached,
             legal_file_name=message.legal_file_name,
-            legal_s3_key= message.legal_s3_key,
-            created_date=message.created_date
+            legal_s3_key=message.legal_s3_key,
+            created_date=message.created_date,
         )
         session.add(new_message)
         session.commit()
@@ -124,28 +161,35 @@ def add_legal_chat_message(message:LegalChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def remove_messages_by_session_id(user_id:int, session_id:str, session: Session):
-    
+
+def remove_messages_by_session_id(user_id: int, session_id: str, session: Session):
+
     try:
-        
-        session_messages = session.query(LegalChatHistory.id) \
-            .filter(LegalChatHistory.session_id == session_id, LegalChatHistory.user_id == user_id) \
+
+        session_messages = (
+            session.query(LegalChatHistory.id)
+            .filter(
+                LegalChatHistory.session_id == session_id,
+                LegalChatHistory.user_id == user_id,
+            )
             .all()
-        
-        message_ids =  [msg_id for (msg_id,) in session_messages]
-        
-        session.query(LegalChatHistory)\
-            .filter(LegalChatHistory.id.in_(message_ids))\
-            .delete(synchronize_session=False)
+        )
+
+        message_ids = [msg_id for (msg_id,) in session_messages]
+
+        session.query(LegalChatHistory).filter(
+            LegalChatHistory.id.in_(message_ids)
+        ).delete(synchronize_session=False)
         session.commit()
-                        
-        return {"message":"Delted session successfully."} 
+
+        return {"message": "Delted session successfully."}
 
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
 
-def summarize_session( question:str, answer:str):
+
+def summarize_session(question: str, answer: str):
     llm = ChatOpenAI(temperature=0.5, model_name="gpt-4-1106-preview")
     # Define prompt
     prompt_template = """
@@ -163,102 +207,127 @@ def summarize_session( question:str, answer:str):
     # Define LLM chain
     llm_chain = LLMChain(llm=llm, prompt=prompt)
 
-    response = llm_chain.invoke({
-        "question":question,
-        "answer":answer
-    })
+    response = llm_chain.invoke({"question": question, "answer": answer})
 
-    return response['text']
+    return response["text"]
 
-def add_legal_session_summary(session_id: str, user_id: int,summary:str, session:Session):
-    
-    
-    chat_session_db = LegalSessionSummary(user_id=user_id,session_id =session_id, summary= summary)
+
+def add_legal_session_summary(
+    session_id: str, user_id: int, summary: str, session: Session
+):
+
+    chat_session_db = LegalSessionSummary(
+        user_id=user_id, session_id=session_id, summary=summary
+    )
     session.add(chat_session_db)
     session.commit()
     session.refresh(chat_session_db)
-    
-    return {
-        "session_id":session_id,
-        "summary": summary
-    }
 
-def remove_session_summary(session_id:str, session:Session):
-    
-    existing_session_summary = session.query(LegalSessionSummary)\
-        .filter(LegalSessionSummary.session_id == session_id)\
+    return {"session_id": session_id, "summary": summary}
+
+
+def remove_session_summary(session_id: str, session: Session):
+
+    existing_session_summary = (
+        session.query(LegalSessionSummary)
+        .filter(LegalSessionSummary.session_id == session_id)
         .delete()
+    )
     session.commit()
 
-def legal_session_exist(session_id:str, session: Session):
-    existing_session = session.query(LegalSessionSummary)\
-        .filter(LegalSessionSummary.session_id == session_id).first()
+
+def legal_session_exist(session_id: str, session: Session):
+    existing_session = (
+        session.query(LegalSessionSummary)
+        .filter(LegalSessionSummary.session_id == session_id)
+        .first()
+    )
     print("existing session:", existing_session)
     if existing_session:
         return True
-    else :
+    else:
         return False
 
-def upvote_chat_session(session_id:str, user_id:int, session:Session):
+
+def upvote_chat_session(session_id: str, user_id: int, session: Session):
     try:
-        update_session = session.query(LegalSessionSummary)\
-            .filter(LegalSessionSummary.session_id == session_id, LegalSessionSummary.user_id == user_id).first()
+        update_session = (
+            session.query(LegalSessionSummary)
+            .filter(
+                LegalSessionSummary.session_id == session_id,
+                LegalSessionSummary.user_id == user_id,
+            )
+            .first()
+        )
 
         update_session.is_favourite = True
-        update_session.favourite_date =  datetime.now()
+        update_session.favourite_date = datetime.now()
 
         session.commit()
 
         return {"success": True}
-    
+
     except SQLAlchemyError as e:
 
         return {"success": False}
 
-def devote_chat_session(session_id:str, user_id:int, session:Session):
+
+def devote_chat_session(session_id: str, user_id: int, session: Session):
     try:
-        update_session = session.query(LegalSessionSummary)\
-            .filter(LegalSessionSummary.session_id == session_id, LegalSessionSummary.user_id == user_id).first()
+        update_session = (
+            session.query(LegalSessionSummary)
+            .filter(
+                LegalSessionSummary.session_id == session_id,
+                LegalSessionSummary.user_id == user_id,
+            )
+            .first()
+        )
 
         update_session.is_favourite = False
-        update_session.favourite_date =  update_session.created_date
+        update_session.favourite_date = update_session.created_date
 
         session.commit()
 
         return {"success": True}
-    
+
     except SQLAlchemyError as e:
 
-        return {"success": False} 
-def init_postgres_legal_chat_memory(session_id:str):
-    table_name='legal_message_store'
+        return {"success": False}
+
+
+def init_postgres_legal_chat_memory(session_id: str):
+    table_name = "legal_message_store"
     sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
     PostgresChatMessageHistory.create_tables(sync_connection, table_name)
-    chat_memory=PostgresChatMessageHistory(
-            table_name,
-            session_id,
-            sync_connection = sync_connection
+    chat_memory = PostgresChatMessageHistory(
+        table_name, session_id, sync_connection=sync_connection
     )
 
     return chat_memory
 
-def upload_legal_description(file_content, user_id, session_id, legal_s3_key):  
+
+def upload_legal_description(file_content, user_id, session_id, legal_s3_key):
     s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
     s3_client.put_object(Bucket=settings.AWS_BUCKET_NAME, Body=file_content, Key=s3_key)
+
 
 def download_legal_description(user_id, session_id, legal_s3_key):
     s3_key = f"{user_id}/{session_id}/{legal_s3_key}"
     print("s3_key:", s3_key)
-    data = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=s3_key )
-    
+    data = s3_client.get_object(Bucket=settings.AWS_BUCKET_NAME, Key=s3_key)
+
     return data
 
+
 def delete_s3_bucket_folder(user_id, session_id):
-    objects = s3_client.list_objects(Bucket=settings.AWS_BUCKET_NAME, Prefix = f"{user_id}/{session_id}")
+    objects = s3_client.list_objects(
+        Bucket=settings.AWS_BUCKET_NAME, Prefix=f"{user_id}/{session_id}"
+    )
     print(objects)
-    if objects.get('Contents') is not None:
-        for o in objects.get('Contents'):
-            s3_client.delete_object(Bucket=settings.AWS_BUCKET_NAME, Key=o.get('Key'))  
+    if objects.get("Contents") is not None:
+        for o in objects.get("Contents"):
+            s3_client.delete_object(Bucket=settings.AWS_BUCKET_NAME, Key=o.get("Key"))
+
 
 def read_pdf(file_contents):
     pages = []
@@ -274,11 +343,12 @@ def read_pdf(file_contents):
         print(e)
     return "\n".join(pages)
 
+
 @traceable(
-    run_type= "llm",
-    name = "Generate question with legal pdf and question",
-    project_name= "adaletgpt"
-) 
+    run_type="llm",
+    name="Generate question with legal pdf and question",
+    project_name="adaletgpt",
+)
 def generate_question(pdf_contents, question):
     llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
     prompt = PromptTemplate.from_template(summary_legal_session_prompt_template)
@@ -286,9 +356,6 @@ def generate_question(pdf_contents, question):
     # Define LLM chain
     llm_chain = LLMChain(llm=llm, prompt=prompt)
 
-    response = llm_chain.invoke({
-        "question":question,
-        "pdf_contents":pdf_contents
-    })
+    response = llm_chain.invoke({"question": question, "pdf_contents": pdf_contents})
 
-    return response['text']
+    return response["text"]

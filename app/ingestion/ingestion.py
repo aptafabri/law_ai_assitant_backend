@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 import os
 from langchain_community.document_loaders.pdf import PyPDFLoader
@@ -17,6 +18,7 @@ pc = PineconeVectorStore(
     embedding=embeddings,
     index_name=INDEX_NAME,
 )
+
 
 def load_pdfs_recursively(directory):
     """
@@ -43,10 +45,11 @@ def ingest_docs():
     splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
     print(f"Going to add {len(chunks)} to Pinecone")
-    
+
     PineconeVectorStore.from_documents(documents, embeddings, index_name=INDEX_NAME)
-    
+
     print("****Loading to vectorstore done ***")
+
 
 if __name__ == "__main__":
     ingest_docs()

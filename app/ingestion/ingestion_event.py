@@ -29,16 +29,20 @@ pc = PineconeVectorStore(
     embedding=embeddings,
     index_name=INDEX_NAME,
 )
+
+
 def get_subfolders(root_folder):
     for item in os.listdir(root_folder):
         item_path = os.path.join(root_folder, item)
         if os.path.isdir(item_path):
             yield item_path
 
+
 def get_all_subfiles(root_folder):
     for root, dirs, files in os.walk(root_folder):
         for file in files:
             yield os.path.join(root, file)
+
 
 def load_documents():
     subfolders = get_subfolders(DATASET)
@@ -46,6 +50,7 @@ def load_documents():
         files = get_all_subfiles(folder)
         for data_file in files:
             yield data_file
+
 
 def ingest_docs():
     """
@@ -55,20 +60,25 @@ def ingest_docs():
     for file_path in documents:
         embedding_doc(file_path)
 
+
 def embedding_doc(file_path):
     if os.path.getsize(file_path) > MIN_FILE_SIZE:
         summarize_legal_case(file_path=file_path)
-        loader = TextLoader(file_path, encoding='utf-8')
+        loader = TextLoader(file_path, encoding="utf-8")
         raw_documents = loader.load()
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        PineconeVectorStore.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
+        PineconeVectorStore.from_documents(
+            raw_documents, embeddings, index_name=INDEX_NAME
+        )
         print("Inserting doc:", file_path)
         os.remove(file_path)
     else:
-        loader = TextLoader(file_path, encoding='utf-8')
+        loader = TextLoader(file_path, encoding="utf-8")
         raw_documents = loader.load()
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        PineconeVectorStore.from_documents(raw_documents, embeddings, index_name=INDEX_NAME)
+        PineconeVectorStore.from_documents(
+            raw_documents, embeddings, index_name=INDEX_NAME
+        )
         print("Inserting doc:", file_path)
         os.remove(file_path)
 
@@ -84,15 +94,17 @@ def summarize_legal_case(file_path):
     llm_chain = LLMChain(llm=llm, prompt=prompt)
 
     # Define StuffDocumentsChain
-    stuff_chain = StuffDocumentsChain(llm_chain=llm_chain, document_variable_name="text")
-    loader = TextLoader(file_path, encoding='utf-8')
+    stuff_chain = StuffDocumentsChain(
+        llm_chain=llm_chain, document_variable_name="text"
+    )
+    loader = TextLoader(file_path, encoding="utf-8")
     docs = loader.load()
-    response = stuff_chain.invoke({"input_documents":docs})
+    response = stuff_chain.invoke({"input_documents": docs})
 
-    with open(file_path, 'w', encoding='utf-8' ) as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         file.write(response["output_text"])
         print("Summarizing docs where is bigger than 5kbyte:", file_path)
 
+
 if __name__ == "__main__":
     ingest_docs()
-    

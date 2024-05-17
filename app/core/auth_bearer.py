@@ -1,12 +1,13 @@
 import jwt
 from jwt.exceptions import InvalidTokenError
-from fastapi import FastAPI, Depends, HTTPException,status
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from models import TokenTable
 from database.session import SessionLocal, get_session
 from contextlib import contextmanager
 from core import settings
+
 
 def decodeJWT(jwtoken: str):
     try:
@@ -22,26 +23,39 @@ class JWTBearer(HTTPBearer):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        credentials: HTTPAuthorizationCredentials = await super(
+            JWTBearer, self
+        ).__call__(request)
         if credentials:
             if not credentials.scheme == "Bearer":
-                raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
+                raise HTTPException(
+                    status_code=403, detail="Invalid authentication scheme."
+                )
             if not self.verify_jwt(credentials.credentials):
-                raise HTTPException(status_code=403, detail="Invalid token or expired token.")
-            
-            payload = jwt.decode(credentials.credentials, settings.JWT_SECRET_KEY, settings.ALGORITHM)
-            user_id = payload['sub']
+                raise HTTPException(
+                    status_code=403, detail="Invalid token or expired token."
+                )
+
+            payload = jwt.decode(
+                credentials.credentials, settings.JWT_SECRET_KEY, settings.ALGORITHM
+            )
+            user_id = payload["sub"]
             print("user-id:", user_id)
             session = next(get_session())
-            data=session.query(TokenTable).filter_by(user_id=user_id,access_token=credentials.credentials,status=True).first()
-            
+            data = (
+                session.query(TokenTable)
+                .filter_by(
+                    user_id=user_id, access_token=credentials.credentials, status=True
+                )
+                .first()
+            )
+
             if data:
-                return credentials.credentials    
-           
+                return credentials.credentials
+
             else:
                 raise HTTPException(status_code=403, detail="Token blocked.")
-       
-           
+
         else:
             raise HTTPException(status_code=403, detail="Invalid authorization code.")
 
@@ -55,5 +69,6 @@ class JWTBearer(HTTPBearer):
         if payload:
             isTokenValid = True
         return isTokenValid
-    
+
+
 jwt_bearer = JWTBearer()

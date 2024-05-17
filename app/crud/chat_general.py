@@ -13,46 +13,62 @@ import psycopg
 from core.config import settings
 from core.prompt import summary_session_prompt_template
 
- 
 
-def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:    
-    session_summary_array : List[SessionSummary] = []
-    results = session.query(SessionSummary)\
-        .filter(SessionSummary.user_id == user_id)\
-        .order_by(SessionSummary.favourite_date.desc()).all()
+def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
+    session_summary_array: List[SessionSummary] = []
+    results = (
+        session.query(SessionSummary)
+        .filter(SessionSummary.user_id == user_id)
+        .order_by(SessionSummary.favourite_date.desc())
+        .all()
+    )
     session_summary_array = results
     return session_summary_array
 
-def get_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
+
+def get_messages_by_session_id(
+    user_id: int, session_id: str, session: Session
+) -> List[Message]:
     try:
-        results = session.query(ChatHistory.content, ChatHistory.role) \
-            .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
-            .order_by(ChatHistory.created_date.asc()).order_by(ChatHistory.id.asc()).all()
-        
-        message_array :List[Message] = []
+        results = (
+            session.query(ChatHistory.content, ChatHistory.role)
+            .filter(
+                ChatHistory.session_id == session_id, ChatHistory.user_id == user_id
+            )
+            .order_by(ChatHistory.created_date.asc())
+            .order_by(ChatHistory.id.asc())
+            .all()
+        )
+
+        message_array: List[Message] = []
         for result in results:
             message = Message(content=result[0], role=result[1])
             message_array.append(message)
-            
+
         return message_array
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
 
-def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
+
+def get_latest_messages_by_userid(user_id: int, session: Session) -> List[Message]:
     try:
-        latest_session_record_subquery = session.query(SessionSummary.session_id, SessionSummary.favourite_date)\
-        .filter(SessionSummary.user_id == user_id)\
-        .order_by(SessionSummary.favourite_date.desc())\
-        .subquery()
+        latest_session_record_subquery = (
+            session.query(SessionSummary.session_id, SessionSummary.favourite_date)
+            .filter(SessionSummary.user_id == user_id)
+            .order_by(SessionSummary.favourite_date.desc())
+            .subquery()
+        )
         latest_session_record = session.query(
             latest_session_record_subquery.c.session_id,
-            latest_session_record_subquery.c.favourite_date
+            latest_session_record_subquery.c.favourite_date,
         ).first()
-        
+
         if latest_session_record:
             session_id = latest_session_record[0]
-            session_messages = get_messages_by_session_id(user_id=user_id, session_id=session_id, session=session)
+            session_messages = get_messages_by_session_id(
+                user_id=user_id, session_id=session_id, session=session
+            )
             return session_messages
         else:
             return []
@@ -62,17 +78,17 @@ def get_latest_messages_by_userid(user_id:int, session: Session)->List[Message]:
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
-    
-    
-def add_message(message:ChatAdd, session:Session):
-    
+
+
+def add_message(message: ChatAdd, session: Session):
+
     try:
         new_message = ChatHistory(
             user_id=message.user_id,
             session_id=message.session_id,
             content=message.content,
             role=message.role,
-            created_date=message.created_date
+            created_date=message.created_date,
         )
         session.add(new_message)
         session.commit()
@@ -81,104 +97,121 @@ def add_message(message:ChatAdd, session:Session):
         print("An error occurred while adding a message to the database:", str(e))
         session.rollback()
 
-def remove_messages_by_session_id(user_id:int, session_id:str, session: Session)->List[Message]:
-    
+
+def remove_messages_by_session_id(
+    user_id: int, session_id: str, session: Session
+) -> List[Message]:
+
     try:
-        session_messages = session.query(ChatHistory.id) \
-            .filter(ChatHistory.session_id == session_id, ChatHistory.user_id == user_id) \
+        session_messages = (
+            session.query(ChatHistory.id)
+            .filter(
+                ChatHistory.session_id == session_id, ChatHistory.user_id == user_id
+            )
             .all()
-        message_ids =  [msg_id for (msg_id,) in session_messages]     
-        session.query(ChatHistory)\
-            .filter(ChatHistory.id.in_(message_ids))\
-            .delete(synchronize_session=False)
-        session.commit()                
-        return {"message":"Delted session successfully."} 
+        )
+        message_ids = [msg_id for (msg_id,) in session_messages]
+        session.query(ChatHistory).filter(ChatHistory.id.in_(message_ids)).delete(
+            synchronize_session=False
+        )
+        session.commit()
+        return {"message": "Delted session successfully."}
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
         return []
-    
-def summarize_session( question:str, answer:str):
+
+
+def summarize_session(question: str, answer: str):
     llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
     llm_chain = LLMChain(llm=llm, prompt=prompt)
-    response = llm_chain.invoke({
-        "question":question,
-        "answer":answer
-    })
-    return response['text']
+    response = llm_chain.invoke({"question": question, "answer": answer})
+    return response["text"]
 
-def add_session_summary(session_id: str, user_id: int,summary:str, session:Session):    
-    chat_session_db = SessionSummary(user_id=user_id,session_id =session_id, summary= summary)
+
+def add_session_summary(session_id: str, user_id: int, summary: str, session: Session):
+    chat_session_db = SessionSummary(
+        user_id=user_id, session_id=session_id, summary=summary
+    )
     session.add(chat_session_db)
     session.commit()
     session.refresh(chat_session_db)
-    return {
-        "session_id":session_id,
-        "summary": summary
-    }
+    return {"session_id": session_id, "summary": summary}
 
-def remove_session_summary(session_id:str, session:Session):
+
+def remove_session_summary(session_id: str, session: Session):
     try:
-        existing_session_summary = session.query(SessionSummary)\
-            .filter(SessionSummary.session_id == session_id)\
+        existing_session_summary = (
+            session.query(SessionSummary)
+            .filter(SessionSummary.session_id == session_id)
             .delete()
+        )
         session.commit()
         return {"success": True}
     except SQLAlchemyError as e:
         return {"success": False}
 
 
-def session_exist(session_id:str, session: Session):
-    existing_session = session.query(SessionSummary)\
-        .filter(SessionSummary.session_id == session_id).first()
+def session_exist(session_id: str, session: Session):
+    existing_session = (
+        session.query(SessionSummary)
+        .filter(SessionSummary.session_id == session_id)
+        .first()
+    )
     print("existing session:", existing_session)
     if existing_session:
         return True
-    else :
+    else:
         return False
 
-def upvote_chat_session(session_id:str, user_id:int, session:Session):
+
+def upvote_chat_session(session_id: str, user_id: int, session: Session):
     try:
-        update_session = session.query(SessionSummary)\
-            .filter(SessionSummary.session_id == session_id, SessionSummary.user_id == user_id).first()
+        update_session = (
+            session.query(SessionSummary)
+            .filter(
+                SessionSummary.session_id == session_id,
+                SessionSummary.user_id == user_id,
+            )
+            .first()
+        )
         update_session.is_favourite = True
-        update_session.favourite_date =  datetime.now()
+        update_session.favourite_date = datetime.now()
         session.commit()
         return {"success": True}
     except SQLAlchemyError as e:
         return {"success": False}
 
-def devote_chat_session(session_id:str, user_id:int, session:Session):
+
+def devote_chat_session(session_id: str, user_id: int, session: Session):
     try:
-        update_session = session.query(SessionSummary)\
-            .filter(SessionSummary.session_id == session_id, SessionSummary.user_id == user_id).first()
+        update_session = (
+            session.query(SessionSummary)
+            .filter(
+                SessionSummary.session_id == session_id,
+                SessionSummary.user_id == user_id,
+            )
+            .first()
+        )
 
         update_session.is_favourite = False
-        update_session.favourite_date =  update_session.created_date
+        update_session.favourite_date = update_session.created_date
 
         session.commit()
 
         return {"success": True}
-    
+
     except SQLAlchemyError as e:
 
-        return {"success": False} 
+        return {"success": False}
 
-def init_postgres_chat_memory(session_id:str):
-    table_name='message_store'
+
+def init_postgres_chat_memory(session_id: str):
+    table_name = "message_store"
     sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
     PostgresChatMessageHistory.create_tables(sync_connection, table_name)
-    chat_memory=PostgresChatMessageHistory(
-            table_name,
-            session_id,
-            sync_connection = sync_connection
+    chat_memory = PostgresChatMessageHistory(
+        table_name, session_id, sync_connection=sync_connection
     )
 
     return chat_memory
-
-
-
-
-
-    
-    

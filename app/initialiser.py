@@ -1,13 +1,12 @@
 from database.initialise import initialise
 from database.session import SessionLocal
 
+
 def init() -> None:
 
     db = SessionLocal()
-    
-    
+
     initialise(db)
-    
 
 
 def main() -> None:

@@ -9,7 +9,7 @@ init()
 
 api_router = APIRouter()
 
-api_router.include_router(rag.router, prefix='/rag')
-api_router.include_router(user.router, prefix='/user')
-api_router.include_router(chat_general.router, prefix='/chat')
-api_router.include_router(chat_legal.router, prefix='/chat-legal')
+api_router.include_router(rag.router, prefix="/rag")
+api_router.include_router(user.router, prefix="/user")
+api_router.include_router(chat_general.router, prefix="/chat")
+api_router.include_router(chat_legal.router, prefix="/chat-legal")

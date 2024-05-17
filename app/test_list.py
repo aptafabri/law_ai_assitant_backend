@@ -24,7 +24,7 @@
 #         file.write(source+"\n")
 
 
-with open('embedding_list.txt', 'r') as infile:
+with open("embedding_list.txt", "r") as infile:
     # Read the lines from the file
     lines = infile.readlines()
 
@@ -32,14 +32,9 @@ with open('embedding_list.txt', 'r') as infile:
 substring_to_remove = "..\dataset\\"
 
 # Modify each line to remove the substring
-modified_lines = [line.replace(substring_to_remove, '') for line in lines]
+modified_lines = [line.replace(substring_to_remove, "") for line in lines]
 # print(modified_lines)
 # Open the output file in write mode
-with open('final_embedding_list.txt', 'w') as outfile:
+with open("final_embedding_list.txt", "w") as outfile:
     # Write the modified lines back to the file
     outfile.writelines(modified_lines)
-
-
-
-        
-

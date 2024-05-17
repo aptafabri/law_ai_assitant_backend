@@ -4,9 +4,9 @@ import datetime
 
 
 class TokenTable(Base):
-    __tablename__='token' 
+    __tablename__ = "token"
     user_id = Column(Integer)
-    access_token = Column( String(450), primary_key= True)
-    refresh_token = Column( String(450), nullable=False)
-    status = Column( Boolean)
-    created_date =  created_date = Column(DateTime, default=datetime.datetime.now)
+    access_token = Column(String(450), primary_key=True)
+    refresh_token = Column(String(450), nullable=False)
+    status = Column(Boolean)
+    created_date = created_date = Column(DateTime, default=datetime.datetime.now)
