@@ -41,6 +41,7 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
 llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0)
+question_llm = ChatOpenAI(model_name=settings.QUESTION_MODEL_NAME, temperature=0)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 
@@ -77,7 +78,9 @@ def rag_general_chat(question: str, session_id: str = None):
         condense_question_prompt_template
     )
 
-    question_generator_chain = LLMChain(llm=llm, prompt=condense_question_prompt)
+    question_generator_chain = LLMChain(
+        llm=question_llm, prompt=condense_question_prompt
+    )
 
     chat_memory = init_postgres_chat_memory(session_id=session_id)
 
@@ -279,7 +282,7 @@ def rag_legal_chat(question: str, session_id: str = None):
         llm=llm,
         retriever=compression_retriever,
         return_source_documents=True,
-        condense_question_llm=llm,
+        condense_question_llm=question_llm,
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
         memory=memory,
     )
