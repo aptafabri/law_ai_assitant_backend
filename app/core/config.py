@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24
     LLM_MODEL_NAME: str = "gpt-4o"
-    QUESTION_MODEL_NAME = "gpt-4-1106-preview"
+    QUESTION_MODEL_NAME: str = "gpt-4-1106-preview"
     ALGORITHM: str = "HS256"
     JWT_SECRET_KEY: str = "narscbjim@$@&^@&%^&RFghgjvbdsha"
     JWT_REFRESH_SECRET_KEY: str = "13ugfdfgh@#$%^@&jkl45678902"
@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID: str = "AKIA5FTZBZ7ZO36ZRH6Z"
     AWS_SECRET_KEY: str = "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"
     AWS_BUCKET_NAME: str = "adaletgpt"
-    SENDGRID_API_KEY: str = ""
+    SENDGRID_API_KEY: str = (
+        "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"
+    )
     MAIL_USERNAME: str = "auth@adaletgpt.com"
     MAIL_PASSWORD: str = "fzdi cczq oiwj ayuy"
     MAIL_FROM: str = "auth@adaletgpt.com"
