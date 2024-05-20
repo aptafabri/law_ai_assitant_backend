@@ -40,8 +40,8 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
-llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0.7, max_tokens=3000)
-question_llm = ChatOpenAI(model_name=settings.QUESTION_MODEL_NAME, temperature=0.7, max_tokens=3000)
+llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0.2, max_tokens=3000)
+question_llm = ChatOpenAI(model_name=settings.QUESTION_MODEL_NAME, temperature=0.2, max_tokens=3000)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 
@@ -103,7 +103,7 @@ def rag_general_chat(question: str, session_id: str = None):
 
     base_retriever = MultiQueryRetriever.from_llm(
         retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.7, max_tokens=3000),
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
 
