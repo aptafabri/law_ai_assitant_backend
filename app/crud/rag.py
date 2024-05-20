@@ -40,7 +40,7 @@ os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
-llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0)
+llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0.2, max_tokens=3600)
 question_llm = ChatOpenAI(model_name=settings.QUESTION_MODEL_NAME, temperature=0)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
