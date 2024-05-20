@@ -317,7 +317,8 @@ def get_relevant_legal_cases(session_id: str):
     conversation_summary = response["text"]
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-    docsearch = PineconeLangChain.from_existing_index(
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
