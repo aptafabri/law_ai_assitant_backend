@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
     OPENAI_API_KEY: str = "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"
     PINECONE_API_KEY: str = "c214371b-cf98-4c07-8afc-95a3623a518d"
-    INDEX_NAME: str = "adaletgpt-ceza-embeddings"
+    INDEX_NAME: str = "adaletgpt-mevzuat-embeddings"
     LEGAL_CASE_INDEX_NAME: str = "adaletgpt-legalcase-data"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24
