@@ -206,9 +206,18 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
 
 @router.post("/chat-test")
 async def rag_test(session_id: str = Form(), question: str = Form()):
-    chat_memory = await ainit_postgres_chat_memory(session_id=session_id)
-    print("chat_memory", chat_memory)
-    response = rag_test_chat(
-        question=question, session_id=session_id, chat_memory=chat_memory
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        memory_key="chat_history",
+        return_messages=True,
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
     )
+    # print("chat_memory", memory.buffer)
+    response = rag_test_chat(question=question, session_id=session_id, chat_history = memory.buffer)
+
     return StreamingResponse(response, status_code=200)

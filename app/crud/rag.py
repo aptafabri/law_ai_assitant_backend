@@ -265,7 +265,9 @@ def get_relevant_legal_cases(session_id: str):
 @traceable(
     run_type="llm", name="RAG Test without source link", project_name="adaletgpt"
 )
-async def rag_test_chat(question: str, session_id: str = None, chat_memory: Any = None):
+async def rag_test_chat(
+    question: str, session_id: str = None, chat_history: Any = None
+):
 
     callback = QueueCallbackHandler()
     streaming_llm = ChatOpenAI(
@@ -344,17 +346,31 @@ async def rag_test_chat(question: str, session_id: str = None, chat_memory: Any 
         llm=question_generator_llm, prompt=condense_question_prompt
     )
 
-    base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        prompt=QUERY_PROMPT,
+    qa = ConversationalRetrievalChain(
+        combine_docs_chain=combine_documents_chain,
+        question_generator=question_generator_chain,
+        callbacks=None,
+        verbose=False,
+        retriever=docsearch.as_retriever(),
+        return_source_documents=True,
     )
 
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=base_retriever
+    run = asyncio.create_task(
+        qa.ainvoke({"question": question, "chat_history": chat_history})
     )
+    final_answer = ""
+    async for token in callback.aiter():
+        print("streaming:", token)
+        final_answer = final_answer + token
+        yield token
+    await run
 
+    print("final_content", final_answer)
+    add_chat_history(session_id=session_id,  question=question, answer=final_answer)
+
+
+def add_chat_history(session_id, question, answer):
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key="chat_history",
@@ -365,38 +381,4 @@ async def rag_test_chat(question: str, session_id: str = None, chat_memory: Any 
         ai_prefix="Question",
         human_prefix="Answer",
     )
-
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        callbacks=None,
-        verbose=False,
-        retriever=docsearch.as_retriever(),
-        return_source_documents=True,
-        memory=memory,
-    )
-    # qa = ConversationalRetrievalChain.from_llm(
-    #     llm=streaming_llm,
-    #     retriever=docsearch.as_retriever(),
-    #     return_source_documents=True,
-    #     condense_question_llm=question_llm,
-    #     combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
-    #     # memory=memory,
-    # )
-    # return qa.invoke({"question": question, "chat_history": ""})
-
-    run = asyncio.create_task(qa.ainvoke({"question": question}))
-    async for token in callback.aiter():
-        print("streaming:", token)
-        yield token
-    await run
-    # print(question)
-    # task = asyncio.create_task(qa.ainvoke({"question": question, "chat_history":""}))
-
-    # try:
-    #     async for token in callback.aiter():
-    #         yield token
-    # except Exception as e:
-    #     print(f"Caught exception: {e}")
-
-    # await task
+    memory.save_context({"input": question}, {"answer": answer})
