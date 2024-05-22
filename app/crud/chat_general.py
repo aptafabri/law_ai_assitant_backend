@@ -12,7 +12,7 @@ from langchain_postgres import PostgresChatMessageHistory
 import psycopg
 from core.config import settings
 from core.prompt import summary_session_prompt_template
-
+import sys
 
 def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummary]:
     session_summary_array: List[SessionSummary] = []
@@ -205,6 +205,17 @@ def devote_chat_session(session_id: str, user_id: int, session: Session):
 
         return {"success": False}
 
+
+async def ainit_postgres_chat_memory(session_id: str):
+    table_name = "message_store"
+    # sync_connection = psycopg.connect(conninfo=settings.POSTGRES_CHAT_HISTORY_URI)
+    async with await psycopg.AsyncConnection.connect(conninfo=settings.POSTGRES_CHAT_HISTORY_URI) as aconn:
+        PostgresChatMessageHistory.acreate_tables(aconn, table_name)
+        chat_memory = PostgresChatMessageHistory(
+            table_name, session_id, async_connection=aconn
+        )
+
+        return chat_memory
 
 def init_postgres_chat_memory(session_id: str):
     table_name = "message_store"
