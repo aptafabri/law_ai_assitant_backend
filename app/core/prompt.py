@@ -20,16 +20,18 @@ general_chat_qa_prompt_template = """"
                         
     """
 
-multi_query_prompt_template= """You are an AI language model assistant.\n
+multi_query_prompt_template = """You are an AI language model assistant.\n
         Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n 
         By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
         Provide these alternative questions separated by newlines.\n
         Original question: {question}"""
 
-condense_question_prompt_template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question in its origin language.
+condense_question_prompt_template = """
+    Given a chat history and the latest question which might reference context in the chat history, formulate a standalone question which can be understood  without the chat history.\n
+    Do NOT answer the question, just reformulate it if needed and otherwise return it as is
     Chat History:
     {chat_history}
-    Follow Up question: {question}
+    Question: {question}
     Standalone question:
     """
 
@@ -43,7 +45,7 @@ legal_chat_qa_prompt_template = """"
 
     Question : {question}\n
     Helpful Answer:
-    """   
+    """
 summary_legal_conversation_prompt_template = """Write a summary of the following conversation in turkish to find relevant legal cases.
     Chat History: {conversation}\n
     SUMMARY:"""

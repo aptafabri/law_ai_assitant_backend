@@ -5,14 +5,13 @@ from crud.rag import (
     rag_general_chat,
     rag_legal_chat,
     get_relevant_legal_cases,
-    rag_test_chat,
+    rag_streaming_chat,
 )
 from crud.chat_general import (
     add_message,
     summarize_session,
     add_session_summary,
     session_exist,
-    ainit_postgres_chat_memory,
     init_postgres_chat_memory,
 )
 from crud.chat_legal import (
@@ -204,9 +203,13 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
     )
 
 
-@router.post("/chat-test")
-async def rag_test(session_id: str = Form(), question: str = Form()):
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
+@router.post("/chat-test", tags=["RagController"], status_code=200)
+async def rag_test(
+    message: ChatRequest,
+    # dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    chat_memory = init_postgres_chat_memory(session_id=message.session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key="chat_history",
@@ -217,7 +220,14 @@ async def rag_test(session_id: str = Form(), question: str = Form()):
         ai_prefix="Question",
         human_prefix="Answer",
     )
-    # print("chat_memory", memory.buffer)
-    response = rag_test_chat(question=question, session_id=session_id, chat_history = memory.buffer)
+    # user_id = get_userid_by_token(dependencies)
+
+    response = rag_streaming_chat(
+        user_id=4,
+        question=message.question,
+        session_id=message.session_id,
+        chat_history=memory.buffer,
+        db_session=session,
+    )
 
     return StreamingResponse(response, status_code=200)

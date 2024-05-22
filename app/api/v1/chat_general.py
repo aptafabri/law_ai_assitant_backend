@@ -20,7 +20,6 @@ from core.config import settings
 
 router = APIRouter()
 
-
 @router.post(
     "/get-sessions-by-userid",
     tags=["ChatController"],
