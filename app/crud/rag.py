@@ -1,7 +1,7 @@
 import os
 import asyncio
 from dotenv import load_dotenv
-from typing import AsyncIterable
+from typing import AsyncIterable, Any
 import sys
 
 load_dotenv()
@@ -32,6 +32,9 @@ from crud.chat_legal import (
 import langchain
 from typing import List
 
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 langchain.debug = False
 from core.prompt import (
     general_chat_qa_prompt_template,
@@ -53,6 +56,13 @@ question_llm = ChatOpenAI(
     model_name=settings.QUESTION_MODEL_NAME, temperature=0.2, max_tokens=3000
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+
+class QueueCallbackHandler(AsyncIteratorCallbackHandler):
+    def on_llm_end(self, *args, **kwargs) -> Any:
+        print("ended streaming")
+
+        return self.done.set()
 
 
 @traceable(run_type="llm", name="RAG with source link", project_name="adaletgpt")
@@ -255,9 +265,9 @@ def get_relevant_legal_cases(session_id: str):
 @traceable(
     run_type="llm", name="RAG Test without source link", project_name="adaletgpt"
 )
-async def rag_test_chat(question: str, session_id: str = None):
+async def rag_test_chat(question: str, session_id: str = None, chat_memory: Any = None):
 
-    callback = AsyncIteratorCallbackHandler()
+    callback = QueueCallbackHandler()
     streaming_llm = ChatOpenAI(
         streaming=True,
         callbacks=[callback],
@@ -345,7 +355,6 @@ async def rag_test_chat(question: str, session_id: str = None):
         base_compressor=compressor, base_retriever=base_retriever
     )
 
-    chat_memory = await ainit_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key="chat_history",
@@ -377,11 +386,9 @@ async def rag_test_chat(question: str, session_id: str = None):
     # return qa.invoke({"question": question, "chat_history": ""})
 
     run = asyncio.create_task(qa.ainvoke({"question": question}))
-
     async for token in callback.aiter():
         print("streaming:", token)
         yield token
-
     await run
     # print(question)
     # task = asyncio.create_task(qa.ainvoke({"question": question, "chat_history":""}))

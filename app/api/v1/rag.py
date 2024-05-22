@@ -12,6 +12,8 @@ from crud.chat_general import (
     summarize_session,
     add_session_summary,
     session_exist,
+    ainit_postgres_chat_memory,
+    init_postgres_chat_memory,
 )
 from crud.chat_legal import (
     add_legal_message,
@@ -22,6 +24,8 @@ from crud.chat_legal import (
     upload_legal_description,
     generate_question,
 )
+from langchain_openai import ChatOpenAI
+from langchain.memory import ConversationSummaryBufferMemory
 from crud.user import get_userid_by_token
 from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
@@ -202,6 +206,9 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
 
 @router.post("/chat-test")
 async def rag_test(session_id: str = Form(), question: str = Form()):
-
-    response = rag_test_chat(question=question, session_id=session_id)
+    chat_memory = await ainit_postgres_chat_memory(session_id=session_id)
+    print("chat_memory", chat_memory)
+    response = rag_test_chat(
+        question=question, session_id=session_id, chat_memory=chat_memory
+    )
     return StreamingResponse(response, status_code=200)
