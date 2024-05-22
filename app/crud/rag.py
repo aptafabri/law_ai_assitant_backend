@@ -3,6 +3,7 @@ import asyncio
 from dotenv import load_dotenv
 from typing import AsyncIterable
 import sys
+
 load_dotenv()
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -30,6 +31,7 @@ from crud.chat_legal import (
 )
 import langchain
 from typing import List
+
 langchain.debug = False
 from core.prompt import (
     general_chat_qa_prompt_template,
@@ -38,7 +40,7 @@ from core.prompt import (
     summary_legal_conversation_prompt_template,
     legal_chat_qa_prompt_template,
 )
-    
+
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
@@ -362,6 +364,7 @@ async def rag_test_chat(question: str, session_id: str = None):
         verbose=False,
         retriever=docsearch.as_retriever(),
         return_source_documents=True,
+        memory=memory,
     )
     # qa = ConversationalRetrievalChain.from_llm(
     #     llm=streaming_llm,
@@ -373,7 +376,7 @@ async def rag_test_chat(question: str, session_id: str = None):
     # )
     # return qa.invoke({"question": question, "chat_history": ""})
 
-    run = asyncio.create_task(qa.ainvoke({"question": question, "chat_history": ""}))
+    run = asyncio.create_task(qa.ainvoke({"question": question}))
 
     async for token in callback.aiter():
         print("streaming:", token)
