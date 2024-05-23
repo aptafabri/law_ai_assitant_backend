@@ -4,6 +4,7 @@ import asyncio
 from dotenv import load_dotenv
 import json
 from time import sleep
+
 load_dotenv()
 from sqlalchemy.orm import Session
 from typing import AsyncIterable, Any
@@ -362,14 +363,16 @@ async def rag_streaming_chat(
         answer += answer_token
         data = json.dumps(
             {
-                "data_type": 0,
-                "user_id": user_id,
-                "session_id": session_id,
-                "question": question,
-                "answer": answer_token,
+                "message": {
+                    "data_type": 0,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "question": question,
+                    "answer": answer_token,
+                }
             }
         )
-        yield f"event: message\ndata:{data}\n\n"
+        yield f"data:{data}\n\n"
     await answer_task
 
     """create session summary if the user is sending new chat message"""
@@ -389,13 +392,16 @@ async def rag_streaming_chat(
             summary += summary_token
             data = json.dumps(
                 {
-                    "data_type": 1,
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "summary": summary_token,
+                    "message": {
+                        "data_type": 0,
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "question": question,
+                        "answer": answer_token,
+                    }
                 }
             )
-            yield f"event: message\ndata:{data}\n\n"
+            yield f"data:{data}\n\n"
         await summary_task
         add_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
