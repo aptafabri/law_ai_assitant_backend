@@ -6,6 +6,7 @@ general_chat_qa_prompt_template = """
     You must answer in Turkish.\n
     If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
     Don't include source file names that are irrelevant to the final answer.\n
+    Do not talk about the unused files.\n
     If a question does not make any sense or is not factually coherent, explain why instead of providing incorrect information.\n
     If you don't know the answer to a question, please do not share false information.\n\n
 
