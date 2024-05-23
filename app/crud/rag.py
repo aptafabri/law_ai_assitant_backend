@@ -371,7 +371,7 @@ async def rag_streaming_chat(
                 }
             }
         )
-        yield f"data:{data}\n\n"
+        yield f"{data}\n\n"
 
     await answer_task
 
@@ -398,7 +398,7 @@ async def rag_streaming_chat(
                     }
                 }
             )
-            yield f"data:{data}\n\n"
+            yield f"{data}\n\n"
         await summary_task
 
         await add_session_summary(
