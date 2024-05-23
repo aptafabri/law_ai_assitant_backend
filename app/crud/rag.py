@@ -387,25 +387,25 @@ async def rag_streaming_chat(
         async for summary_token in summary_streaming_callback.aiter():
             print("summary streaming:", summary_token)
             summary += summary_token
-            data = json.dumps(
+            data_summary = json.dumps(
                 {
                     "message": {
-                        "data_type": 0,
+                        "data_type": 1,
                         "user_id": user_id,
                         "session_id": session_id,
                         "question": question,
-                        "answer": answer_token,
+                        "answer": summary_token,
                     }
                 }
             )
-            yield f"{data}\n\n"
+            yield f"{data_summary}\n\n"
         await summary_task
 
-        await add_session_summary(
+        add_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
 
-    await add_chat_history(
+    add_chat_history(
         user_id=user_id,
         session_id=session_id,
         question=question,
@@ -414,7 +414,7 @@ async def rag_streaming_chat(
     )
 
 
-async def add_chat_history(
+def add_chat_history(
     user_id: int, session_id: str, question: str, answer: str, db_session
 ):
     """add chat history for memory management"""

@@ -235,14 +235,3 @@ async def rag_test(
         ),
         media_type="text/event-stream",
     )
-
-
-async def fake_video_streamer():
-    for i in range(100):
-        yield f"event: data:\n {i}\n\n"
-        await asyncio.sleep(0.1)
-
-
-@router.get("/video")
-async def video():
-    return EventSourceResponse(fake_video_streamer(), media_type="text/event-stream")
