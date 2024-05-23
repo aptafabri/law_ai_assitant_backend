@@ -373,6 +373,8 @@ async def rag_streaming_chat(
             }
         )
         yield f"data:{data}\n\n"
+        sleep(1)
+
     await answer_task
 
     """create session summary if the user is sending new chat message"""
