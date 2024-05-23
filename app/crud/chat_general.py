@@ -136,7 +136,7 @@ async def summarize_session_streaming(question: str, answer: str, llm):
     return await llm_chain.ainvoke({"question": question, "answer": answer})
    
 
-def add_session_summary(session_id: str, user_id: int, summary: str, session: Session):
+async def add_session_summary(session_id: str, user_id: int, summary: str, session: Session):
     chat_session_db = SessionSummary(
         user_id=user_id, session_id=session_id, summary=summary
     )

@@ -374,6 +374,8 @@ async def rag_streaming_chat(
         )
         yield f"data:{data}\n\n"
 
+        asyncio.sleep(0.1)
+
     await answer_task
 
     """create session summary if the user is sending new chat message"""
@@ -403,12 +405,14 @@ async def rag_streaming_chat(
                 }
             )
             yield f"data:{data}\n\n"
+            asyncio.sleep(0.1)
         await summary_task
-        add_session_summary(
+
+        await add_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
 
-    add_chat_history(
+    await add_chat_history(
         user_id=user_id,
         session_id=session_id,
         question=question,
@@ -417,7 +421,7 @@ async def rag_streaming_chat(
     )
 
 
-def add_chat_history(
+async def add_chat_history(
     user_id: int, session_id: str, question: str, answer: str, db_session
 ):
     """add chat history for memory management"""

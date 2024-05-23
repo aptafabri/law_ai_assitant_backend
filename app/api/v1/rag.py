@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Body, File, UploadFile, Form
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 from time import sleep
+import asyncio
 from crud.rag import (
     rag_general_chat,
     rag_legal_chat,
@@ -235,12 +236,12 @@ async def rag_test(
     )
 
 
-# async def waypoints_generator():
-#     waypoint = {"data": "aaaa"}
-#     for waypoint in range(10):
-#         yield f"event: locationUpdate\ndata:{waypoint}\n\n"
+async def fake_video_streamer():
+    for i in range(100):
+        yield f"event: data:\n {i}\n\n"
+        await asyncio.sleep(0.1)
 
 
-# @router.get("/get-waypoints")
-# async def root():
-#     return StreamingResponse(waypoints_generator(), media_type="text/event-stream")
+@router.get("/video")
+async def video():
+    return StreamingResponse(fake_video_streamer(), media_type="text/event-stream")
