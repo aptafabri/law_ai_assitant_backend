@@ -58,7 +58,7 @@ session_store = {}
 
 llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0, max_tokens=3000)
 question_llm = ChatOpenAI(
-    model_name=settings.QUESTION_MODEL_NAME, temperature=0.2, max_tokens=3000
+    model_name=settings.QUESTION_MODEL_NAME, temperature=0, max_tokens=3000
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -125,7 +125,7 @@ def rag_general_chat(question: str, session_id: str = None):
     base_retriever = MultiQueryRetriever.from_llm(
         retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
         llm=ChatOpenAI(
-            model_name="gpt-4-1106-preview", temperature=0.2, max_tokens=3000
+            model_name="gpt-4o", temperature=0, max_tokens=3000
         ),
         prompt=QUERY_PROMPT,
     )
@@ -282,14 +282,14 @@ async def rag_streaming_chat(
     streaming_llm = ChatOpenAI(
         streaming=True,
         callbacks=[answer_streaming_callback],
-        temperature=0.3,
+        temperature=0,
         max_tokens=3000,
         model_name=settings.LLM_MODEL_NAME,
     )
     summary_streaming_llm = ChatOpenAI(
         streaming=True,
         callbacks=[summary_streaming_callback],
-        temperature=0.3,
+        temperature=0,
         max_tokens=3000,
         model_name=settings.LLM_MODEL_NAME,
     )
