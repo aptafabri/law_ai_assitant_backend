@@ -360,16 +360,17 @@ async def rag_streaming_chat(
     async for answer_token in answer_streaming_callback.aiter():
         print("streaming answer:", answer_token)
         answer += answer_token
-        # yield json.dumps(
-        #     {
-        #         "data_type": 0,
-        #         "user_id": user_id,
-        #         "session_id": session_id,
-        #         "question": question,
-        #         "answer": answer_token,
-        #     }
-        # )
-        yield f"event:{answer_token}\n\n"
+        data = json.dumps(
+            {
+                "data_type": 0,
+                "user_id": user_id,
+                "session_id": session_id,
+                "question": question,
+                "answer": answer_token,
+            }
+        )
+        yield f"{data}\n\n"
+        
     await answer_task
 
     """create session summary if the user is sending new chat message"""
@@ -387,15 +388,15 @@ async def rag_streaming_chat(
         async for summary_token in summary_streaming_callback.aiter():
             print("summary streaming:", summary_token)
             summary += summary_token
-            yield f"event:{summary_token}\n\n"
-            # yield json.dumps(
-            #     {
-            #         "data_type": 1,
-            #         "user_id": user_id,
-            #         "session_id": session_id,
-            #         "summary": summary_token,
-            #     }
-            # )
+            data=json.dumps(
+                {
+                    "data_type": 1,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "summary": summary_token,
+                }
+            )
+            yield f"{data}\n\n"
         await summary_task
         add_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
