@@ -5,7 +5,8 @@ general_chat_qa_prompt_template = """
     If you don't know the answer, just say that you don't. Do not try to make up an answer.\n
     You must answer in Turkish.\n
     If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
-    Don't include source file names that are irrelevant to the final answer.\n
+    Do not include source file names that are irrelevant to the final answer.\n
+    Do not give further information about the sources. Sources should be the end of the message.\n
     Do not talk about the unused files.\n
     If a question does not make any sense or is not factually coherent, explain why instead of providing incorrect information.\n
     If you don't know the answer to a question, please do not share false information.\n\n
