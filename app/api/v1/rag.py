@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Body, File, UploadFile, Form
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
+from time import sleep
 from crud.rag import (
     rag_general_chat,
     rag_legal_chat,
@@ -208,7 +209,7 @@ async def rag_test(
     message: ChatRequest,
     # dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-):
+) -> StreamingResponse:
     chat_memory = init_postgres_chat_memory(session_id=message.session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
@@ -222,14 +223,21 @@ async def rag_test(
     )
     # user_id = get_userid_by_token(dependencies)
 
-    response = rag_streaming_chat(
-        user_id=4,
-        question=message.question,
-        session_id=message.session_id,
-        chat_history=memory.buffer,
-        db_session=session,
-    )
-    async for value in response:
-        print("response:", value)
+    # response = rag_streaming_chat(
+    #     user_id=4,
+    #     question=message.question,
+    #     session_id=message.session_id,
+    #     chat_history=memory.buffer,
+    #     db_session=session,
+    # )
 
-    return StreamingResponse(response, media_type="text/event-stream", status_code=200)
+    return StreamingResponse(
+        rag_streaming_chat(
+            user_id=4,
+            question=message.question,
+            session_id=message.session_id,
+            chat_history=memory.buffer,
+            db_session=session,
+        ),
+        media_type="text/event-stream",
+    )
