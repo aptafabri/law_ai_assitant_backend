@@ -225,7 +225,7 @@ async def rag_test(
 
     return StreamingResponse(
         rag_streaming_chat(
-            user_id=4,
+            user_id=user_id,
             question=message.question,
             session_id=message.session_id,
             chat_history=memory.buffer,
