@@ -27,16 +27,16 @@ from crud.chat_general import init_postgres_chat_memory
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from crud.chat_general import (
     add_message,
-    summarize_session,
     summarize_session_streaming,
     add_session_summary,
     session_exist,
     init_postgres_chat_memory,
 )
 from crud.chat_legal import (
+    add_legal_chat_message,
+    add_legal_session_summary,
+    legal_session_exist,
     init_postgres_legal_chat_memory,
-    upload_legal_description,
-    read_pdf,
 )
 import langchain
 from typing import List
@@ -69,7 +69,9 @@ class QueueCallbackHandler(AsyncIteratorCallbackHandler):
         return self.done.set()
 
 
-@traceable(run_type="llm", name="RAG with source link", project_name="adaletgpt")
+@traceable(
+    run_type="llm", name="RAG general chat with source link", project_name="adaletgpt"
+)
 def rag_general_chat(question: str, session_id: str = None):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
@@ -124,9 +126,7 @@ def rag_general_chat(question: str, session_id: str = None):
 
     base_retriever = MultiQueryRetriever.from_llm(
         retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(
-            model_name="gpt-4o", temperature=0, max_tokens=3000
-        ),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
 
@@ -147,129 +147,12 @@ def rag_general_chat(question: str, session_id: str = None):
     return qa.invoke({"question": question})
 
 
-@traceable(run_type="llm", name="RAG with Legal Cases", project_name="adaletgpt")
-def rag_legal_chat(question: str, session_id: str = None):
-
-    QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        legal_chat_qa_prompt_template
-    )  # prompt_template
-
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    docsearch = PineconeVectorStore(
-        pinecone_api_key=settings.PINECONE_API_KEY,
-        embedding=embeddings,
-        index_name=settings.LEGAL_CASE_INDEX_NAME,
-    )
-
-    # #####  Setting Multiquery retriever as base retriver ######
-    # QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template="""You are an AI language model assistant.\n
-    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n
-    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
-    #     Provide these alternative questions separated by newlines.\n
-
-    #     Original question: {question}""",
-    # )
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
-    # )
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor,
-        base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-    )
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=llm,
-        memory_key="chat_history",
-        return_messages="on",
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        output_key="answer",
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=compression_retriever,
-        return_source_documents=True,
-        condense_question_llm=question_llm,
-        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
-        memory=memory,
-    )
-    return qa.invoke({"question": question, "chat_history": []})
-
-
-@traceable(run_type="llm", name="Get Relevant Legal Cases", project_name="adaletgpt")
-def get_relevant_legal_cases(session_id: str):
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=llm,
-        memory_key="chat_history",
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        return_messages=False,
-        output_key="answer",
-        ai_prefix="AI",
-        human_prefix="Human",
-    )
-    messages = memory.load_memory_variables({})
-    if messages["chat_history"] == "":
-        return []
-    print("chat_history", messages["chat_history"])
-    prompt = PromptTemplate(
-        input_variables=["conversation"],
-        template=summary_legal_conversation_prompt_template,
-    )
-
-    llm_chain = LLMChain(llm=llm, prompt=prompt)
-
-    response = llm_chain.invoke({"conversation": messages["chat_history"]})
-    conversation_summary = response["text"]
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    docsearch = PineconeVectorStore(
-        pinecone_api_key=settings.PINECONE_API_KEY,
-        embedding=embeddings,
-        index_name=settings.LEGAL_CASE_INDEX_NAME,
-    )
-
-    # MULTI_QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template="""You are an AI language model assistant.\n
-    #     Your task is to generate 3 different versions of the given legal case summary in turkish to retrieve relevant documents from a vector  database.\n
-    #     By generating multiple perspectives on the legal case summary, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
-    #     Provide these alternative legal case summary separated by newlines.\n
-    #     Original Legal Case Summary: {question}""",
-    # )
-
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = MULTI_QUERY_PROMPT
-    # )
-
-    compressor = CohereRerank(top_n=5, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor,
-        base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-    )
-
-    reranked_docs = compression_retriever.get_relevant_documents(
-        query=conversation_summary
-    )
-    legal_caese_docs: List[str] = []
-    for doc in reranked_docs:
-        legal_caese_docs.append(doc.page_content)
-
-    return legal_caese_docs
-
-
 @traceable(
-    run_type="llm", name="RAG Test without source link", project_name="adaletgpt"
+    run_type="llm",
+    name="RAG general streaming chat with source link",
+    project_name="adaletgpt",
 )
-async def rag_streaming_chat(
+async def rag_general_streaming_chat(
     question: str,
     user_id: int,
     session_id: str = None,
@@ -449,3 +332,309 @@ def add_chat_history(
 
     add_message(user_message, db_session)
     add_message(ai_message, db_session)
+
+
+@traceable(run_type="llm", name="RAG with Legal Cases", project_name="adaletgpt")
+def rag_legal_chat(question: str, session_id: str = None):
+
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(
+        legal_chat_qa_prompt_template
+    )  # prompt_template
+
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    # #####  Setting Multiquery retriever as base retriver ######
+    # QUERY_PROMPT = PromptTemplate(
+    #     input_variables=["question"],
+    #     template="""You are an AI language model assistant.\n
+    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n
+    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+    #     Provide these alternative questions separated by newlines.\n
+
+    #     Original question: {question}""",
+    # )
+    # base_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
+    # )
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor,
+        base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
+    )
+    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=llm,
+        memory_key="chat_history",
+        return_messages="on",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
+    )
+
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=compression_retriever,
+        return_source_documents=True,
+        condense_question_llm=question_llm,
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+        memory=memory,
+    )
+    return qa.invoke({"question": question, "chat_history": []})
+
+
+@traceable(
+    run_type="llm", name="RAG streaming with Legal Cases", project_name="adaletgpt"
+)
+async def rag_legal_streaming_chat(
+    standalone_question: str,
+    question: str,
+    user_id: int,
+    session_id: str,
+    legal_attached: bool,
+    legal_s3_key: str,
+    legal_file_name: str,
+    chat_history: Any = [],
+    db_session: Session = None,
+):
+
+    answer_streaming_callback = QueueCallbackHandler()
+    summary_streaming_callback = QueueCallbackHandler()
+    streaming_llm = ChatOpenAI(
+        streaming=True,
+        callbacks=[answer_streaming_callback],
+        temperature=0,
+        max_tokens=3000,
+        model_name=settings.LLM_MODEL_NAME,
+    )
+    summary_streaming_llm = ChatOpenAI(
+        streaming=True,
+        callbacks=[summary_streaming_callback],
+        temperature=0,
+        max_tokens=3000,
+        model_name=settings.LLM_MODEL_NAME,
+    )
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(
+        legal_chat_qa_prompt_template
+    )  # prompt_template
+
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    # #####  Setting Multiquery retriever as base retriver ######
+    # QUERY_PROMPT = PromptTemplate(
+    #     input_variables=["question"],
+    #     template="""You are an AI language model assistant.\n
+    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n
+    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+    #     Provide these alternative questions separated by newlines.\n
+
+    #     Original question: {question}""",
+    # )
+    # base_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
+    # )
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor,
+        base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
+    )
+
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=streaming_llm,
+        retriever=compression_retriever,
+        return_source_documents=True,
+        condense_question_llm=question_llm,
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+    )
+    answer_task = asyncio.create_task(
+        qa.ainvoke({"question": standalone_question, "chat_history": chat_history})
+    )
+    answer = ""
+    async for answer_token in answer_streaming_callback.aiter():
+        print("streaming answer:", answer_token)
+        answer += answer_token
+        data = json.dumps(
+            {
+                "message": {
+                    "data_type": 0,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "question": question,
+                    "answer": answer_token,
+                    "legal_attached": legal_attached,
+                    "legal_file_name": legal_file_name,
+                    "legal_s3_key": legal_s3_key,
+                }
+            }
+        )
+        yield data
+
+    await answer_task
+
+    """create session summary if the user is sending new chat message"""
+
+    if legal_session_exist(session_id=session_id, session=db_session) == False:
+        summary_task = asyncio.create_task(
+            summarize_session_streaming(
+                question=question, answer=answer, llm=summary_streaming_llm
+            )
+        )
+        summary = ""
+        async for summary_token in summary_streaming_callback.aiter():
+            print("summary streaming:", summary_token)
+            summary += summary_token
+            data_summary = json.dumps(
+                {
+                    "message": {
+                        "data_type": 1,
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "question": question,
+                        "answer": summary_token,
+                        "legal_attached": legal_attached,
+                        "legal_file_name": legal_file_name,
+                        "legal_s3_key": legal_s3_key,
+                    }
+                }
+            )
+            yield data_summary
+        await summary_task
+
+        add_legal_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=db_session
+        )
+
+    add_legal_chat_history(
+        user_id=user_id,
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        legal_attached=legal_attached,
+        legal_file_name=legal_file_name,
+        legal_s3_key=legal_s3_key,
+        db_session=db_session,
+    )
+
+
+def add_legal_chat_history(
+    user_id: int,
+    session_id: str,
+    question: str,
+    answer: str,
+    legal_attached: bool,
+    legal_file_name: str,
+    legal_s3_key: str,
+    db_session: Session,
+):
+    """add chat history for memory management"""
+    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
+        memory_key="chat_history",
+        return_messages=True,
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
+    )
+    memory.save_context({"input": question}, {"answer": answer})
+    created_date = datetime.now()
+    user_message = LegalChatAdd(
+        user_id=user_id,
+        session_id=session_id,
+        content=question,
+        role="user",
+        legal_attached=legal_attached,
+        legal_file_name=legal_file_name,
+        legal_s3_key=legal_s3_key,
+        created_date=created_date,
+    )
+    ai_message = LegalChatAdd(
+        user_id=user_id,
+        session_id=session_id,
+        content=answer,
+        role="assistant",
+        legal_attached=False,
+        legal_file_name="",
+        legal_s3_key="",
+        created_date=created_date,
+    )
+    add_legal_chat_message(user_message, db_session)
+    add_legal_chat_message(ai_message, db_session)
+
+
+@traceable(run_type="llm", name="Get Relevant Legal Cases", project_name="adaletgpt")
+def get_relevant_legal_cases(session_id: str):
+    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=llm,
+        memory_key="chat_history",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        return_messages=False,
+        output_key="answer",
+        ai_prefix="AI",
+        human_prefix="Human",
+    )
+    messages = memory.load_memory_variables({})
+    if messages["chat_history"] == "":
+        return []
+    print("chat_history", messages["chat_history"])
+    prompt = PromptTemplate(
+        input_variables=["conversation"],
+        template=summary_legal_conversation_prompt_template,
+    )
+
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+
+    response = llm_chain.invoke({"conversation": messages["chat_history"]})
+    conversation_summary = response["text"]
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    # MULTI_QUERY_PROMPT = PromptTemplate(
+    #     input_variables=["question"],
+    #     template="""You are an AI language model assistant.\n
+    #     Your task is to generate 3 different versions of the given legal case summary in turkish to retrieve relevant documents from a vector  database.\n
+    #     By generating multiple perspectives on the legal case summary, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
+    #     Provide these alternative legal case summary separated by newlines.\n
+    #     Original Legal Case Summary: {question}""",
+    # )
+
+    # base_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = MULTI_QUERY_PROMPT
+    # )
+
+    compressor = CohereRerank(top_n=5, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor,
+        base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
+    )
+
+    reranked_docs = compression_retriever.get_relevant_documents(
+        query=conversation_summary
+    )
+    legal_caese_docs: List[str] = []
+    for doc in reranked_docs:
+        legal_caese_docs.append(doc.page_content)
+
+    return legal_caese_docs

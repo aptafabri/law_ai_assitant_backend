@@ -7,8 +7,9 @@ import asyncio
 from crud.rag import (
     rag_general_chat,
     rag_legal_chat,
+    rag_general_streaming_chat,
+    rag_legal_streaming_chat,
     get_relevant_legal_cases,
-    rag_streaming_chat,
 )
 from crud.chat_general import (
     add_message,
@@ -18,13 +19,13 @@ from crud.chat_general import (
     init_postgres_chat_memory,
 )
 from crud.chat_legal import (
-    add_legal_message,
     add_legal_chat_message,
     add_legal_session_summary,
     legal_session_exist,
     read_pdf,
     upload_legal_description,
     generate_question,
+    init_postgres_legal_chat_memory,
 )
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
@@ -38,7 +39,7 @@ router = APIRouter()
 
 
 @router.post("/chat", tags=["RagController"], status_code=200)
-def chat_with_document(
+def rag_general(
     message: ChatRequest,
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
@@ -107,7 +108,7 @@ def chat_with_document(
 
 
 @router.post("/chat-legal", tags=["RagController"], status_code=200)
-async def chat_with_legal(
+async def rag_legal(
     session_id: str = Form(),
     question: str = Form(),
     file: UploadFile = File(None),
@@ -207,7 +208,7 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
 
 
 @router.post("/chat-test", tags=["RagController"], status_code=200)
-async def rag_test(
+async def rag_general_streaming(
     message: ChatRequest,
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
@@ -226,12 +227,73 @@ async def rag_test(
     user_id = get_userid_by_token(dependencies)
 
     return EventSourceResponse(
-        rag_streaming_chat(
+        rag_general_streaming_chat(
             user_id=user_id,
             question=message.question,
             session_id=message.session_id,
             chat_history=memory.buffer,
             db_session=session,
+        ),
+        media_type="text/event-stream",
+    )
+
+
+@router.post("/chat-legal-streaming", tags=["RagController"], status_code=200)
+async def rag_legal_streaming(
+    session_id: str = Form(),
+    question: str = Form(),
+    file: UploadFile = File(None),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    standalone_question = ""
+    legal_s3_key = ""
+    file_name = ""
+    attached_pdf = False
+    user_id = get_userid_by_token(dependencies)
+    created_date = datetime.now()
+    if not file:
+        standalone_question = question
+        print("no file attahed!!!")
+    else:
+        pdf_contents = await file.read()
+        attached_pdf = True
+        file_name = file.filename
+        print(file_name)
+        time_stamp = created_date.timestamp()
+        legal_s3_key = f"{time_stamp}_{file_name}"
+        upload_legal_description(
+            file_content=pdf_contents,
+            user_id=user_id,
+            session_id=session_id,
+            legal_s3_key=legal_s3_key,
+        )
+        pdf_contents = read_pdf(pdf_contents)
+        standalone_question = generate_question(
+            pdf_contents=pdf_contents, question=question
+        )
+    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        memory_key="chat_history",
+        return_messages="on",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
+    )
+    return EventSourceResponse(
+        rag_legal_streaming_chat(
+            standalone_question=standalone_question,
+            question=question,
+            session_id=session_id,
+            user_id=user_id,
+            db_session=session,
+            chat_history=memory.buffer,
+            legal_attached=attached_pdf,
+            legal_file_name=file_name,
+            legal_s3_key=legal_s3_key,
         ),
         media_type="text/event-stream",
     )
