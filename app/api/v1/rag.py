@@ -207,7 +207,7 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
 @router.post("/chat-test", tags=["RagController"], status_code=200)
 async def rag_test(
     message: ChatRequest,
-    dependencies=Depends(JWTBearer()),
+    # dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
 ) -> StreamingResponse:
     chat_memory = init_postgres_chat_memory(session_id=message.session_id)
@@ -221,11 +221,11 @@ async def rag_test(
         ai_prefix="Question",
         human_prefix="Answer",
     )
-    user_id = get_userid_by_token(dependencies)
+    # user_id = get_userid_by_token(dependencies)
 
     return StreamingResponse(
         rag_streaming_chat(
-            user_id=user_id,
+            user_id=4,
             question=message.question,
             session_id=message.session_id,
             chat_history=memory.buffer,
@@ -233,3 +233,14 @@ async def rag_test(
         ),
         media_type="text/event-stream",
     )
+
+
+# async def waypoints_generator():
+#     waypoint = {"data": "aaaa"}
+#     for waypoint in range(10):
+#         yield f"event: locationUpdate\ndata:{waypoint}\n\n"
+
+
+# @router.get("/get-waypoints")
+# async def root():
+#     return StreamingResponse(waypoints_generator(), media_type="text/event-stream")
