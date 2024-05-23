@@ -56,7 +56,7 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
 
-llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0.2, max_tokens=3000)
+llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0, max_tokens=3000)
 question_llm = ChatOpenAI(
     model_name=settings.QUESTION_MODEL_NAME, temperature=0.2, max_tokens=3000
 )
@@ -175,7 +175,7 @@ def rag_legal_chat(question: str, session_id: str = None):
     # base_retriever = MultiQueryRetriever.from_llm(
     #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
     # )
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
         base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
@@ -340,7 +340,7 @@ async def rag_streaming_chat(
         prompt=QUERY_PROMPT,
     )
 
-    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
