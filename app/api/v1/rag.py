@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Body, File, UploadFile, Form
 from fastapi.responses import JSONResponse, StreamingResponse
+from sse_starlette.sse import EventSourceResponse
 from sqlalchemy.orm import Session
 from time import sleep
 import asyncio
@@ -224,7 +225,7 @@ async def rag_test(
     )
     user_id = get_userid_by_token(dependencies)
 
-    return StreamingResponse(
+    return EventSourceResponse(
         rag_streaming_chat(
             user_id=user_id,
             question=message.question,
@@ -244,4 +245,4 @@ async def fake_video_streamer():
 
 @router.get("/video")
 async def video():
-    return StreamingResponse(fake_video_streamer(), media_type="text/event-stream")
+    return EventSourceResponse(fake_video_streamer(), media_type="text/event-stream")

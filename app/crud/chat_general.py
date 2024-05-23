@@ -165,7 +165,6 @@ def session_exist(session_id: str, session: Session):
         .filter(SessionSummary.session_id == session_id)
         .first()
     )
-    print("existing session:", existing_session)
     if existing_session:
         return True
     else:

@@ -66,7 +66,6 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
     def on_llm_end(self, *args, **kwargs) -> Any:
         print("ended streaming")
-
         return self.done.set()
 
 
@@ -374,15 +373,12 @@ async def rag_streaming_chat(
         )
         yield f"data:{data}\n\n"
 
-        asyncio.sleep(0.1)
+        await asyncio.sleep(0.1)
 
     await answer_task
 
     """create session summary if the user is sending new chat message"""
-    print(
-        "Session exist status:",
-        session_exist(session_id=session_id, session=db_session),
-    )
+
     if session_exist(session_id=session_id, session=db_session) == False:
         summary_task = asyncio.create_task(
             summarize_session_streaming(
@@ -405,7 +401,7 @@ async def rag_streaming_chat(
                 }
             )
             yield f"data:{data}\n\n"
-            asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
         await summary_task
 
         await add_session_summary(
