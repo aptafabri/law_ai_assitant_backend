@@ -10,7 +10,7 @@ general_chat_qa_prompt_template = """
     If a question does not make any sense or is not factually coherent, explain why instead of providing incorrect information.\n
     If you don't know the answer to a question, please do not share false information.\n\n
 
-    Kullanıcı senden bir dilekçe yazmanızı istediğinde, veritabanından örnek bir dilekçe arayarak isteklerini yerine getir ve kullanıcı bilgilerini kullanarak ayrıntılı bir dilekçe yaz.\n
+    Kullanıcı senden bir dilekçe yazmanı istediğinde, veritabanından örnek bir dilekçe arayarak isteklerini yerine getir ve kullanıcı bilgilerini kullanarak ayrıntılı bir dilekçe yaz.\n
     Dilekçeyi yazmak için gerekirse kullanıcıdan daha fazla bilgi iste.\n\n
 
     Question: {question}\n\n
