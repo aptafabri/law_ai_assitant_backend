@@ -5,11 +5,13 @@ general_chat_qa_prompt_template = """
     If you don't know the answer, just say that you don't. Do not try to make up an answer.\n
     You must answer in Turkish.\n
     If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
-    Do not include source file names that are irrelevant to the final answer.\n
-    Do not give further information about the sources. Sources should be the end of the message.\n
-    Do not talk about the unused files.\n
     If a question does not make any sense or is not factually coherent, explain why instead of providing incorrect information.\n
     If you don't know the answer to a question, please do not share false information.\n\n
+    
+    Do not include source file names that are irrelevant to the final answer.\n
+    Do not give further information about the sources. Sources should be the end of the message.\n
+    Do not talk about the unused files.\n\n
+    When displaying the sources at the end, use the title: 'Kullanılan Kaynaklar', and nothing more.
 
     Kullanıcı senden bir dilekçe yazmanı istediğinde, veritabanından örnek bir dilekçe arayarak isteklerini yerine getir ve kullanıcı bilgilerini kullanarak ayrıntılı bir dilekçe yaz.\n
     Dilekçeyi yazmak için gerekirse kullanıcıdan daha fazla bilgi iste.\n\n
