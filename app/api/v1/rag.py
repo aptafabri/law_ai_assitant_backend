@@ -229,5 +229,7 @@ async def rag_test(
         chat_history=memory.buffer,
         db_session=session,
     )
+    async for value in response:
+        print("response:", value)
 
-    return StreamingResponse(response, status_code=200)
+    return StreamingResponse(response, media_type="text/event-stream", status_code=200)
