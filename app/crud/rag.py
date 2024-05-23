@@ -373,8 +373,6 @@ async def rag_streaming_chat(
         )
         yield f"data:{data}\n\n"
 
-        await asyncio.sleep(0.1)
-
     await answer_task
 
     """create session summary if the user is sending new chat message"""
@@ -401,7 +399,6 @@ async def rag_streaming_chat(
                 }
             )
             yield f"data:{data}\n\n"
-            await asyncio.sleep(0.1)
         await summary_task
 
         await add_session_summary(
