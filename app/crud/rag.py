@@ -465,7 +465,7 @@ async def rag_legal_streaming_chat(
             {
                 "message": {
                     "data_type": 0,
-                    "answer": answer,
+                    "content": answer,
                 }
             }
         )
