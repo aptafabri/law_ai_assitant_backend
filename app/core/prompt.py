@@ -16,13 +16,12 @@ general_chat_qa_prompt_template = """
     Kullanıcı senden bir dilekçe yazmanı istediğinde, veritabanından örnek bir dilekçe arayarak isteklerini yerine getir ve kullanıcı bilgilerini kullanarak ayrıntılı bir dilekçe yaz.\n
     Dilekçeyi yazmak için gerekirse kullanıcıdan daha fazla bilgi iste.\n\n
 
-    Question: {question}\n\n
-    
+    Question: {question}\n
     =================\n
     {context}\n\n
 
     Conversation: {chat_history}\n
-    =================\n\n
+    =================\n
     
     Final Answer:\n
                         

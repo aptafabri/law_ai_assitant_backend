@@ -56,9 +56,9 @@ os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
 
 session_store = {}
 
-llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0, max_tokens=3000)
+llm = ChatOpenAI(model_name=settings.LLM_MODEL_NAME, temperature=0.3, max_tokens=3000)
 question_llm = ChatOpenAI(
-    model_name=settings.QUESTION_MODEL_NAME, temperature=0, max_tokens=3000
+    model_name=settings.QUESTION_MODEL_NAME, temperature=0.3, max_tokens=3000
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -191,7 +191,7 @@ async def rag_general_streaming_chat(
     )
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\n Content:{page_content}\n Source File Name:{source}",
+        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
@@ -223,7 +223,7 @@ async def rag_general_streaming_chat(
         prompt=QUERY_PROMPT,
     )
 
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=4, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
@@ -243,53 +243,51 @@ async def rag_general_streaming_chat(
     async for answer_token in answer_streaming_callback.aiter():
         print("streaming answer:", answer_token)
         answer += answer_token
-        # data = json.dumps(
-        #     {
-        #         "message": {
-        #             "data_type": 0,
-        #             "user_id": user_id,
-        #             "session_id": session_id,
-        #             "question": question,
-        #             "answer": answer_token,
-        #         }
-        #     }
-        # )
-        # yield data
-        yield answer_token
-
+        data = json.dumps(
+            {
+                "message": {
+                    "data_type": 0,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "question": question,
+                    "answer": answer_token,
+                }
+            }
+        )
+        yield data
+        
     await answer_task
 
     """create session summary if the user is sending new chat message"""
 
-    # if session_exist(session_id=session_id, session=db_session) == False:
-    #     summary_task = asyncio.create_task(
-    #         summarize_session_streaming(
-    #             question=question, answer=answer, llm=summary_streaming_llm
-    #         )
-    #     )
-    #     summary = ""
-    #     async for summary_token in summary_streaming_callback.aiter():
-    #         print("summary streaming:", summary_token)
-    #         summary += summary_token
-    #         # data_summary = json.dumps(
-    #         #     {
-    #         #         "message": {
-    #         #             "data_type": 1,
-    #         #             "user_id": user_id,
-    #         #             "session_id": session_id,
-    #         #             "question": question,
-    #         #             "answer": summary_token,
-    #         #         }
-    #         #     }
-    #         # )
-    #         # yield data_summary
-    #         yield summary_token
+    if session_exist(session_id=session_id, session=db_session) == False:
+        summary_task = asyncio.create_task(
+            summarize_session_streaming(
+                question=question, answer=answer, llm=summary_streaming_llm
+            )
+        )
+        summary = ""
+        async for summary_token in summary_streaming_callback.aiter():
+            print("summary streaming:", summary_token)
+            summary += summary_token
+            data_summary = json.dumps(
+                {
+                    "message": {
+                        "data_type": 1,
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "question": question,
+                        "answer": summary_token,
+                    }
+                }
+            )
+            yield data_summary
 
-    #     await summary_task
+        await summary_task
 
-    #     add_session_summary(
-    #         user_id=user_id, session_id=session_id, summary=summary, session=db_session
-    #     )
+        add_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=db_session
+        )
 
     add_chat_history(
         user_id=user_id,

@@ -237,7 +237,6 @@ async def rag_general_streaming(
         media_type="text/event-stream",
     )
 
-
 @router.post("/chat-legal-streaming", tags=["RagController"], status_code=200)
 async def rag_legal_streaming(
     session_id: str = Form(),
