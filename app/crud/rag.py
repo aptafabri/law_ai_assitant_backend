@@ -611,19 +611,6 @@ def get_relevant_legal_cases(session_id: str):
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
 
-    # MULTI_QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template="""You are an AI language model assistant.\n
-    #     Your task is to generate 3 different versions of the given legal case summary in turkish to retrieve relevant documents from a vector  database.\n
-    #     By generating multiple perspectives on the legal case summary, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
-    #     Provide these alternative legal case summary separated by newlines.\n
-    #     Original Legal Case Summary: {question}""",
-    # )
-
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = MULTI_QUERY_PROMPT
-    # )
-
     compressor = CohereRerank(top_n=5, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
