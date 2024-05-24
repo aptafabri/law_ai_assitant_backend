@@ -207,7 +207,7 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
     )
 
 
-@router.post("/chat-test", tags=["RagController"], status_code=200)
+@router.post("/chat-streaming", tags=["RagController"], status_code=200)
 async def rag_general_streaming(
     message: ChatRequest,
     dependencies=Depends(JWTBearer()),

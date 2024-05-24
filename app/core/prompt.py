@@ -13,8 +13,8 @@ general_chat_qa_prompt_template = """
     Do not talk about the unused files.\n\n
     When displaying the sources at the end, use the title: 'Kullanılan Kaynaklar', and nothing more.
 
-    Kullanıcı senden bir dilekçe yazmanı istediğinde, veritabanından örnek bir dilekçe arayarak isteklerini yerine getir ve kullanıcı bilgilerini kullanarak ayrıntılı bir dilekçe yaz.\n
-    Dilekçeyi yazmak için gerekirse kullanıcıdan daha fazla bilgi iste.\n\n
+    When the user asks you to write a petition, fulfill their request by searching for a sample petition in the database and write a detailed petition using the user information.\n
+    Ask the user for more information if necessary to write the petition.\n\n
 
     Question: {question}\n
     =================\n
