@@ -243,50 +243,53 @@ async def rag_general_streaming_chat(
     async for answer_token in answer_streaming_callback.aiter():
         print("streaming answer:", answer_token)
         answer += answer_token
-        data = json.dumps(
-            {
-                "message": {
-                    "data_type": 0,
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "question": question,
-                    "answer": answer_token,
-                }
-            }
-        )
-        yield data
+        # data = json.dumps(
+        #     {
+        #         "message": {
+        #             "data_type": 0,
+        #             "user_id": user_id,
+        #             "session_id": session_id,
+        #             "question": question,
+        #             "answer": answer_token,
+        #         }
+        #     }
+        # )
+        # yield data
+        yield answer_token
 
     await answer_task
 
     """create session summary if the user is sending new chat message"""
 
-    if session_exist(session_id=session_id, session=db_session) == False:
-        summary_task = asyncio.create_task(
-            summarize_session_streaming(
-                question=question, answer=answer, llm=summary_streaming_llm
-            )
-        )
-        summary = ""
-        async for summary_token in summary_streaming_callback.aiter():
-            print("summary streaming:", summary_token)
-            summary += summary_token
-            data_summary = json.dumps(
-                {
-                    "message": {
-                        "data_type": 1,
-                        "user_id": user_id,
-                        "session_id": session_id,
-                        "question": question,
-                        "answer": summary_token,
-                    }
-                }
-            )
-            yield data_summary
-        await summary_task
+    # if session_exist(session_id=session_id, session=db_session) == False:
+    #     summary_task = asyncio.create_task(
+    #         summarize_session_streaming(
+    #             question=question, answer=answer, llm=summary_streaming_llm
+    #         )
+    #     )
+    #     summary = ""
+    #     async for summary_token in summary_streaming_callback.aiter():
+    #         print("summary streaming:", summary_token)
+    #         summary += summary_token
+    #         # data_summary = json.dumps(
+    #         #     {
+    #         #         "message": {
+    #         #             "data_type": 1,
+    #         #             "user_id": user_id,
+    #         #             "session_id": session_id,
+    #         #             "question": question,
+    #         #             "answer": summary_token,
+    #         #         }
+    #         #     }
+    #         # )
+    #         # yield data_summary
+    #         yield summary_token
 
-        add_session_summary(
-            user_id=user_id, session_id=session_id, summary=summary, session=db_session
-        )
+    #     await summary_task
+
+    #     add_session_summary(
+    #         user_id=user_id, session_id=session_id, summary=summary, session=db_session
+    #     )
 
     add_chat_history(
         user_id=user_id,
