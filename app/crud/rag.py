@@ -241,16 +241,13 @@ async def rag_general_streaming_chat(
     )
     answer = ""
     async for answer_token in answer_streaming_callback.aiter():
-        print("streaming answer:", answer_token)
         answer += answer_token
+        print("streaming answer:", answer)
         data = json.dumps(
             {
                 "message": {
                     "data_type": 0,
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "question": question,
-                    "answer": answer_token,
+                    "content": answer
                 }
             }
         )
@@ -268,16 +265,13 @@ async def rag_general_streaming_chat(
         )
         summary = ""
         async for summary_token in summary_streaming_callback.aiter():
-            print("summary streaming:", summary_token)
             summary += summary_token
+            print("summary streaming:", summary)
             data_summary = json.dumps(
                 {
                     "message": {
                         "data_type": 1,
-                        "user_id": user_id,
-                        "session_id": session_id,
-                        "question": question,
-                        "answer": summary_token,
+                        "content": summary,
                     }
                 }
             )
@@ -471,13 +465,7 @@ async def rag_legal_streaming_chat(
             {
                 "message": {
                     "data_type": 0,
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "question": question,
-                    "answer": answer_token,
-                    "legal_attached": legal_attached,
-                    "legal_file_name": legal_file_name,
-                    "legal_s3_key": legal_s3_key,
+                    "answer": answer,
                 }
             }
         )
@@ -495,28 +483,46 @@ async def rag_legal_streaming_chat(
         )
         summary = ""
         async for summary_token in summary_streaming_callback.aiter():
-            print("summary streaming:", summary_token)
             summary += summary_token
+            print("summary streaming:", summary)
             data_summary = json.dumps(
                 {
                     "message": {
                         "data_type": 1,
-                        "user_id": user_id,
-                        "session_id": session_id,
-                        "question": question,
-                        "answer": summary_token,
-                        "legal_attached": legal_attached,
-                        "legal_file_name": legal_file_name,
-                        "legal_s3_key": legal_s3_key,
+                        "content": summary,
                     }
                 }
             )
             yield data_summary
         await summary_task
 
+        
+        
         add_legal_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
+
+    legal_file_data = json.dumps(
+        {
+            "message": {
+                "data_type": 2,
+                "content": legal_file_name,
+            }
+        }
+    )
+
+    yield legal_file_data
+
+    s3_key_data = json.dumps(
+        {
+            "message": {
+                "data_type": 3,
+                "content": legal_s3_key,
+            }
+        }
+    )
+
+    yield s3_key_data
 
     add_legal_chat_history(
         user_id=user_id,
