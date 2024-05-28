@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     MAIL_PORT: int
     MAIL_SERVER: str
     MAIL_FROM_NAME: str
+    TAVILY_API_KEY: str
 
     class Config:
         env_file = ".env"

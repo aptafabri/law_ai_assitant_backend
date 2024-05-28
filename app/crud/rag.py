@@ -243,16 +243,9 @@ async def rag_general_streaming_chat(
     async for answer_token in answer_streaming_callback.aiter():
         answer += answer_token
         print("streaming answer:", answer)
-        data = json.dumps(
-            {
-                "message": {
-                    "data_type": 0,
-                    "content": answer
-                }
-            }
-        )
+        data = json.dumps({"message": {"data_type": 0, "content": answer}})
         yield data
-        
+
     await answer_task
 
     """create session summary if the user is sending new chat message"""
@@ -496,8 +489,6 @@ async def rag_legal_streaming_chat(
             yield data_summary
         await summary_task
 
-        
-        
         add_legal_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
@@ -632,3 +623,94 @@ def get_relevant_legal_cases(session_id: str):
         legal_caese_docs.append(doc.page_content)
 
     return legal_caese_docs
+
+
+@traceable(
+    run_type="llm",
+    name="RAG regulation chat",
+    project_name="adaletgpt",
+)
+def rag_regulation_chat(question: str):
+    """
+    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
+    """
+
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(
+        general_chat_qa_prompt_template
+    )  # prompt_template defined above
+
+    ######  Setting Multiquery retriever as base retriver ######
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template=multi_query_prompt_template,
+    )
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.INDEX_NAME,
+    )
+
+    base_retriever = MultiQueryRetriever.from_llm(
+        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
+        prompt=QUERY_PROMPT,
+    )
+
+    # compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    # compression_retriever = ContextualCompressionRetriever(
+    #     base_compressor=compressor, base_retriever=base_retriever
+    # )
+
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        return_source_documents=True,
+        condense_question_llm=question_llm,
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+    )
+
+    return qa.invoke({"question": question, "chat_history": []})
+
+
+@traceable(
+    run_type="llm",
+    name="RAG with Legal Cases with source link",
+    project_name="adaletgpt",
+)
+def rag_legal_source_chat(question: str):
+
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
+    document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source"],
+        template="Context:\n Content:{page_content}\n Source Link:{source}",
+    )
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=document_llm_chain,
+        document_variable_name="context",
+        document_prompt=document_prompt,
+    )
+    condense_question_prompt = PromptTemplate.from_template(
+        condense_question_prompt_template
+    )
+
+    question_generator_chain = LLMChain(
+        llm=question_llm, prompt=condense_question_prompt
+    )
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+
+    qa = ConversationalRetrievalChain(
+        combine_docs_chain=combine_documents_chain,
+        question_generator=question_generator_chain,
+        verbose=False,
+        retriever=docsearch.as_retriever(search_kwargs={"k": 6}),
+        return_source_documents=True,
+    )
+
+    return qa.invoke({"question": question, "chat_history": []})
