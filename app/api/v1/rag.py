@@ -214,7 +214,6 @@ async def rag_general_streaming(
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
 ) -> EventSourceResponse:
-    
     chat_memory = init_postgres_chat_memory(session_id=message.session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),

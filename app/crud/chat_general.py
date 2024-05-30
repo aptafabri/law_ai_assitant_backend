@@ -130,12 +130,11 @@ def summarize_session(question: str, answer: str):
     response = llm_chain.invoke({"question": question, "answer": answer})
     return response["text"]
 
-
 async def summarize_session_streaming(question: str, answer: str, llm):
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
     llm_chain = LLMChain(llm=llm, prompt=prompt)
     return await llm_chain.ainvoke({"question": question, "answer": answer})
-
+   
 
 def add_session_summary(session_id: str, user_id: int, summary: str, session: Session):
     chat_session_db = SessionSummary(
@@ -211,7 +210,6 @@ def devote_chat_session(session_id: str, user_id: int, session: Session):
     except SQLAlchemyError as e:
 
         return {"success": False}
-
 
 def init_postgres_chat_memory(session_id: str):
     table_name = "message_store"
