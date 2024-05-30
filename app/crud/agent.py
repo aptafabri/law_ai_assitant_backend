@@ -54,7 +54,6 @@ async def agent_run(
                 "system",
                 """You are a helpful assistant and your name is AdaletGPT. Make sure to use the rag_legal and rag_regulation tools for information.\n
                 Use tavily_search_result_json tool if user's question is not related with case laws, statues and judicial precedents and decisions.\n
-                Use only one tool with one question.\n If you don't need tools, don't use tool
                 You must answer in Turkish.
                 If the question is unclear, require detailed question
                 """,
@@ -95,7 +94,7 @@ async def agent_run(
         if kind == "on_chat_model_stream":
             content = event["data"]["chunk"].content
             if content:
-
+                
                 answer += content
                 print("streaming_answer:", content)
                 data = json.dumps(
@@ -166,55 +165,3 @@ async def agent_run(
         legal_s3_key=legal_s3_key,
         db_session=db_session,
     )
-
-
-def agent(question: str, session_id: str):
-
-    llm = ChatOpenAI(
-        verbose=True,
-        model_name=settings.LLM_MODEL_NAME,
-        temperature=0,
-        openai_api_key=settings.OPENAI_API_KEY,
-        streaming=True,
-    )
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """You are a helpful assistant and your name is AdaletGPT. Make sure to use the rag_legal and rag_regulation tools for information.\n
-                Use tavily_search_result_json tool if user's question is not related with case laws, statues and judicial precedents and decisions.\n
-                You must answer in Turkish.
-                If the question is unclear, require detailed question
-                """,
-            ),
-            ("placeholder", "{chat_history}"),
-            ("human", "{input}"),
-            ("placeholder", "{agent_scratchpad}"),
-        ]
-    )
-    tools = [
-        rag_regulation_tool(),
-        rag_legal_tool(),
-        TavilySearchResults(max_results=1),
-    ]
-
-    agent = create_tool_calling_agent(llm, tools, prompt)
-
-    """initialize session memory for agent"""
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        memory_key="chat_history",
-        return_messages=True,
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-
-    agent_executor = AgentExecutor(
-        agent=agent, tools=tools, verbose=True, memory=memory
-    )
-
-    return agent_executor.invoke({"input": question})
