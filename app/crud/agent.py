@@ -52,10 +52,10 @@ async def agent_run(
         [
             (
                 "system",
-                """You are a helpful assistant and your name is AdaletGPT.\n
+                """You are a helpful assistant and your name is AdaletGPT. Make sure to use the rag_legal and rag_regulation tools for information.\n
                 Use tavily_search_result_json tool if user's question is not related with case laws, statues and judicial precedents and decisions.\n
                 You must answer in Turkish.
-                If the question is unclear, require detailed question.
+                If the question is unclear, require detailed question
                 """,
             ),
             ("placeholder", "{chat_history}"),
