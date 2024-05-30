@@ -35,8 +35,9 @@ general_chat_qa_prompt_template = """
     Do not include source file names that are irrelevant to the final answer.\n
     You must answer in Turkish.\n
     
+    ===============
     {context}\n\n
-
+    ===============
     Question: {question}\n
     Helpful Answer:
     """
