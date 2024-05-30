@@ -159,89 +159,87 @@ async def rag_general_streaming_chat(
     chat_history: Any = [],
     db_session: Session = None,
 ):
-    
-    answer_streaming_callback = QueueCallbackHandler()
-    summary_streaming_callback = QueueCallbackHandler()
-    streaming_llm = ChatOpenAI(
-        streaming=True,
-        callbacks=[answer_streaming_callback],
-        temperature=0,
-        max_tokens=3000,
-        model_name=settings.LLM_MODEL_NAME,
-    )
-    summary_streaming_llm = ChatOpenAI(
-        streaming=True,
-        callbacks=[summary_streaming_callback],
-        temperature=0,
-        max_tokens=3000,
-        model_name=settings.LLM_MODEL_NAME,
-    )
-    QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_qa_prompt_template
-    )  # prompt_template defined above
-
-    ######  Setting Multiquery retriever as base retriver ######
-    QUERY_PROMPT = PromptTemplate(
-        input_variables=["question"],
-        template=multi_query_prompt_template,
-    )
-
-    document_llm_chain = LLMChain(
-        llm=streaming_llm, prompt=QA_CHAIN_PROMPT, callbacks=None, verbose=False
-    )
-    document_prompt = PromptTemplate(
-        input_variables=["page_content", "source"],
-        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
-    )
-    combine_documents_chain = StuffDocumentsChain(
-        llm_chain=document_llm_chain,
-        document_variable_name="context",
-        document_prompt=document_prompt,
-        callbacks=None,
-    )
-
-    condense_question_prompt = PromptTemplate.from_template(
-        condense_question_prompt_template
-    )
-
-    question_generator_chain = LLMChain(
-        llm=question_llm, prompt=condense_question_prompt
-    )
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    docsearch = PineconeVectorStore(
-        pinecone_api_key=settings.PINECONE_API_KEY,
-        embedding=embeddings,
-        index_name=settings.INDEX_NAME,
-    )
-
-    base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(
-            model_name="gpt-4-1106-preview", temperature=0.2, max_tokens=3000
-        ),
-        prompt=QUERY_PROMPT,
-    )
-
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=base_retriever
-    )
-
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        verbose=False,
-        retriever=compression_retriever,
-        return_source_documents=True,
-    )
-
-    answer_task = asyncio.create_task(
-        qa.ainvoke({"question": question, "chat_history": chat_history})
-    )
-    
-    answer = ""
     try:
+        answer_streaming_callback = QueueCallbackHandler()
+        summary_streaming_callback = QueueCallbackHandler()
+        streaming_llm = ChatOpenAI(
+            streaming=True,
+            callbacks=[answer_streaming_callback],
+            temperature=0,
+            max_tokens=3000,
+            model_name=settings.LLM_MODEL_NAME,
+        )
+        summary_streaming_llm = ChatOpenAI(
+            streaming=True,
+            callbacks=[summary_streaming_callback],
+            temperature=0,
+            max_tokens=3000,
+            model_name=settings.LLM_MODEL_NAME,
+        )
+        QA_CHAIN_PROMPT = PromptTemplate.from_template(
+            general_chat_qa_prompt_template
+        )  # prompt_template defined above
+
+        ######  Setting Multiquery retriever as base retriver ######
+        QUERY_PROMPT = PromptTemplate(
+            input_variables=["question"],
+            template=multi_query_prompt_template,
+        )
+
+        document_llm_chain = LLMChain(
+            llm=streaming_llm, prompt=QA_CHAIN_PROMPT, callbacks=None, verbose=False
+        )
+        document_prompt = PromptTemplate(
+            input_variables=["page_content", "source"],
+            template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
+        )
+        combine_documents_chain = StuffDocumentsChain(
+            llm_chain=document_llm_chain,
+            document_variable_name="context",
+            document_prompt=document_prompt,
+            callbacks=None,
+        )
+
+        condense_question_prompt = PromptTemplate.from_template(
+            condense_question_prompt_template
+        )
+
+        question_generator_chain = LLMChain(
+            llm=question_llm, prompt=condense_question_prompt
+        )
+        embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+        docsearch = PineconeVectorStore(
+            pinecone_api_key=settings.PINECONE_API_KEY,
+            embedding=embeddings,
+            index_name=settings.INDEX_NAME,
+        )
+
+        base_retriever = MultiQueryRetriever.from_llm(
+            retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
+            llm=ChatOpenAI(
+                model_name="gpt-4-1106-preview", temperature=0.2, max_tokens=3000
+            ),
+            prompt=QUERY_PROMPT,
+        )
+
+        compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+        compression_retriever = ContextualCompressionRetriever(
+            base_compressor=compressor, base_retriever=base_retriever
+        )
+
+        qa = ConversationalRetrievalChain(
+            combine_docs_chain=combine_documents_chain,
+            question_generator=question_generator_chain,
+            verbose=False,
+            retriever=compression_retriever,
+            return_source_documents=True,
+        )
+
+        answer_task = asyncio.create_task(
+            qa.ainvoke({"question": question, "chat_history": chat_history})
+        )
+        answer = ""
         async for answer_token in answer_streaming_callback.aiter():
             answer += answer_token
             print("streaming answer:", answer)
