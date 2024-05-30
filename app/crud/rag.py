@@ -42,7 +42,7 @@ import langchain
 from typing import List
 from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
 from core.prompt import (
-    general_chat_prompt_template,
+    general_chat_qa_prompt_template,
     multi_query_prompt_template,
     condense_question_prompt_template,
     summary_legal_conversation_prompt_template,
@@ -83,7 +83,7 @@ def rag_general_chat(question: str, session_id: str = None):
     """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_prompt_template
+        general_chat_qa_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
@@ -647,21 +647,19 @@ def get_relevant_legal_cases(session_id: str):
     project_name="adaletgpt",
 )
 def rag_regulation_chat(question: str):
+    """
+    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
+    """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_prompt_template
+        general_chat_qa_source_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
-    QUERY_PROMPT = PromptTemplate(
-        input_variables=["question"],
-        template=multi_query_prompt_template,
-    )
-
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\n Content:{page_content}\n Source File Name:{source}",
+        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
@@ -671,9 +669,13 @@ def rag_regulation_chat(question: str):
     condense_question_prompt = PromptTemplate.from_template(
         condense_question_prompt_template
     )
-
     question_generator_chain = LLMChain(
         llm=question_llm, prompt=condense_question_prompt
+    )
+
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template=multi_query_prompt_template,
     )
 
     docsearch = PineconeVectorStore(
@@ -698,10 +700,10 @@ def rag_regulation_chat(question: str):
         question_generator=question_generator_chain,
         verbose=False,
         retriever=compression_retriever,
-        return_source_documents=False,
+        return_source_documents=True,
     )
 
-    return qa.invoke({"question": question, "chat_history":[]})
+    return qa.invoke({"question": question, "chat_history": []})
 
 
 @traceable(
