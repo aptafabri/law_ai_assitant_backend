@@ -652,7 +652,7 @@ def rag_regulation_chat(question: str):
     """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_qa_prompt_template
+        general_chat_qa_source_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
