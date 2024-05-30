@@ -89,7 +89,7 @@ async def agent_run(
     agent = create_tool_calling_agent(llm, tools, prompt)
 
     """initialize session memory for agent"""
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
+    chat_memory = await init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key="chat_history",

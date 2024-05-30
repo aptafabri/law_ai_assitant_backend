@@ -47,6 +47,8 @@ from core.prompt import (
     condense_question_prompt_template,
     summary_legal_conversation_prompt_template,
     legal_chat_qa_prompt_template,
+    legal_chat_source_qa_prompt_template,
+    general_chat_qa_source_prompt_template
 )
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -159,7 +161,7 @@ async def rag_general_streaming_chat(
     chat_history: Any = [],
     db_session: Session = None,
 ):
-    
+
     answer_streaming_callback = QueueCallbackHandler()
     summary_streaming_callback = QueueCallbackHandler()
     streaming_llm = ChatOpenAI(
@@ -177,7 +179,7 @@ async def rag_general_streaming_chat(
         model_name=settings.LLM_MODEL_NAME,
     )
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_qa_prompt_template
+        general_chat_qa_source_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
@@ -239,60 +241,50 @@ async def rag_general_streaming_chat(
     answer_task = asyncio.create_task(
         qa.ainvoke({"question": question, "chat_history": chat_history})
     )
-    
     answer = ""
-    try:
-        async for answer_token in answer_streaming_callback.aiter():
-            answer += answer_token
-            print("streaming answer:", answer)
-            data = json.dumps({"message": {"data_type": 0, "content": answer}})
-            yield data
+    async for answer_token in answer_streaming_callback.aiter():
+        answer += answer_token
+        print("streaming answer:", answer)
+        data = json.dumps({"message": {"data_type": 0, "content": answer}})
+        yield data
 
-        await answer_task
+    await answer_task
 
-        """create session summary if the user is sending new chat message"""
+    """create session summary if the user is sending new chat message"""
 
-        if session_exist(session_id=session_id, session=db_session) == False:
-            summary_task = asyncio.create_task(
-                summarize_session_streaming(
-                    question=question, answer=answer, llm=summary_streaming_llm
-                )
+    if session_exist(session_id=session_id, session=db_session) == False:
+        summary_task = asyncio.create_task(
+            summarize_session_streaming(
+                question=question, answer=answer, llm=summary_streaming_llm
             )
-            summary = ""
-            async for summary_token in summary_streaming_callback.aiter():
-                summary += summary_token
-                print("summary streaming:", summary)
-                data_summary = json.dumps(
-                    {
-                        "message": {
-                            "data_type": 1,
-                            "content": summary,
-                        }
+        )
+        summary = ""
+        async for summary_token in summary_streaming_callback.aiter():
+            summary += summary_token
+            print("summary streaming:", summary)
+            data_summary = json.dumps(
+                {
+                    "message": {
+                        "data_type": 1,
+                        "content": summary,
                     }
-                )
-                yield data_summary
-
-            await summary_task
-
-            add_session_summary(
-                user_id=user_id,
-                session_id=session_id,
-                summary=summary,
-                session=db_session,
+                }
             )
+            yield data_summary
 
-        add_chat_history(
-            user_id=user_id,
-            session_id=session_id,
-            question=question,
-            answer=answer,
-            db_session=db_session,
+        await summary_task
+
+        add_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
 
-    except asyncio.CancelledError:
-        print("Task was cancelled")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    add_chat_history(
+        user_id=user_id,
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        db_session=db_session,
+    )
 
 
 def add_chat_history(
@@ -690,7 +682,7 @@ def rag_regulation_chat(question: str):
 )
 def rag_legal_source_chat(question: str):
 
-    QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_source_qa_prompt_template)
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],

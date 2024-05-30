@@ -8,7 +8,7 @@ class RagLegalToolSchema(BaseModel):
     question: str = Field(description="user's question")
 
 
-def rag_legal_tool():
+async def rag_legal_tool():
     return StructuredTool(
         name="rag_legal",
         description="useful when user's query is realted with legal cases (case law or judicial decisions and precedents) and court decisions",
