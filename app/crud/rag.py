@@ -238,56 +238,46 @@ async def rag_general_streaming_chat(
         return_source_documents=True,
     )
 
-    try:
-        answer_task = asyncio.create_task(
-            qa.ainvoke({"question": question, "chat_history": chat_history})
+    answer_task = asyncio.create_task(
+        qa.ainvoke({"question": question, "chat_history": chat_history})
+    )
+    answer = ""
+    async for answer_token in answer_streaming_callback.aiter():
+        answer += answer_token
+        print("streaming answer:", answer)
+        data = json.dumps({"message": {"data_type": 0, "content": answer}})
+        yield data
+
+    await answer_task
+
+    """create session summary if the user is sending new chat message"""
+
+    if session_exist(session_id=session_id, session=db_session) == False:
+        summary_task = asyncio.create_task(
+            summarize_session_streaming(
+                question=question, answer=answer, llm=summary_streaming_llm
+            )
         )
-        answer = ""
-        async for answer_token in answer_streaming_callback.aiter():
-            answer += answer_token
-            print("streaming answer:", answer)
-            data = json.dumps({"message": {"data_type": 0, "content": answer}})
-            yield data
+        summary = ""
+        async for summary_token in summary_streaming_callback.aiter():
+            summary += summary_token
+            print("summary streaming:", summary)
+            data_summary = json.dumps({"message": {"data_type": 0, "content": summary}})
+            yield data_summary
 
-        await answer_task
+        await summary_task
 
-        """create session summary if the user is sending new chat message"""
-
-        if session_exist(session_id=session_id, session=db_session) == False:
-            summary_task = asyncio.create_task(
-                summarize_session_streaming(
-                    question=question, answer=answer, llm=summary_streaming_llm
-                )
-            )
-            summary = ""
-            async for summary_token in summary_streaming_callback.aiter():
-                summary += summary_token
-                print("summary streaming:", summary)
-                data_summary = json.dumps(
-                    {"message": {"data_type": 1, "content": summary}}
-                )
-                yield data_summary
-
-            await summary_task
-
-            add_session_summary(
-                user_id=user_id,
-                session_id=session_id,
-                summary=summary,
-                session=db_session,
-            )
-
-        add_chat_history(
-            user_id=user_id,
-            session_id=session_id,
-            question=question,
-            answer=answer,
-            db_session=db_session,
+        add_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
 
-    except asyncio.CancelledError as e:
-        print("Task was cancelled. Disconnected from client (via refresh/close)")
-        raise e
+    add_chat_history(
+        user_id=user_id,
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        db_session=db_session,
+    )
 
 
 def add_chat_history(
@@ -452,92 +442,84 @@ async def rag_legal_streaming_chat(
         condense_question_llm=question_llm,
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
-    try:
-        answer_task = asyncio.create_task(
-            qa.ainvoke({"question": standalone_question, "chat_history": chat_history})
+    answer_task = asyncio.create_task(
+        qa.ainvoke({"question": standalone_question, "chat_history": chat_history})
+    )
+    answer = ""
+    async for answer_token in answer_streaming_callback.aiter():
+        print("streaming answer:", answer_token)
+        answer += answer_token
+        data = json.dumps(
+            {
+                "message": {
+                    "data_type": 0,
+                    "content": answer,
+                }
+            }
         )
-        answer = ""
-        async for answer_token in answer_streaming_callback.aiter():
-            print("streaming answer:", answer_token)
-            answer += answer_token
-            data = json.dumps(
+        yield data
+
+    await answer_task
+
+    """create session summary if the user is sending new chat message"""
+
+    if legal_session_exist(session_id=session_id, session=db_session) == False:
+        summary_task = asyncio.create_task(
+            summarize_session_streaming(
+                question=question, answer=answer, llm=summary_streaming_llm
+            )
+        )
+        summary = ""
+        async for summary_token in summary_streaming_callback.aiter():
+            summary += summary_token
+            print("summary streaming:", summary)
+            data_summary = json.dumps(
                 {
                     "message": {
-                        "data_type": 0,
-                        "content": answer,
+                        "data_type": 1,
+                        "content": summary,
                     }
                 }
             )
-            yield data
+            yield data_summary
+        await summary_task
 
-        await answer_task
+        add_legal_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=db_session
+        )
 
-        """create session summary if the user is sending new chat message"""
-
-        if legal_session_exist(session_id=session_id, session=db_session) == False:
-            summary_task = asyncio.create_task(
-                summarize_session_streaming(
-                    question=question, answer=answer, llm=summary_streaming_llm
-                )
-            )
-            summary = ""
-            async for summary_token in summary_streaming_callback.aiter():
-                summary += summary_token
-                print("summary streaming:", summary)
-                data_summary = json.dumps(
-                    {
-                        "message": {
-                            "data_type": 1,
-                            "content": summary,
-                        }
-                    }
-                )
-                yield data_summary
-            await summary_task
-
-            add_legal_session_summary(
-                user_id=user_id,
-                session_id=session_id,
-                summary=summary,
-                session=db_session,
-            )
-
-        legal_file_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 2,
-                    "content": legal_file_name,
-                }
+    legal_file_data = json.dumps(
+        {
+            "message": {
+                "data_type": 2,
+                "content": legal_file_name,
             }
-        )
+        }
+    )
 
-        yield legal_file_data
+    yield legal_file_data
 
-        s3_key_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 3,
-                    "content": legal_s3_key,
-                }
+    s3_key_data = json.dumps(
+        {
+            "message": {
+                "data_type": 3,
+                "content": legal_s3_key,
             }
-        )
+        }
+    )
 
-        yield s3_key_data
+    yield s3_key_data
 
-        add_legal_chat_history(
-            user_id=user_id,
-            session_id=session_id,
-            question=question,
-            answer=answer,
-            legal_attached=legal_attached,
-            legal_file_name=legal_file_name,
-            legal_s3_key=legal_s3_key,
-            db_session=db_session,
-        )
-
-    except asyncio.CancelledError as e:
-        print("Task was cancelled. Disconnected from client (via refresh/close)")
-        raise e
+    add_legal_chat_history(
+        user_id=user_id,
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        legal_attached=legal_attached,
+        legal_file_name=legal_file_name,
+        legal_s3_key=legal_s3_key,
+        db_session=db_session,
+    )
 
 
 async def add_legal_chat_history(
