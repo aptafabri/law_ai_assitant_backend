@@ -213,7 +213,7 @@ async def rag_general_streaming(
     message: ChatRequest,
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-):
+) -> StreamingResponse:
     chat_memory = init_postgres_chat_memory(session_id=message.session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
@@ -273,31 +273,31 @@ async def rag_legal_streaming(
         standalone_question = generate_question(
             pdf_contents=pdf_contents, question=question
         )
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        memory_key="chat_history",
-        return_messages="on",
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        output_key="answer",
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-    return EventSourceResponse(
-        rag_legal_streaming_chat(
-            standalone_question=standalone_question,
-            question=question,
-            session_id=session_id,
-            user_id=user_id,
-            db_session=session,
-            chat_history=memory.buffer,
-            legal_attached=attached_pdf,
-            legal_file_name=file_name,
-            legal_s3_key=legal_s3_key,
-        ),
-        media_type="text/event-stream",
-    )
+    # chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    # memory = ConversationSummaryBufferMemory(
+    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+    #     memory_key="chat_history",
+    #     return_messages="on",
+    #     chat_memory=chat_memory,
+    #     max_token_limit=3000,
+    #     output_key="answer",
+    #     ai_prefix="Question",
+    #     human_prefix="Answer",
+    # )
+    # return EventSourceResponse(
+    #     rag_legal_streaming_chat(
+    #         standalone_question=standalone_question,
+    #         question=question,
+    #         session_id=session_id,
+    #         user_id=user_id,
+    #         db_session=session,
+    #         chat_history=memory.buffer,
+    #         legal_attached=attached_pdf,
+    #         legal_file_name=file_name,
+    #         legal_s3_key=legal_s3_key,
+    #     ),
+    #     media_type="text/event-stream",
+    # )
 
 
 @router.post("/chat-agent-streaming", tags=["RagController"], status_code=200)
@@ -319,24 +319,21 @@ async def rag_agent_streaming(
         print("no file attahed!!!")
     else:
         pdf_contents = await file.read()
-        if pdf_contents == "":
-            standalone_question = question
-        else:
-            attached_pdf = True
-            file_name = file.filename
-            print(file_name)
-            time_stamp = created_date.timestamp()
-            legal_s3_key = f"{time_stamp}_{file_name}"
-            upload_legal_description(
-                file_content=pdf_contents,
-                user_id=user_id,
-                session_id=session_id,
-                legal_s3_key=legal_s3_key,
-            )
-            pdf_contents = read_pdf(pdf_contents)
-            standalone_question = generate_question(
-                pdf_contents=pdf_contents, question=question
-            )
+        attached_pdf = True
+        file_name = file.filename
+        print(file_name)
+        time_stamp = created_date.timestamp()
+        legal_s3_key = f"{time_stamp}_{file_name}"
+        upload_legal_description(
+            file_content=pdf_contents,
+            user_id=user_id,
+            session_id=session_id,
+            legal_s3_key=legal_s3_key,
+        )
+        pdf_contents = read_pdf(pdf_contents)
+        standalone_question = generate_question(
+            pdf_contents=pdf_contents, question=question
+        )
 
     return EventSourceResponse(
         agent_run(
