@@ -80,113 +80,122 @@ async def agent_run(
             ("placeholder", "{agent_scratchpad}"),
         ]
     )
-    tools = [
-        rag_regulation_tool(),
-        rag_legal_tool(),
-        TavilySearchResults(max_results=1),
-    ]
 
-    agent = create_tool_calling_agent(llm, tools, prompt)
+    try:
+        tools = [
+            rag_regulation_tool(),
+            rag_legal_tool(),
+            TavilySearchResults(max_results=1),
+        ]
 
-    """initialize session memory for agent"""
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        memory_key="chat_history",
-        return_messages=True,
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
+        agent = create_tool_calling_agent(llm, tools, prompt)
 
-    agent_executor = AgentExecutor(
-        agent=agent, tools=tools, verbose=True, memory=memory
-    )
-    answer = ""
-    async for event in agent_executor.astream_events(
-        {"input": standalone_question}, version="v1"
-    ):
-        kind = event["event"]
-        if kind == "on_chat_model_stream":
-            content = event["data"]["chunk"].content
-            if content:
-                print("streaming_answer:", answer)
-                answer += content
-                data = json.dumps(
+        """initialize session memory for agent"""
+        chat_memory = init_postgres_chat_memory(session_id=session_id)
+        memory = ConversationSummaryBufferMemory(
+            llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+            memory_key="chat_history",
+            return_messages=True,
+            chat_memory=chat_memory,
+            max_token_limit=3000,
+            ai_prefix="Question",
+            human_prefix="Answer",
+        )
+
+        agent_executor = AgentExecutor(
+            agent=agent, tools=tools, verbose=True, memory=memory
+        )
+        answer = ""
+        async for event in agent_executor.astream_events(
+            {"input": standalone_question}, version="v1"
+        ):
+            kind = event["event"]
+            if kind == "on_chat_model_stream":
+                content = event["data"]["chunk"].content
+                if content:
+                    print("streaming_answer:", answer)
+                    answer += content
+                    data = json.dumps(
+                        {
+                            "message": {
+                                "data_type": 0,
+                                "content": answer,
+                            }
+                        }
+                    )
+                    yield data
+
+            elif kind == "on_tool_start":
+                print("--")
+                print(
+                    f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+                )
+            elif kind == "on_tool_end":
+                print(f"Done tool: {event['name']}")
+                print(f"Tool output was: {event['data'].get('output')}")
+                print("--")
+
+        if legal_session_exist(session_id=session_id, session=db_session) == False:
+            summary_task = asyncio.create_task(
+                summarize_session_streaming(
+                    question=question, answer=answer, llm=summary_streaming_llm
+                )
+            )
+            summary = ""
+            async for summary_token in summary_streaming_callback.aiter():
+                summary += summary_token
+                print("summary streaming:", summary)
+                data_summary = json.dumps(
                     {
                         "message": {
-                            "data_type": 0,
-                            "content": answer,
+                            "data_type": 1,
+                            "content": summary,
                         }
                     }
                 )
-                yield data
+                yield data_summary
+            await summary_task
 
-        elif kind == "on_tool_start":
-            print("--")
-            print(
-                f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+            add_legal_session_summary(
+                user_id=user_id,
+                session_id=session_id,
+                summary=summary,
+                session=db_session,
             )
-        elif kind == "on_tool_end":
-            print(f"Done tool: {event['name']}")
-            print(f"Tool output was: {event['data'].get('output')}")
-            print("--")
 
-    if legal_session_exist(session_id=session_id, session=db_session) == False:
-        summary_task = asyncio.create_task(
-            summarize_session_streaming(
-                question=question, answer=answer, llm=summary_streaming_llm
-            )
-        )
-        summary = ""
-        async for summary_token in summary_streaming_callback.aiter():
-            summary += summary_token
-            print("summary streaming:", summary)
-            data_summary = json.dumps(
-                {
-                    "message": {
-                        "data_type": 1,
-                        "content": summary,
-                    }
+        legal_file_data = json.dumps(
+            {
+                "message": {
+                    "data_type": 2,
+                    "content": legal_file_name,
                 }
-            )
-            yield data_summary
-        await summary_task
-
-        add_legal_session_summary(
-            user_id=user_id, session_id=session_id, summary=summary, session=db_session
+            }
         )
 
-    legal_file_data = json.dumps(
-        {
-            "message": {
-                "data_type": 2,
-                "content": legal_file_name,
+        yield legal_file_data
+
+        s3_key_data = json.dumps(
+            {
+                "message": {
+                    "data_type": 3,
+                    "content": legal_s3_key,
+                }
             }
-        }
-    )
+        )
 
-    yield legal_file_data
+        yield s3_key_data
 
-    s3_key_data = json.dumps(
-        {
-            "message": {
-                "data_type": 3,
-                "content": legal_s3_key,
-            }
-        }
-    )
+        add_legal_chat_history(
+            user_id=user_id,
+            session_id=session_id,
+            question=question,
+            answer=answer,
+            legal_attached=legal_attached,
+            legal_file_name=legal_file_name,
+            legal_s3_key=legal_s3_key,
+            db_session=db_session,
+        )
+        print("added chat history")
 
-    yield s3_key_data
-
-    add_legal_chat_history(
-        user_id=user_id,
-        session_id=session_id,
-        question=question,
-        answer=answer,
-        legal_attached=legal_attached,
-        legal_file_name=legal_file_name,
-        legal_s3_key=legal_s3_key,
-        db_session=db_session,
-    )
+    except Exception as e:
+        print(f"An error occurred: {e}")
