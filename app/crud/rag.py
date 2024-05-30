@@ -50,6 +50,9 @@ from core.prompt import (
     legal_chat_source_qa_prompt_template,
     general_chat_qa_source_prompt_template,
 )
+import langchain
+
+# langchain.debug = True
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
@@ -665,19 +668,19 @@ def rag_regulation_chat(question: str):
     )
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
 
-    # compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=base_retriever
-    # )
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=base_retriever
+    )
 
     qa = ConversationalRetrievalChain.from_llm(
         llm=llm,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        retriever=compression_retriever,
         return_source_documents=True,
         condense_question_llm=question_llm,
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
