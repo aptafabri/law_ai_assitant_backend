@@ -48,7 +48,7 @@ from core.prompt import (
     summary_legal_conversation_prompt_template,
     legal_chat_qa_prompt_template,
     legal_chat_source_qa_prompt_template,
-    general_chat_qa_source_prompt_template
+    general_chat_qa_source_prompt_template,
 )
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -262,14 +262,7 @@ async def rag_general_streaming_chat(
         async for summary_token in summary_streaming_callback.aiter():
             summary += summary_token
             print("summary streaming:", summary)
-            data_summary = json.dumps(
-                {
-                    "message": {
-                        "data_type": 1,
-                        "content": summary,
-                    }
-                }
-            )
+            data_summary = json.dumps({"message": {"data_type": 0, "content": summary}})
             yield data_summary
 
         await summary_task
@@ -529,7 +522,7 @@ async def rag_legal_streaming_chat(
     )
 
 
-def add_legal_chat_history(
+async def add_legal_chat_history(
     user_id: int,
     session_id: str,
     question: str,

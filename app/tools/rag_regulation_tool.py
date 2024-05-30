@@ -8,7 +8,7 @@ class RagRegulationToolSchema(BaseModel):
     question: str = Field(description="user's question")
 
 
-async def rag_regulation_tool():
+def rag_regulation_tool():
     return StructuredTool.from_function(
         name="rag_regulation",
         description=" useful when user's question are realted with statues and regulations",

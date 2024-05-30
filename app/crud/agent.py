@@ -19,10 +19,7 @@ from langchain.agents import (
     create_tool_calling_agent,
 )
 from crud.chat_general import (
-    add_message,
-    summarize_session_streaming,
-    add_session_summary,
-    session_exist,
+    summarize_session,
     init_postgres_chat_memory,
 )
 from crud.chat_legal import (
@@ -57,14 +54,6 @@ async def agent_run(
         streaming=True,
     )
 
-    summary_streaming_callback = QueueCallbackHandler()
-    summary_streaming_llm = ChatOpenAI(
-        streaming=True,
-        callbacks=[summary_streaming_callback],
-        temperature=0,
-        max_tokens=3000,
-        model_name=settings.LLM_MODEL_NAME,
-    )
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -89,7 +78,7 @@ async def agent_run(
     agent = create_tool_calling_agent(llm, tools, prompt)
 
     """initialize session memory for agent"""
-    chat_memory = await init_postgres_chat_memory(session_id=session_id)
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
         memory_key="chat_history",
@@ -134,27 +123,18 @@ async def agent_run(
             print("--")
 
     if legal_session_exist(session_id=session_id, session=db_session) == False:
-        summary_task = asyncio.create_task(
-            summarize_session_streaming(
-                question=question, answer=answer, llm=summary_streaming_llm
-            )
-        )
-        summary = ""
-        async for summary_token in summary_streaming_callback.aiter():
-            summary += summary_token
-            print("summary streaming:", summary)
-            data_summary = json.dumps(
-                {
-                    "message": {
-                        "data_type": 1,
-                        "content": summary,
-                    }
+        summary = await summarize_session(question= question, answer=answer)
+        data_summary = json.dumps(
+            {
+                "message": {
+                    "data_type": 1,
+                    "content": summary,
                 }
-            )
-            yield data_summary
-        await summary_task
+            }
+        )
+        yield data_summary
 
-        add_legal_session_summary(
+        await add_legal_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
 
@@ -180,7 +160,7 @@ async def agent_run(
 
     yield s3_key_data
 
-    add_legal_chat_history(
+    await add_legal_chat_history(
         user_id=user_id,
         session_id=session_id,
         question=question,

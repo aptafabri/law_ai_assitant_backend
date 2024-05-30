@@ -123,7 +123,7 @@ def remove_messages_by_session_id(
         return []
 
 
-def summarize_session(question: str, answer: str):
+async def summarize_session(question: str, answer: str):
     llm = ChatOpenAI(temperature=0.5, model_name=settings.LLM_MODEL_NAME)
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
     llm_chain = LLMChain(llm=llm, prompt=prompt)

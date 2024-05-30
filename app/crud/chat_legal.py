@@ -212,7 +212,7 @@ def summarize_session(question: str, answer: str):
     return response["text"]
 
 
-def add_legal_session_summary(
+async def add_legal_session_summary(
     session_id: str, user_id: int, summary: str, session: Session
 ):
 
