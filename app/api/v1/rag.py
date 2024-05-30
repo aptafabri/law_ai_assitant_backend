@@ -34,7 +34,7 @@ from database.session import get_session
 from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
 from datetime import datetime
 from core.auth_bearer import JWTBearer
-from crud.agent import agent_run
+from crud.agent import agent_run, agent
 
 router = APIRouter()
 
@@ -352,3 +352,95 @@ async def rag_agent_streaming(
         ),
         media_type="text/event-stream",
     )
+
+
+@router.post("/chat-agent", tags=["RagController"], status_code=200)
+async def rag_agent(
+    session_id: str = Form(),
+    question: str = Form(),
+    file: UploadFile = File(None),
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    standalone_question = ""
+    legal_s3_key = ""
+    file_name = ""
+    attached_pdf = False
+    user_id = get_userid_by_token(dependencies)
+    created_date = datetime.now()
+    if not file:
+        standalone_question = question
+        print("no file attahed!!!")
+    else:
+        pdf_contents = await file.read()
+        attached_pdf = True
+        file_name = file.filename
+        print(file_name)
+        time_stamp = created_date.timestamp()
+        legal_s3_key = f"{time_stamp}_{file_name}"
+        upload_legal_description(
+            file_content=pdf_contents,
+            user_id=user_id,
+            session_id=session_id,
+            legal_s3_key=legal_s3_key,
+        )
+        pdf_contents = read_pdf(pdf_contents)
+        standalone_question = generate_question(
+            pdf_contents=pdf_contents, question=question
+        )
+    response = agent(question=standalone_question, session_id=session_id)
+    
+    answer = response["output"]
+    user_message = LegalChatAdd(
+        user_id=user_id,
+        session_id=session_id,
+        content=question,
+        role="user",
+        legal_attached=attached_pdf,
+        legal_file_name=file_name,
+        legal_s3_key=legal_s3_key,
+        created_date=created_date,
+    )
+    ai_message = LegalChatAdd(
+        user_id=user_id,
+        session_id=session_id,
+        content=answer,
+        role="assistant",
+        legal_attached=False,
+        legal_file_name="",
+        legal_s3_key="",
+        created_date=created_date,
+    )
+    add_legal_chat_message(user_message, session)
+    add_legal_chat_message(ai_message, session)
+    if legal_session_exist(session_id=session_id, session=session) == True:
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": session_id,
+                "question": question,
+                "legal_attached": attached_pdf,
+                "legal_file_name": file_name,
+                "legal_s3_key": legal_s3_key,
+                "answer": answer,
+            },
+            status_code=200,
+        )
+    else:
+        summary = summarize_session(question=standalone_question, answer=answer)
+        add_legal_session_summary(
+            user_id=user_id, session_id=session_id, summary=summary, session=session
+        )
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "session_id": session_id,
+                "question": question,
+                "legal_attached": attached_pdf,
+                "legal_file_name": file_name,
+                "legal_s3_key": legal_s3_key,
+                "answer": answer,
+                "title": summary,
+            },
+            status_code=200,
+        )

@@ -42,7 +42,7 @@ import langchain
 from typing import List
 from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
 from core.prompt import (
-    general_chat_prompt_template,
+    general_chat_qa_prompt_template,
     multi_query_prompt_template,
     condense_question_prompt_template,
     summary_legal_conversation_prompt_template,
@@ -83,7 +83,7 @@ def rag_general_chat(question: str, session_id: str = None):
     """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_prompt_template
+        general_chat_qa_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
@@ -649,7 +649,7 @@ def get_relevant_legal_cases(session_id: str):
 def rag_regulation_chat(question: str):
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_prompt_template
+        general_chat_qa_prompt_template
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
@@ -701,7 +701,7 @@ def rag_regulation_chat(question: str):
         return_source_documents=False,
     )
 
-    return qa.invoke({"question": question, "chat_history":[]})
+    return qa.invoke({"question": question, "chat_history": []})
 
 
 @traceable(
