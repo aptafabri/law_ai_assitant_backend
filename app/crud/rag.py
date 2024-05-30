@@ -656,23 +656,6 @@ def rag_regulation_chat(question: str):
     )  # prompt_template defined above
 
     ######  Setting Multiquery retriever as base retriver ######
-    document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
-    document_prompt = PromptTemplate(
-        input_variables=["page_content", "source"],
-        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
-    )
-    combine_documents_chain = StuffDocumentsChain(
-        llm_chain=document_llm_chain,
-        document_variable_name="context",
-        document_prompt=document_prompt,
-    )
-    condense_question_prompt = PromptTemplate.from_template(
-        condense_question_prompt_template
-    )
-    question_generator_chain = LLMChain(
-        llm=question_llm, prompt=condense_question_prompt
-    )
-
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
         template=multi_query_prompt_template,
@@ -695,12 +678,12 @@ def rag_regulation_chat(question: str):
         base_compressor=compressor, base_retriever=base_retriever
     )
 
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        verbose=False,
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=llm,
         retriever=compression_retriever,
         return_source_documents=True,
+        condense_question_llm=question_llm,
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
 
     return qa.invoke({"question": question, "chat_history": []})
@@ -717,7 +700,7 @@ def rag_legal_source_chat(question: str):
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
+        template="Context:\n Content:{page_content}\n Source Link:{source}",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
