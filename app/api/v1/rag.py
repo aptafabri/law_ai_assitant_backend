@@ -213,7 +213,7 @@ async def rag_general_streaming(
     message: ChatRequest,
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-) -> EventSourceResponse:
+):
     chat_memory = init_postgres_chat_memory(session_id=message.session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
@@ -246,7 +246,7 @@ async def rag_legal_streaming(
     file: UploadFile = File(None),
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-) -> EventSourceResponse:
+):
     standalone_question = ""
     legal_s3_key = ""
     file_name = ""
@@ -307,7 +307,7 @@ async def rag_agent_streaming(
     file: UploadFile = File(None),
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-) -> EventSourceResponse:
+):
     standalone_question = ""
     legal_s3_key = ""
     file_name = ""
