@@ -644,6 +644,22 @@ def rag_regulation_chat(question: str):
         input_variables=["question"],
         template=multi_query_prompt_template,
     )
+    document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source"],
+        template="Context:\n Content:{page_content}\n Source File Name:{source}",
+    )
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=document_llm_chain,
+        document_variable_name="context",
+        document_prompt=document_prompt,
+    )
+    condense_question_prompt = PromptTemplate.from_template(
+        condense_question_prompt_template
+    )
+    question_generator_chain = LLMChain(
+        llm=question_llm, prompt=condense_question_prompt
+    )
 
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
@@ -657,17 +673,17 @@ def rag_regulation_chat(question: str):
         prompt=QUERY_PROMPT,
     )
 
-    # compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=base_retriever
-    # )
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=base_retriever
+    )
 
-    qa = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
-        return_source_documents=True,
-        condense_question_llm=question_llm,
-        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
+    qa = ConversationalRetrievalChain(
+        combine_docs_chain=combine_documents_chain,
+        question_generator=question_generator_chain,
+        verbose=False,
+        retriever=compression_retriever,
+        return_source_documents=False,
     )
 
     return qa.invoke({"question": question, "chat_history": []})
