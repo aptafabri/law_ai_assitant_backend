@@ -17,6 +17,7 @@ from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.agents import (
     AgentExecutor,
     create_tool_calling_agent,
+    create_openai_tools_agent,
 )
 from crud.chat_general import (
     add_message,
@@ -72,7 +73,10 @@ async def agent_run(
                 """You are a helpful assistant and your name is AdaletGPT. Make sure to use the rag_legal and rag_regulation tools for information.\n
                 Use tavily_search_result_json tool if user's question is not related with case laws, statues and judicial precedents and decisions.\n
                 You must answer in Turkish.
+                You must use one tool with one question.
                 If the question is unclear, require detailed question.
+                If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
+                Do not include source file names that are irrelevant to the final answer.\n
                 """,
             ),
             ("placeholder", "{chat_history}"),
@@ -198,5 +202,5 @@ async def agent_run(
         print("added chat history")
 
     except Exception as e:
-        
+
         print(f"An error occurred: {e}")
