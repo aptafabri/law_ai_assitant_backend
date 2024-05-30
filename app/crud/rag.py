@@ -700,7 +700,7 @@ def rag_legal_source_chat(question: str):
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source"],
-        template="Context:\n Content:{page_content}\n Source Link:{source}",
+        template="Context:\n Content:{page_content}\n Source File Name:{source}",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
