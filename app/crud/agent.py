@@ -29,6 +29,12 @@ from crud.chat_legal import (
 from crud.rag import add_legal_chat_history
 
 
+class QueueCallbackHandler(AsyncIteratorCallbackHandler):
+    def on_llm_end(self, *args, **kwargs) -> Any:
+        print("ended streaming")
+        return self.done.set()
+
+
 async def agent_run(
     standalone_question: str,
     question: str,
@@ -52,7 +58,7 @@ async def agent_run(
         [
             (
                 "system",
-                """You are a helpful assistant and your name is AdaletGPT.\n
+                """You are a helpful assistant and your name is AdaletGPT. Make sure to use the rag_legal and rag_regulation tools for information.\n
                 Use tavily_search_result_json tool if user's question is not related with case laws, statues and judicial precedents and decisions.\n
                 You must answer in Turkish.
                 If the question is unclear, require detailed question.
@@ -94,9 +100,8 @@ async def agent_run(
         if kind == "on_chat_model_stream":
             content = event["data"]["chunk"].content
             if content:
-                
+                print("streaming_answer:", answer)
                 answer += content
-                print("streaming_answer:", content)
                 data = json.dumps(
                     {
                         "message": {
@@ -118,7 +123,7 @@ async def agent_run(
             print("--")
 
     if legal_session_exist(session_id=session_id, session=db_session) == False:
-        summary = await summarize_session(question=question, answer=answer)
+        summary = await summarize_session(question= question, answer=answer)
         data_summary = json.dumps(
             {
                 "message": {
