@@ -119,15 +119,16 @@ async def agent_run(
                 if content:
                     print("streaming_answer:", answer)
                     answer += content
-                    data = json.dumps(
-                        {
-                            "message": {
-                                "data_type": 0,
-                                "content": answer,
-                            }
-                        }
-                    )
-                    yield data
+                    # data = json.dumps(
+                    #     {
+                    #         "message": {
+                    #             "data_type": 0,
+                    #             "content": answer,
+                    #         }
+                    #     }
+                    # )
+                    # yield data
+                    yield content
 
             elif kind == "on_tool_start":
                 print("--")
