@@ -76,6 +76,7 @@ async def agent_run(
                     Use the tavily_search_result_json tool if the question is not related to law such as case laws, statutes, and judicial precedents and decisions and so on.
                     You must answer in Turkish, and your answer must be based on the tools.\n
                     Don't use tools to answer unless you NEED to.\n
+                    Don't mention about tools in answer.\n
                     You must use one tool for each question.\n
                     If the question is unclear, ask for more details.\n
                     If you don't know, just say "I don't know" and don't try to make answer.\n
