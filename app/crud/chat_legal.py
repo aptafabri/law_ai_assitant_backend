@@ -20,7 +20,7 @@ from core.config import settings
 from core.prompt import summary_legal_session_prompt_template
 from langsmith import traceable
 
-# tess.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -331,7 +331,10 @@ def delete_s3_bucket_folder(user_id, session_id):
 def read_pdf(file_contents):
     pages = []
     try:
-        # images = convert_from_bytes(file_contents, poppler_path=r"C:\Users\Administrator\Downloads\Release-24.02.0-0\poppler-24.02.0\Library\bin")
+        # images = convert_from_bytes(
+        #     file_contents,
+        #     poppler_path=r"C:\Program Files\Release-24.02.0-0\poppler-24.02.0\Library\bin",
+        # )
         images = convert_from_bytes(file_contents)
         # Extract text from each image
         for i, image in enumerate(images):

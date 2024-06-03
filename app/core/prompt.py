@@ -107,6 +107,7 @@ summary_session_prompt_template = """
 
 summary_legal_session_prompt_template = """
         Given the following legal description context and question, rephrase the follow up question to be a standalone question.\n
+        Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
         Legal Description Context: {pdf_contents}\n
         Folllow Up question: {question}\n
         Standalone question:
