@@ -1,7 +1,7 @@
 [Unit]
    Description=AdaletGPT Backend service
 [Service]
-   ExecStart=/home/ubuntu/AdaletGPT_Backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker>
+   ExecStart=/home/ubuntu/AdaletGPT_Backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker
    WorkingDirectory=/home/ubuntu/AdaletGPT_Backend/app
    Restart=always
 [Install]
