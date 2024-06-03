@@ -5,37 +5,37 @@ on:
     branches: [ main ]
 
 jobs:
-  continuous-integration:
-    runs-on: ubuntu-latest
+  # continuous-integration:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v2
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.10.11
-          architecture: x64
+  #     - name: Set up Python 3.10
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: 3.10.11
+  #         architecture: x64
 
-      - name: Install Python Virtual ENV
-        run: pip3 install virtualenv
+  #     - name: Install Python Virtual ENV
+  #       run: pip3 install virtualenv
 
-      - name: Setup Virtual env
-        uses: actions/cache@v2
-        id: cache-venv
-        with:
-          path: venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-venv-
+  #     - name: Setup Virtual env
+  #       uses: actions/cache@v2
+  #       id: cache-venv
+  #       with:
+  #         path: venv
+  #         key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-venv-
 
-      - name: Activate and Install Dependencies into Virtual env
-        run: python -m venv venv && source venv/bin/activate &&
-          pip3 install -r requirements.txt
-        if: steps.cache-venv.outputs.cache-hit != 'true'
+  #     - name: Activate and Install Dependencies into Virtual env
+  #       run: python -m venv venv && source venv/bin/activate &&
+  #         pip3 install -r requirements.txt
+  #       if: steps.cache-venv.outputs.cache-hit != 'true'
 
-      - name: Install dependencies
-        run: pip3 install -r requirements.txt
+  #     - name: Install dependencies
+  #       run: pip3 install -r requirements.txt
 
   continuous-deployment:
     runs-on: ubuntu-latest
@@ -51,11 +51,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: |
-            app/
-            requirements.txt
-            .env
-            adaletgpt_backend.service
+          source: "app/ requirements.txt .env adaletgpt_backend.service"
           target: ./AdaletGPT_Backend/
 
       - name: Install dependencies and restart service
