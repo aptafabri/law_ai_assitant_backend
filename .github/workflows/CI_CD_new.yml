@@ -68,6 +68,6 @@ jobs:
             deactivate
             sudo cp /home/ubuntu/AdaletGPT_Backend/adaletgpt_backend.service /etc/systemd/system/adaletgpt_backend.service
             sudo systemctl daemon-reload
-            sudo systemctl stop app
-            sudo systemctl start app
-            sudo systemctl enable app
+            sudo systemctl stop adaletgpt_backend
+            sudo systemctl start adaletgpt_backend
+            sudo systemctl enable adaletgpt_backend
