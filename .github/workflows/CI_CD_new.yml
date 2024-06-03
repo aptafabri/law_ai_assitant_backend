@@ -64,7 +64,7 @@ jobs:
             cd /home/ubuntu/AdaletGPT_Backend/
             python3 -m venv venv
             source venv/bin/activate
-            pip install -r ../requirements.txt
+            pip install -r requirements.txt
             deactivate
             sudo cp /home/ubuntu/AdaletGPT_Backend/adaletgpt_backend.service /etc/systemd/system/adaletgpt_backend.service
             sudo systemctl daemon-reload
