@@ -56,7 +56,7 @@ jobs:
             requirements.txt
             .env
             adaletgpt_backend.service
-          target: /home/ubuntu/AdaletGPT_Backend/
+          target: ./AdaletGPT_Backend/
 
       - name: Install dependencies and restart service
         uses: appleboy/ssh-action@v1.0.0
