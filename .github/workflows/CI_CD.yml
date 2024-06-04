@@ -1,55 +1,73 @@
-# name: Build, Push, Deploy.
+name: CI/CD Pipeline
 
-# on:
-#   push:
-#     branches: [ main ]
-# jobs:
-#   build_and_push:
-#     name: Push docker image to Docker Hub
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout the repository
-#         uses: actions/checkout@v4
-#       - name: Login to Docker Hub
-#         uses: docker/login-action@v3
-#         with:
-#           ecr: auto
-#           logout: true
-#           username: ${{ secrets.DOCKERHUB_USERNAME }}
-#           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-#       - name: Build and push Docker image
-#         uses: docker/build-push-action@v5
-#         with:
-#           context: .
-#           file: ./Dockerfile
-#           push: true
-#           tags: liuchinlung/adaletgpt_backend
+on:
+  push:
+    branches: [ main ]
 
-#   deploy:
-#     name: Deploy AdaletGPT Backend in aws ec2 using docker pull
-#     runs-on: ubuntu-latest
-#     if: ${{ github.ref == 'refs/heads/main' }}
-#     needs: [ build_and_push ]
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-#       - name: copy file via ssh key
-#         uses: appleboy/scp-action@v0.1.4
-#         with:
-#           host: ${{ secrets.HOST }}
-#           username: ${{ secrets.USERNAME }}
-#           key: ${{ secrets.KEY }}
-#           source: "docker-compose.yml, .env"
-#           target: .
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
 
-#       - name: run docker-compose
-#         uses: appleboy/ssh-action@v1.0.0
-#         with:
-#           host: ${{ secrets.HOST }}
-#           username: ${{ secrets.USERNAME }}
-#           key: ${{ secrets.KEY }}
-#           script: |
-#             docker compose down
-#             docker rmi -f $(docker images -q)
-#             docker compose pull
-#             docker compose up -d  
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10.11
+          architecture: x64
+
+      - name: Install Python Virtual ENV
+        run: pip3 install virtualenv
+
+      - name: Setup Virtual env
+        uses: actions/cache@v2
+        id: cache-venv
+        with:
+          path: venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-venv-
+
+      - name: Activate and Install Dependencies into Virtual env
+        run: python -m venv venv && source venv/bin/activate &&
+          pip3 install -r requirements.txt
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+
+      - name: Install dependencies
+        run: pip3 install -r requirements.txt
+
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Copy files via SSH key
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          source: "app/, requirements.txt, .env adaletgpt_backend.service"
+          target: ./AdaletGPT_Backend/
+
+      - name: Install dependencies and restart service
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            cd /home/ubuntu/AdaletGPT_Backend/
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+            deactivate
+            sudo cp /home/ubuntu/AdaletGPT_Backend/adaletgpt_backend.service /etc/systemd/system/adaletgpt_backend.service
+            sudo systemctl daemon-reload
+            sudo systemctl stop adaletgpt_backend
+            sudo systemctl start adaletgpt_backend
+            sudo systemctl enable adaletgpt_backend
