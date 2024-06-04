@@ -56,6 +56,7 @@ async def agent_run(
         temperature=0,
         openai_api_key=settings.OPENAI_API_KEY,
         streaming=True,
+        model_kwargs={"user": user_id},
     )
 
     summary_streaming_callback = QueueCallbackHandler()
@@ -65,6 +66,7 @@ async def agent_run(
         temperature=0,
         max_tokens=3000,
         model_name=settings.LLM_MODEL_NAME,
+        model_kwargs={"user": user_id},
     )
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -101,7 +103,11 @@ async def agent_run(
         """initialize session memory for agent"""
         chat_memory = init_postgres_chat_memory(session_id=session_id)
         memory = ConversationSummaryBufferMemory(
-            llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+            llm=ChatOpenAI(
+                model_name="gpt-4-1106-preview",
+                temperature=0,
+                model_kwargs={"user": user_id},
+            ),
             memory_key="chat_history",
             return_messages=True,
             chat_memory=chat_memory,
