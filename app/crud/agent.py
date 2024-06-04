@@ -56,7 +56,7 @@ async def agent_run(
         temperature=0,
         openai_api_key=settings.OPENAI_API_KEY,
         streaming=True,
-        model_kwargs={"user": user_id},
+        model_kwargs={"user": f"{user_id}"},
     )
 
     summary_streaming_callback = QueueCallbackHandler()
@@ -66,7 +66,7 @@ async def agent_run(
         temperature=0,
         max_tokens=3000,
         model_name=settings.LLM_MODEL_NAME,
-        model_kwargs={"user": user_id},
+        model_kwargs={"user": f"{user_id}"},
     )
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -106,7 +106,7 @@ async def agent_run(
             llm=ChatOpenAI(
                 model_name="gpt-4-1106-preview",
                 temperature=0,
-                model_kwargs={"user": user_id},
+                model_kwargs={"user": f"{user_id}"},
             ),
             memory_key="chat_history",
             return_messages=True,
