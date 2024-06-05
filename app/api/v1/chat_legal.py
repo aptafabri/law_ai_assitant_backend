@@ -14,6 +14,7 @@ from crud.chat_legal import (
     init_postgres_legal_chat_memory,
     download_legal_description,
     delete_s3_bucket_folder,
+    remove_sessions_by_user_id,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
@@ -145,3 +146,20 @@ def download_pdf(
     }
     # return StreamingResponse(content=data["Body"].iter_chunks(), headers=headers, media_type='application/pdf')
     return Response(data["Body"].read(), media_type="application/pdf", headers=headers)
+
+
+@router.post("/remove-all-sessions", tags=["ChatLegalController"], status_code=200)
+def remove_all_session(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(dependencies)
+    if remove_sessions_by_user_id(user_id=user_id, db_session=session) == True:
+        return JSONResponse(
+            content={"Success": True, "message": "Deleted all sessions."},
+            status_code=200,
+        )
+    else:
+        return JSONResponse(
+            content={"Success": False, "message": " Internal Server Error."},
+            status_code=500,
+        )

@@ -2,6 +2,7 @@ import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, To
 from core.config import settings
+from email_validator import validate_email, EmailNotValidError
 
 
 def send_reset_password_mail(recipient_email, user_name, verify_code):

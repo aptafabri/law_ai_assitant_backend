@@ -167,22 +167,21 @@ def remove_messages_by_session_id(user_id: int, session_id: str, session: Sessio
     try:
 
         session_messages = (
-            session.query(LegalChatHistory.id)
+            session.query(LegalChatHistory)
             .filter(
                 LegalChatHistory.session_id == session_id,
                 LegalChatHistory.user_id == user_id,
             )
-            .all()
+            .delete(synchronize_session=False)
         )
-
-        message_ids = [msg_id for (msg_id,) in session_messages]
-
-        session.query(LegalChatHistory).filter(
-            LegalChatHistory.id.in_(message_ids)
-        ).delete(synchronize_session=False)
         session.commit()
 
-        return {"message": "Delted session successfully."}
+        # message_ids = [msg_id for (msg_id,) in session_messages]
+
+        # session.query(LegalChatHistory).filter(
+        #     LegalChatHistory.id.in_(message_ids)
+        # ).delete(synchronize_session=False)
+        return {"message": "Deleted session successfully."}
 
     except SQLAlchemyError as e:
         print("An error occurred while querying the database:", str(e))
@@ -361,3 +360,41 @@ def generate_question(pdf_contents, question):
     response = llm_chain.invoke({"question": question, "pdf_contents": pdf_contents})
 
     return response["text"]
+
+
+def remove_sessions_by_user_id(user_id: int, db_session: Session):
+    try:
+        ## remove session summary ####
+        db_session.query(LegalSessionSummary).filter(
+            LegalSessionSummary.user_id == user_id
+        ).delete()
+
+        ## remove chathistory
+        db_session.query(LegalChatHistory).filter(
+            LegalChatHistory.user_id == user_id
+        ).delete()
+        db_session.commit()
+        ## remove legal pdfs in s3 bucket
+        objects = s3_client.list_objects(
+            Bucket=settings.AWS_BUCKET_NAME, Prefix=f"{user_id}"
+        )
+        if objects.get("Contents") is not None:
+            for o in objects.get("Contents"):
+                s3_client.delete_object(
+                    Bucket=settings.AWS_BUCKET_NAME, Key=o.get("Key")
+                )
+        session_id_array = (
+            db_session.query(LegalSessionSummary.session_id)
+            .filter(LegalSessionSummary.user_id == user_id)
+            .all()
+        )
+        session_ids = [session_id for (session_id,) in session_id_array]
+        print("session_id array:", session_ids, len(session_ids))
+        for session_id in session_ids:
+            session_memory = init_postgres_legal_chat_memory(session_id=session_id)
+            session_memory.clear()
+            print("Deleted session:", session_id)
+        return True
+    except Exception as e:
+        print("Error:", e)
+        return False

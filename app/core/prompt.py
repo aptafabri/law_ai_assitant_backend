@@ -32,6 +32,7 @@ general_chat_qa_prompt_template = """
     Given the following pieces of context, create a final answer to the question at the end.\n\n
     If you don't know the answer, just say that you don't. Do not try to make up an answer.\n
     If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
+    Do NOT process source file names and use  as is.
     Do not include source file names that are irrelevant to the final answer.\n
     You must answer in Turkish.\n
     
@@ -75,6 +76,7 @@ legal_chat_qa_prompt_template = """"
     Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
     You must answer in turkish.
     If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
+    Do NOT process source file names and use  as is.
     If you don't know the answer to a question, please do not share false information.\n\n
 
     {context} \n

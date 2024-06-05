@@ -82,7 +82,8 @@ async def agent_run(
                     You must use one tool for each question.\n
                     If the question is unclear, ask for more details.\n
                     If you don't know, just say "I don't know" and don't try to make answer.\n
-                    If you find the answer, write it in detail and include a list of source file names that are directly used to derive the final answer.
+                    If you find the answer, write it in detail and you must include a list of sources that are directly used to derive the final answer.
+                    Do NOT process source file names and use  as is.
                     Do not include source file names that are irrelevant to the final answer.\n""",
             ),
             ("placeholder", "{chat_history}"),

@@ -30,3 +30,5 @@ fastapi-mail==1.4.1
 python-multipart
 sendgrid
 sse-starlette
+email-validator
+dnspython
