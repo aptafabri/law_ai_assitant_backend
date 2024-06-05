@@ -10,6 +10,7 @@ from crud.user import (
     get_user_info,
     reset_password_request,
     verify_forgot_code,
+    get_userid_by_token,
 )
 from schemas.user import (
     UserCreate,
@@ -20,8 +21,9 @@ from schemas.user import (
     ForgotPasswordRequest,
     VerificationCodeRequest,
 )
+from crud.chat_legal import remove_sessions_by_user_id
 from core.auth_bearer import JWTBearer
-from models import User
+from models import User, TokenTable
 from database.session import get_session
 
 router = APIRouter()
@@ -115,3 +117,31 @@ def password_reset(
         token=dependencies, new_password=req.new_password, session=session
     )
     return JSONResponse(content=reset_info, status_code=200)
+
+
+@router.post("/delete-account", tags=["User controller"])
+def delete_account(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(dependencies)
+    remove_sessions_by_user_id(user_id=user_id, db_session=session)
+    if remove_sessions_by_user_id(user_id=user_id, db_session=session) == True:
+        try:
+            session.query(User).filter(User.id == user_id).delete()
+            session.query(TokenTable).filter(TokenTable.user_id == user_id).delete()
+            session.commit()
+            return JSONResponse(
+                content={"Success": True, "message": "Deleted all sessions."},
+                status_code=200,
+            )
+        except Exception as e:
+            print("error:", e)
+            return JSONResponse(
+                content={"Success": False, "message": " Internal Server Error."},
+                status_code=500,
+            )
+    else:
+        return JSONResponse(
+            content={"Success": False, "message": " Internal Server Error."},
+            status_code=500,
+        )
