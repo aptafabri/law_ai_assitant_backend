@@ -7,7 +7,7 @@ from time import sleep
 
 load_dotenv()
 from sqlalchemy.orm import Session
-from typing import AsyncIterable, Any
+from typing import Any
 from datetime import datetime
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -21,26 +21,18 @@ from langchain.retrievers.contextual_compression import ContextualCompressionRet
 from langchain_cohere import CohereRerank
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from core.config import settings
-from langchain_postgres import PostgresChatMessageHistory
 from langsmith import traceable
-from crud.chat_general import init_postgres_chat_memory
 from langchain.callbacks import AsyncIteratorCallbackHandler
-from crud.chat_general import (
-    add_message,
-    summarize_session_streaming,
-    add_session_summary,
-    session_exist,
-    init_postgres_chat_memory,
-)
-from crud.chat_legal import (
+from crud.chat import (
     add_legal_chat_message,
     add_legal_session_summary,
     legal_session_exist,
-    init_postgres_legal_chat_memory,
+    init_postgres_chat_memory,
+    summarize_session_streaming,
 )
 import langchain
 from typing import List
-from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
+from schemas.message import LegalChatAdd
 from core.prompt import (
     general_chat_qa_prompt_template,
     multi_query_prompt_template,
@@ -75,261 +67,8 @@ class QueueCallbackHandler(AsyncIteratorCallbackHandler):
         return self.done.set()
 
 
-@traceable(
-    run_type="llm", name="RAG general chat with source link", project_name="adaletgpt"
-)
-def rag_general_chat(question: str, session_id: str = None):
-    """
-    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
-    """
-
-    QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_qa_prompt_template
-    )  # prompt_template defined above
-
-    ######  Setting Multiquery retriever as base retriver ######
-    QUERY_PROMPT = PromptTemplate(
-        input_variables=["question"],
-        template=multi_query_prompt_template,
-    )
-
-    document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
-    document_prompt = PromptTemplate(
-        input_variables=["page_content", "source"],
-        template="Context:\n Content:{page_content}\n Source File Name:{source}",
-    )
-    combine_documents_chain = StuffDocumentsChain(
-        llm_chain=document_llm_chain,
-        document_variable_name="context",
-        document_prompt=document_prompt,
-    )
-    condense_question_prompt = PromptTemplate.from_template(
-        condense_question_prompt_template
-    )
-
-    question_generator_chain = LLMChain(
-        llm=question_llm, prompt=condense_question_prompt
-    )
-
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
-
-    memory = ConversationSummaryBufferMemory(
-        llm=llm,
-        memory_key="chat_history",
-        return_messages="on",
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        output_key="answer",
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-
-    docsearch = PineconeVectorStore(
-        pinecone_api_key=settings.PINECONE_API_KEY,
-        embedding=embeddings,
-        index_name=settings.INDEX_NAME,
-    )
-
-    base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
-        prompt=QUERY_PROMPT,
-    )
-
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=base_retriever
-    )
-
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        verbose=False,
-        retriever=compression_retriever,
-        return_source_documents=False,
-        memory=memory,
-    )
-
-    return qa.invoke({"question": question})
-
-
-@traceable(
-    run_type="llm",
-    name="RAG general streaming chat with source link",
-    project_name="adaletgpt",
-)
-async def rag_general_streaming_chat(
-    question: str,
-    user_id: int,
-    session_id: str = None,
-    chat_history: Any = [],
-    db_session: Session = None,
-):
-
-    answer_streaming_callback = QueueCallbackHandler()
-    summary_streaming_callback = QueueCallbackHandler()
-    streaming_llm = ChatOpenAI(
-        streaming=True,
-        callbacks=[answer_streaming_callback],
-        temperature=0,
-        max_tokens=3000,
-        model_name=settings.LLM_MODEL_NAME,
-    )
-    summary_streaming_llm = ChatOpenAI(
-        streaming=True,
-        callbacks=[summary_streaming_callback],
-        temperature=0,
-        max_tokens=3000,
-        model_name=settings.LLM_MODEL_NAME,
-    )
-    QA_CHAIN_PROMPT = PromptTemplate.from_template(
-        general_chat_qa_prompt_template
-    )  # prompt_template defined above
-
-    ######  Setting Multiquery retriever as base retriver ######
-    QUERY_PROMPT = PromptTemplate(
-        input_variables=["question"],
-        template=multi_query_prompt_template,
-    )
-
-    document_llm_chain = LLMChain(
-        llm=streaming_llm, prompt=QA_CHAIN_PROMPT, callbacks=None, verbose=False
-    )
-    document_prompt = PromptTemplate(
-        input_variables=["page_content", "source"],
-        template="Context:\n Content:\n{page_content}\n Source File Name:\n{source}\n",
-    )
-    combine_documents_chain = StuffDocumentsChain(
-        llm_chain=document_llm_chain,
-        document_variable_name="context",
-        document_prompt=document_prompt,
-        callbacks=None,
-    )
-
-    condense_question_prompt = PromptTemplate.from_template(
-        condense_question_prompt_template
-    )
-
-    question_generator_chain = LLMChain(
-        llm=question_llm, prompt=condense_question_prompt
-    )
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-
-    docsearch = PineconeVectorStore(
-        pinecone_api_key=settings.PINECONE_API_KEY,
-        embedding=embeddings,
-        index_name=settings.INDEX_NAME,
-    )
-
-    base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-        llm=ChatOpenAI(
-            model_name="gpt-4-1106-preview", temperature=0.2, max_tokens=3000
-        ),
-        prompt=QUERY_PROMPT,
-    )
-
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=base_retriever
-    )
-
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        verbose=False,
-        retriever=compression_retriever,
-        return_source_documents=True,
-    )
-
-    answer_task = asyncio.create_task(
-        qa.ainvoke({"question": question, "chat_history": chat_history})
-    )
-    answer = ""
-    async for answer_token in answer_streaming_callback.aiter():
-        answer += answer_token
-        print("streaming answer:", answer)
-        data = json.dumps({"message": {"data_type": 0, "content": answer}})
-        yield data
-
-    await answer_task
-
-    """create session summary if the user is sending new chat message"""
-
-    if session_exist(session_id=session_id, session=db_session) == False:
-        summary_task = asyncio.create_task(
-            summarize_session_streaming(
-                question=question, answer=answer, llm=summary_streaming_llm
-            )
-        )
-        summary = ""
-        async for summary_token in summary_streaming_callback.aiter():
-            summary += summary_token
-            print("summary streaming:", summary)
-            data_summary = json.dumps(
-                {
-                    "message": {
-                        "data_type": 1,
-                        "content": summary,
-                    }
-                }
-            )
-            yield data_summary
-
-        await summary_task
-
-        add_session_summary(
-            user_id=user_id, session_id=session_id, summary=summary, session=db_session
-        )
-
-    add_chat_history(
-        user_id=user_id,
-        session_id=session_id,
-        question=question,
-        answer=answer,
-        db_session=db_session,
-    )
-
-
-def add_chat_history(
-    user_id: int, session_id: str, question: str, answer: str, db_session
-):
-    """add chat history for memory management"""
-    chat_memory = init_postgres_chat_memory(session_id=session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
-        memory_key="chat_history",
-        return_messages=True,
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        output_key="answer",
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-    memory.save_context({"input": question}, {"answer": answer})
-    """ add session messages to database"""
-    created_date = datetime.now()
-    user_message = ChatAdd(
-        user_id=user_id,
-        session_id=session_id,
-        content=question,
-        role="user",
-        created_date=created_date,
-    )
-    ai_message = ChatAdd(
-        user_id=user_id,
-        session_id=session_id,
-        content=answer,
-        role="assistant",
-        created_date=created_date,
-    )
-
-    add_message(user_message, db_session)
-    add_message(ai_message, db_session)
-
-
 @traceable(run_type="llm", name="RAG with Legal Cases", project_name="adaletgpt")
-def rag_legal_chat(question: str, session_id: str = None):
+def rag_chat(question: str, session_id: str = None):
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         legal_chat_qa_prompt_template
@@ -361,7 +100,7 @@ def rag_legal_chat(question: str, session_id: str = None):
         base_compressor=compressor,
         base_retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
     )
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=llm,
         memory_key="chat_history",
@@ -387,7 +126,7 @@ def rag_legal_chat(question: str, session_id: str = None):
 @traceable(
     run_type="llm", name="RAG streaming with Legal Cases", project_name="adaletgpt"
 )
-async def rag_legal_streaming_chat(
+async def rag_streaming_chat(
     standalone_question: str,
     question: str,
     user_id: int,
@@ -521,7 +260,7 @@ async def rag_legal_streaming_chat(
 
     yield s3_key_data
 
-    add_legal_chat_history(
+    add_chat_history(
         user_id=user_id,
         session_id=session_id,
         question=question,
@@ -533,7 +272,7 @@ async def rag_legal_streaming_chat(
     )
 
 
-def add_legal_chat_history(
+def add_chat_history(
     user_id: int,
     session_id: str,
     question: str,
@@ -544,7 +283,7 @@ def add_legal_chat_history(
     db_session: Session,
 ):
     """add chat history for memory management"""
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
         memory_key="chat_history",
@@ -583,7 +322,7 @@ def add_legal_chat_history(
 
 @traceable(run_type="llm", name="Get Relevant Legal Cases", project_name="adaletgpt")
 def get_relevant_legal_cases(session_id: str):
-    chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=llm,
         memory_key="chat_history",
@@ -636,7 +375,7 @@ def get_relevant_legal_cases(session_id: str):
     name="RAG regulation chat",
     project_name="adaletgpt",
 )
-def rag_regulation_chat(question: str):
+def rag_regulation(question: str):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """
@@ -700,7 +439,7 @@ def rag_regulation_chat(question: str):
     name="RAG with Legal Cases with source link",
     project_name="adaletgpt",
 )
-def rag_legal_source_chat(question: str):
+def rag_legal_source(question: str):
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)

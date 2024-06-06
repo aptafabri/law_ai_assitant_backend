@@ -5,33 +5,26 @@ from sqlalchemy.orm import Session
 from time import sleep
 import asyncio
 from crud.rag import (
-    rag_general_chat,
-    rag_legal_chat,
-    rag_general_streaming_chat,
-    rag_legal_streaming_chat,
+    rag_chat,
+    rag_streaming_chat,
     get_relevant_legal_cases,
 )
-from crud.chat_general import (
-    add_message,
-    summarize_session,
-    add_session_summary,
-    session_exist,
-    init_postgres_chat_memory,
-)
-from crud.chat_legal import (
+
+from crud.chat import (
     add_legal_chat_message,
     add_legal_session_summary,
     legal_session_exist,
     read_pdf,
     upload_legal_description,
     generate_question,
-    init_postgres_legal_chat_memory,
+    summarize_session,
+    init_postgres_chat_memory,
 )
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from crud.user import get_userid_by_token
 from database.session import get_session
-from schemas.message import ChatRequest, ChatAdd, LegalChatAdd
+from schemas.message import LegalChatAdd
 from datetime import datetime
 from core.auth_bearer import JWTBearer
 from crud.agent import agent_run
@@ -40,76 +33,7 @@ router = APIRouter()
 
 
 @router.post("/chat", tags=["RagController"], status_code=200)
-def rag_general(
-    message: ChatRequest,
-    dependencies=Depends(JWTBearer()),
-    session: Session = Depends(get_session),
-):
-    """
-    Chat with doc in Vectore Store using similarity search and OpenAI embedding.
-    """
-    response = rag_general_chat(
-        question=message.question, session_id=message.session_id
-    )
-    # response = run_llm_conversational_retrievalchain_without_sourcelink(question=message.question, session_id= message.session_id)
-
-    print("response", type(response), response)
-
-    user_id = get_userid_by_token(dependencies)
-    created_date = datetime.now()
-    user_message = ChatAdd(
-        user_id=user_id,
-        session_id=message.session_id,
-        content=message.question,
-        role="user",
-        created_date=created_date,
-    )
-    ai_message = ChatAdd(
-        user_id=user_id,
-        session_id=message.session_id,
-        content=response["answer"],
-        role="assistant",
-        created_date=created_date,
-    )
-
-    add_message(user_message, session)
-    add_message(ai_message, session)
-
-    print(session_exist(session_id=message.session_id, session=session))
-    if session_exist(session_id=message.session_id, session=session) == True:
-        return JSONResponse(
-            content={
-                "user_id": user_id,
-                "session_id": message.session_id,
-                "question": message.question,
-                "answer": response["answer"],
-            },
-            status_code=200,
-        )
-    else:
-        summary = summarize_session(
-            question=message.question, answer=response["answer"]
-        )
-        add_session_summary(
-            user_id=user_id,
-            session_id=message.session_id,
-            summary=summary,
-            session=session,
-        )
-        return JSONResponse(
-            content={
-                "user_id": user_id,
-                "session_id": message.session_id,
-                "question": message.question,
-                "answer": response["answer"],
-                "title": summary,
-            },
-            status_code=200,
-        )
-
-
-@router.post("/chat-legal", tags=["RagController"], status_code=200)
-async def rag_legal(
+async def rag_regulation_chat(
     session_id: str = Form(),
     question: str = Form(),
     file: UploadFile = File(None),
@@ -142,7 +66,7 @@ async def rag_legal(
         standalone_question = generate_question(
             pdf_contents=pdf_contents, question=question
         )
-    response = rag_legal_chat(question=standalone_question, session_id=session_id)
+    response = rag_chat(question=standalone_question, session_id=session_id)
     answer = response["answer"]
     user_message = LegalChatAdd(
         user_id=user_id,
@@ -199,48 +123,8 @@ async def rag_legal(
         )
 
 
-@router.post("/get-legal-cases", tags=["RagController"])
-def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
-    session_id = body["session_id"]
-    legal_cases = get_relevant_legal_cases(session_id=session_id)
-    return JSONResponse(
-        content={"session_id": session_id, "legal_cases": legal_cases}, status_code=200
-    )
-
-
 @router.post("/chat-streaming", tags=["RagController"], status_code=200)
-async def rag_general_streaming(
-    message: ChatRequest,
-    dependencies=Depends(JWTBearer()),
-    session: Session = Depends(get_session),
-) -> StreamingResponse:
-    chat_memory = init_postgres_chat_memory(session_id=message.session_id)
-    memory = ConversationSummaryBufferMemory(
-        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-        memory_key="chat_history",
-        return_messages=True,
-        chat_memory=chat_memory,
-        max_token_limit=3000,
-        output_key="answer",
-        ai_prefix="Question",
-        human_prefix="Answer",
-    )
-    user_id = get_userid_by_token(dependencies)
-
-    return EventSourceResponse(
-        rag_general_streaming_chat(
-            user_id=user_id,
-            question=message.question,
-            session_id=message.session_id,
-            chat_history=memory.buffer,
-            db_session=session,
-        ),
-        media_type="text/event-stream",
-    )
-
-
-@router.post("/chat-legal-streaming", tags=["RagController"], status_code=200)
-async def rag_legal_streaming(
+async def rag_streaming(
     session_id: str = Form(),
     question: str = Form(),
     file: UploadFile = File(None),
@@ -273,31 +157,40 @@ async def rag_legal_streaming(
         standalone_question = generate_question(
             pdf_contents=pdf_contents, question=question
         )
-    # chat_memory = init_postgres_legal_chat_memory(session_id=session_id)
-    # memory = ConversationSummaryBufferMemory(
-    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
-    #     memory_key="chat_history",
-    #     return_messages="on",
-    #     chat_memory=chat_memory,
-    #     max_token_limit=3000,
-    #     output_key="answer",
-    #     ai_prefix="Question",
-    #     human_prefix="Answer",
-    # )
-    # return EventSourceResponse(
-    #     rag_legal_streaming_chat(
-    #         standalone_question=standalone_question,
-    #         question=question,
-    #         session_id=session_id,
-    #         user_id=user_id,
-    #         db_session=session,
-    #         chat_history=memory.buffer,
-    #         legal_attached=attached_pdf,
-    #         legal_file_name=file_name,
-    #         legal_s3_key=legal_s3_key,
-    #     ),
-    #     media_type="text/event-stream",
-    # )
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0),
+        memory_key="chat_history",
+        return_messages="on",
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
+    )
+    return EventSourceResponse(
+        rag_streaming_chat(
+            standalone_question=standalone_question,
+            question=question,
+            session_id=session_id,
+            user_id=user_id,
+            db_session=session,
+            chat_history=memory.buffer,
+            legal_attached=attached_pdf,
+            legal_file_name=file_name,
+            legal_s3_key=legal_s3_key,
+        ),
+        media_type="text/event-stream",
+    )
+
+
+@router.post("/get-legal-cases", tags=["RagController"])
+def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
+    session_id = body["session_id"]
+    legal_cases = get_relevant_legal_cases(session_id=session_id)
+    return JSONResponse(
+        content={"session_id": session_id, "legal_cases": legal_cases}, status_code=200
+    )
 
 
 @router.post("/chat-agent-streaming", tags=["RagController"], status_code=200)

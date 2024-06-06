@@ -21,7 +21,7 @@ from schemas.user import (
     ForgotPasswordRequest,
     VerificationCodeRequest,
 )
-from crud.chat_legal import remove_sessions_by_user_id
+from crud.chat import remove_sessions_by_user_id
 from core.auth_bearer import JWTBearer
 from models import User, TokenTable
 from database.session import get_session

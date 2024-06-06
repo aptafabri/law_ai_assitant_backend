@@ -1,36 +1,30 @@
 import asyncio
 import json
-from langchain import hub
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_openai import ChatOpenAI
 from core.config import settings
 from tools.rag_regulation_tool import rag_regulation_tool
 from tools.rag_legal_tool import rag_legal_tool
 from langchain_core.prompts import ChatPromptTemplate
-from langsmith import traceable
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain_community.tools.tavily_search import TavilySearchResults
-from crud.chat_general import init_postgres_chat_memory
+from crud.chat import init_postgres_chat_memory
 from sqlalchemy.orm import Session
-from typing import AsyncIterable, Any
+from typing import Any
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.agents import (
     AgentExecutor,
     create_tool_calling_agent,
-    create_openai_tools_agent,
 )
-from crud.chat_general import (
-    add_message,
+from crud.chat import (
     summarize_session_streaming,
-    add_session_summary,
-    session_exist,
     init_postgres_chat_memory,
 )
-from crud.chat_legal import (
+from crud.chat import (
     add_legal_session_summary,
     legal_session_exist,
 )
-from crud.rag import add_legal_chat_history
+from crud.rag import add_chat_history
 
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
@@ -200,7 +194,7 @@ async def agent_run(
 
         yield s3_key_data
 
-        add_legal_chat_history(
+        add_chat_history(
             user_id=user_id,
             session_id=session_id,
             question=question,

@@ -17,7 +17,10 @@ from PIL import Image
 from pdf2image import convert_from_bytes
 from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
 from core.config import settings
-from core.prompt import summary_legal_session_prompt_template
+from core.prompt import (
+    summary_legal_session_prompt_template,
+    summary_session_prompt_template,
+)
 from langsmith import traceable
 
 # tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -176,11 +179,6 @@ def remove_messages_by_session_id(user_id: int, session_id: str, session: Sessio
         )
         session.commit()
 
-        # message_ids = [msg_id for (msg_id,) in session_messages]
-
-        # session.query(LegalChatHistory).filter(
-        #     LegalChatHistory.id.in_(message_ids)
-        # ).delete(synchronize_session=False)
         return {"message": "Deleted session successfully."}
 
     except SQLAlchemyError as e:
@@ -193,7 +191,7 @@ def summarize_session(question: str, answer: str):
     # Define prompt
     prompt_template = """
         I want you to make concise summary using following conversation.
-        You must write concise summary as title format with a 5-8 in turkish
+        You must write concise summary as title format with a 5-8 words in turkish
         CONVERSATION:
         ============
         Human:{question}
@@ -209,6 +207,12 @@ def summarize_session(question: str, answer: str):
     response = llm_chain.invoke({"question": question, "answer": answer})
 
     return response["text"]
+
+
+async def summarize_session_streaming(question: str, answer: str, llm):
+    prompt = PromptTemplate.from_template(summary_session_prompt_template)
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
+    return await llm_chain.ainvoke({"question": question, "answer": answer})
 
 
 def add_legal_session_summary(
@@ -227,11 +231,9 @@ def add_legal_session_summary(
 
 def remove_session_summary(session_id: str, session: Session):
 
-    existing_session_summary = (
-        session.query(LegalSessionSummary)
-        .filter(LegalSessionSummary.session_id == session_id)
-        .delete()
-    )
+    session.query(LegalSessionSummary).filter(
+        LegalSessionSummary.session_id == session_id
+    ).delete()
     session.commit()
 
 
@@ -293,7 +295,7 @@ def devote_chat_session(session_id: str, user_id: int, session: Session):
         return {"success": False}
 
 
-def init_postgres_legal_chat_memory(session_id: str):
+def init_postgres_chat_memory(session_id: str):
     table_name = "legal_message_store"
     sync_connection = psycopg.connect(settings.POSTGRES_CHAT_HISTORY_URI)
     PostgresChatMessageHistory.create_tables(sync_connection, table_name)
