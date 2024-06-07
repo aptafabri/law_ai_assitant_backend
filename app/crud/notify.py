@@ -52,13 +52,11 @@ def send_verify_email(recipient_email: str, token: str):
         html_content=f'Please verify your email by clicking the following link: <a href="{VERIFICATION_URL}?token={token}">Verify</a>',
     )
 
-    try:
-        sendgrid_api_key = settings.SENDGRID_API_KEY
-        sg = SendGridAPIClient(api_key=sendgrid_api_key)
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
-        return response.status_code
-    except Exception as e:
-        print(e)
+    sendgrid_api_key = settings.SENDGRID_API_KEY
+    print("sendgrid api key:", settings.SENDGRID_API_KEY)
+    sg = SendGridAPIClient(api_key=sendgrid_api_key)
+    response = sg.send(message)
+    print(response.status_code)
+    print(response.body)
+    print(response.headers)
+    return response.status_code
