@@ -159,41 +159,46 @@ def delete_account(
 @router.get("/verify", tags=["User controller"])
 def verify(token: str, session: Session = Depends(get_session)):
     print("token:", token)
-    id = verify_register_token(token)
-    print("id", id)
-    if not id:
-        raise HTTPException(status_code=400, detail="Invalid or expire link")
-    user = session.query(User).filter(User.id == id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if user.is_active == True:
-        return JSONResponse(content={"message": "Invalid link"}, status_code=400)
+    id, expired = verify_register_token(token)
+
+    if id is None and expired is None:
+        raise HTTPException(status_code=404, detail="Invalid token")
     else:
-        user.is_active = True
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return JSONResponse(
-            content={"message": "Email verified successfully"}, status_code=200
-        )
+        if expired == False:
+            user = session.query(User).filter(User.id == id).first()
+
+            user.is_active = True
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return JSONResponse(
+                content={"message": "Email verified successfully"}, status_code=200
+            )
+        elif expired == True:
+            raise HTTPException(status_code=400, detail="Expired token")
 
 
 @router.post("/resend-verification", tags=["User controller"])
 def resend_verification_email(
     request: ResendVerificationRequest, session: Session = Depends(get_session)
 ):
-    user = session.query(User).filter(User.email == request.email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if user.is_active == True:
-        raise HTTPException(status_code=400, detail="User already verified")
-    try:
-        token = create_access_token(user.id)
-        send_verify_email(recipient_email=user.email, token=token)
-        return JSONResponse(
-            content={"message": "Verification email resent"}, status_code=200
-        )
-    except Exception as e:
-        return JSONResponse(
-            content={"message": "Internal Server Error"}, status_code=500
-        )
+    id, _ = verify_register_token(request.token)
+    print("user_id", id)
+    if id is not None:
+        user = session.query(User).filter(User.id == id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if user.is_active == True:
+            raise HTTPException(status_code=400, detail="User already verified")
+        try:
+            token = create_access_token(user.id)
+            send_verify_email(recipient_email=user.email, token=token)
+            return JSONResponse(
+                content={"message": "Verification email resent"}, status_code=200
+            )
+        except Exception as e:
+            return JSONResponse(
+                content={"message": "Internal Server Error"}, status_code=500
+            )
+    else:
+        raise HTTPException(status_code=400, detail="Invalid token")

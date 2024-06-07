@@ -37,4 +37,4 @@ class VerificationCodeRequest(BaseModel):
 
 
 class ResendVerificationRequest(BaseModel):
-    email: EmailStr
+    token: str

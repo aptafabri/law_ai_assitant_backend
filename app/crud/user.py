@@ -12,6 +12,7 @@ from core.utils import (
 )
 from datetime import datetime, timezone, timedelta
 import jwt
+from jwt import ExpiredSignatureError, InvalidTokenError
 from core import settings
 import secrets
 from crud.notify import send_reset_password_mail, send_verify_email
@@ -225,9 +226,22 @@ def verify_register_token(token: str):
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
         print("payload", payload)
         id = payload["sub"]
-        if id is None:
-            return False
-        return id
-    except Exception as e:
-        print("error", e)
-        return False
+        expired = False
+        return id, expired
+    except ExpiredSignatureError:
+        print("Token has expired.")
+        # Decode the token without verifying the expiration to get the payload
+        try:
+            payload = jwt.decode(
+                token,
+                key=settings.JWT_SECRET_KEY,
+                options={"verify_exp": False},
+                algorithms=settings.ALGORITHM,
+            )
+            id = payload["sub"]
+            return id, True
+        except InvalidTokenError as e:
+            print("Invalid token:", e)
+            return None, None
+    except InvalidTokenError as e:
+        return None, None
