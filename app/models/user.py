@@ -10,5 +10,6 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
     reset_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
     verify_code = Column(String(50), nullable=True)
     verify_code_expiry = Column(DateTime, default=datetime.datetime.now)

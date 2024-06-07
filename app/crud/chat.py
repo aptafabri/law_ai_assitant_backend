@@ -393,7 +393,7 @@ def remove_sessions_by_user_id(user_id: int, db_session: Session):
         session_ids = [session_id for (session_id,) in session_id_array]
         print("session_id array:", session_ids, len(session_ids))
         for session_id in session_ids:
-            session_memory = init_postgres_legal_chat_memory(session_id=session_id)
+            session_memory = init_postgres_chat_memory(session_id=session_id)
             session_memory.clear()
             print("Deleted session:", session_id)
         return True

@@ -11,6 +11,7 @@ from crud.user import (
     reset_password_request,
     verify_forgot_code,
     get_userid_by_token,
+    verify_register_token,
 )
 from schemas.user import (
     UserCreate,
@@ -20,11 +21,14 @@ from schemas.user import (
     ResetPasswordRequest,
     ForgotPasswordRequest,
     VerificationCodeRequest,
+    ResendVerificationRequest,
 )
 from crud.chat import remove_sessions_by_user_id
+from crud.notify import send_verify_email
 from core.auth_bearer import JWTBearer
 from models import User, TokenTable
 from database.session import get_session
+from core.utils import create_access_token
 
 router = APIRouter()
 from fastapi.responses import JSONResponse
@@ -33,10 +37,16 @@ from fastapi.responses import JSONResponse
 @router.post("/register", tags=["User controller"])
 def register(user: UserCreate, session: Session = Depends(get_session)):
 
-    create_info = create_user(user, session)
-    auth_user = UserLogin(email=user.email, password=user.password)
-    token_info = login_user(auth_user, session)
-    return JSONResponse(content=token_info, status_code=200)
+    created_status = create_user(user, session)
+
+    if created_status == True:
+        return JSONResponse(
+            content={"message": "Registered successfully."}, status_code=200
+        )
+    else:
+        return JSONResponse(
+            content={"message": "Internal Server Error"}, status_code=500
+        )
 
 
 @router.post("/login", tags=["User controller"], status_code=200)
@@ -124,14 +134,13 @@ def delete_account(
     dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
 ):
     user_id = get_userid_by_token(dependencies)
-    remove_sessions_by_user_id(user_id=user_id, db_session=session)
     if remove_sessions_by_user_id(user_id=user_id, db_session=session) == True:
         try:
             session.query(User).filter(User.id == user_id).delete()
             session.query(TokenTable).filter(TokenTable.user_id == user_id).delete()
             session.commit()
             return JSONResponse(
-                content={"Success": True, "message": "Deleted all sessions."},
+                content={"Success": True, "message": "Deleted account."},
                 status_code=200,
             )
         except Exception as e:
@@ -144,4 +153,47 @@ def delete_account(
         return JSONResponse(
             content={"Success": False, "message": " Internal Server Error."},
             status_code=500,
+        )
+
+
+@router.get("/verify", tags=["User controller"])
+def verify(token: str, session: Session = Depends(get_session)):
+    print("token:", token)
+    id = verify_register_token(token)
+    print("id", id)
+    if not id:
+        raise HTTPException(status_code=400, detail="Invalid or expire link")
+    user = session.query(User).filter(User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.is_active == True:
+        return JSONResponse(content={"message": "Invalid link"}, status_code=400)
+    else:
+        user.is_active = True
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        return JSONResponse(
+            content={"message": "Email verified successfully"}, status_code=200
+        )
+
+
+@router.post("/resend-verification", tags=["User controller"])
+def resend_verification_email(
+    request: ResendVerificationRequest, session: Session = Depends(get_session)
+):
+    user = session.query(User).filter(User.email == request.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.is_active == True:
+        raise HTTPException(status_code=400, detail="User already verified")
+    try:
+        token = create_access_token(user.id)
+        send_verify_email(recipient_email=user.email, token=token)
+        return JSONResponse(
+            content={"message": "Verification email resent"}, status_code=200
+        )
+    except Exception as e:
+        return JSONResponse(
+            content={"message": "Internal Server Error"}, status_code=500
         )

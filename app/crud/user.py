@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 from core import settings
 import secrets
-from crud.notify import send_reset_password_mail
+from crud.notify import send_reset_password_mail, send_verify_email
 import asyncio
 from core.utils import create_access_token
 
@@ -25,16 +25,21 @@ def create_user(user: UserCreate, session: Session):
     if existing_user:
         raise HTTPException(status_code=400, detail="Eamil already registered")
 
-    encrypted_password = get_hashed_password(user.password)
+    try:
+        encrypted_password = get_hashed_password(user.password)
 
-    new_user = User(
-        username=user.username, email=user.email, password=encrypted_password
-    )
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-
-    return {"message": "user created successfully"}
+        new_user = User(
+            username=user.username, email=user.email, password=encrypted_password
+        )
+        session.add(new_user)
+        session.commit()
+        session.refresh(new_user)
+        print("new_user_id:", new_user.id)
+        token = create_access_token(new_user.id)
+        send_verify_email(new_user.email, token)
+        return True
+    except Exception as e:
+        return False
 
 
 def login_user(auth: UserLogin, session: Session):
@@ -46,22 +51,24 @@ def login_user(auth: UserLogin, session: Session):
 
     if not verify_password(auth.password, hashed_pass):
         raise HTTPException(status_code=400, detail="Incorrect Password")
+    if user.is_active == True:
+        access = create_access_token(user.id)
+        refresh = create_refresh_token(user.id)
 
-    access = create_access_token(user.id)
-    refresh = create_refresh_token(user.id)
-
-    print(access, refresh)
-    token_db = TokenTable(
-        user_id=user.id, access_token=access, refresh_token=refresh, status=True
-    )
-    session.add(token_db)
-    session.commit()
-    session.refresh(token_db)
-    token_info = {
-        "access_token": access,
-        "refresh_token": refresh,
-    }
-    return token_info
+        print(access, refresh)
+        token_db = TokenTable(
+            user_id=user.id, access_token=access, refresh_token=refresh, status=True
+        )
+        session.add(token_db)
+        session.commit()
+        session.refresh(token_db)
+        token_info = {
+            "access_token": access,
+            "refresh_token": refresh,
+        }
+        return token_info
+    else:
+        raise HTTPException(status_code=400, detail="Email is not verified")
 
 
 async def change_password(req: ChangePassword, session: Session):
@@ -207,3 +214,20 @@ def reset_password(token: str, new_password: str, session: Session):
     session.commit()
 
     return {"message": "Password reseted successfully"}
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+
+def verify_register_token(token: str):
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
+        print("payload", payload)
+        id = payload["sub"]
+        if id is None:
+            return False
+        return id
+    except Exception as e:
+        print("error", e)
+        return False
