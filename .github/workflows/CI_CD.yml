@@ -51,7 +51,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: "app/, requirements.txt, .env, adaletgpt_backend.service"
+          source: "app/, requirements.txt, .env"
           target: ./AdaletGPT_Backend/
 
       - name: Install dependencies and restart service
