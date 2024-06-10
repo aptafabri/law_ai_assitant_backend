@@ -4,7 +4,7 @@ import uuid
 
 # Initialize Pinecone with your API key
 pc = Pinecone(api_key="c214371b-cf98-4c07-8afc-95a3623a518d")
-index = pc.Index("test-index")
+index = pc.Index("adaletgpt-legalcase-data")
 
 source_file_dict = {}
 FILE_PATH = "embedding_list.txt"
