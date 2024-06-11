@@ -82,7 +82,7 @@ async def agent_run(
                     If you have source links, include a list of source links that are directly used to derive the final answer as markdown format\n
                     If you have source file names, include a list of source file names(not markdown) that are directly used to derive the final answer.\n
                     You must include source links as markdown format and source file names as not markdown.\n
-                    Do NOT process source links and use  as is.\n
+                    Do NOT process source links, source file names and use  as is.\n
                     Do not include source links and source file names that are irrelevant to the final answer\n.
                 """,
             ),
