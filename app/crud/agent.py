@@ -80,7 +80,8 @@ async def agent_run(
                     You must answer in Turkish.\n
                     If you don't know, just say "I don't know" and don't try to make up answer.\n
                     If you find the answer, write it in detail and you must include a list of source links as markdown format that are *directly* used to derive the final answer.\n
-                    Do NOT process source links and use  as is , but include source link as markdown format.
+                    If the source link is online link, you must include source link as markdown format.
+                    But Do NOT process source links and use  as is.
                     Do not include source links that are irrelevant to the final answer\n.
                 """,
             ),
