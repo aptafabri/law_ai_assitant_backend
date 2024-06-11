@@ -471,7 +471,7 @@ def rag_legal_source(question: str):
         question_generator=question_generator_chain,
         verbose=False,
         retriever=docsearch.as_retriever(search_kwargs={"k": 6}),
-        return_source_documents=True,
+        return_source_documents=False,
     )
 
     return qa.invoke({"question": question, "chat_history": []})
