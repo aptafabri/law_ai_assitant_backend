@@ -465,6 +465,20 @@ def rag_legal_source(question: str):
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template=multi_query_prompt_template,
+    )
+    base_retriever = MultiQueryRetriever.from_llm(
+        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
+        prompt=QUERY_PROMPT,
+    )
+
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=base_retriever
+    )
 
     qa = ConversationalRetrievalChain(
         combine_docs_chain=combine_documents_chain,
