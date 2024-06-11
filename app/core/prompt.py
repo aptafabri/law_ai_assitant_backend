@@ -75,8 +75,8 @@ legal_chat_qa_prompt_template = """"
     Your name is AdaletGPT.
     Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
     You must answer in turkish.
-    If you find the answer, write it in detail and include a list of source file names that are **directly** used to derive the final answer.\n
-    Do NOT process source file names and use  as is.
+    If you find the answer, write it in detail and include a list of source links that are **directly** used to derive the final answer.\n
+    Do NOT process source links and use  as is.
     If you don't know the answer to a question, please do not share false information.\n\n
 
     {context} \n
@@ -108,9 +108,10 @@ summary_session_prompt_template = """
 #     """
 
 summary_legal_session_prompt_template = """
-        Given the following legal description context and question, rephrase the follow up question to be a standalone question.\n
-        Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
-        Legal Description Context: {pdf_contents}\n
+        Given a legal case description and a follow-up question, create a standalone question(in turkish) that can be understood without needing the legal case description.\n
+        Make the standalone question as detailed as possible using legal case context.\n
+        Do NOT answer the question, just reformulate it if needed and otherwise return it as is.\n
+        Legal Case Description: {pdf_contents}\n
         Folllow Up question: {question}\n
         Standalone question:
     """

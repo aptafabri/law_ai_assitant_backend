@@ -30,6 +30,7 @@ for update_id in read_file_generator(FILE_PATH):
         )
         source = vector["matches"][0]["metadata"]["source"]
         source_name = os.path.basename(source)
+        data_type = source_name.rsplit(".", 1)[-1]
         if count % 10 == 0:
             sleep(1)
             print("delaying 1 second")
@@ -37,9 +38,7 @@ for update_id in read_file_generator(FILE_PATH):
 
             id = uuid.uuid4().hex
             source_file_dict[source] = id
-            source_url = (
-                f"https://chat.adaletgpt.com/dataset/legal_case_data/{id}-{source_name}"
-            )
+            source_url = f"https://chat.adaletgpt.com/dataset/legal_case_data?case_id={id}&type={data_type}"
             print(f"{source} does not exist!")
             index.update(
                 id=update_id, set_metadata={"source_link": source_url}, namespace=""
@@ -50,9 +49,7 @@ for update_id in read_file_generator(FILE_PATH):
 
             id = source_file_dict[source]
             print(f"{source} are already exist!")
-            source_url = (
-                f"https://chat.adaletgpt.com/dataset/legal_case_data/{id}-{source_name}"
-            )
+            source_url = f"https://chat.adaletgpt.com/dataset/legal_case_data?case_id={id}&type={data_type}"
             index.update(
                 id=update_id, set_metadata={"source_link": source_url}, namespace=""
             )

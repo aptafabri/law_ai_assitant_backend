@@ -444,8 +444,8 @@ def rag_legal_source(question: str):
     QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
-        input_variables=["page_content", "source"],
-        template="Context:\n \tContent:{page_content}\n \tSource File Name:{source}",
+        input_variables=["page_content", "source_link"],
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
