@@ -79,11 +79,10 @@ async def agent_run(
                     Don't mention about tools in answer.\n
                     You must use one tool for each question.\n
                     If you don't know, just say "I don't know" and don't try to make answer.\n
-                    If you have source links, include a list of source links that are directly used to derive the final answer as markdown format\n
-                    If you have source file names, include a list of source file names(not markdown) that are directly used to derive the final answer.\n
-                    You must include source links as markdown format and source file names as not markdown.\n
-                    Do NOT process source links, source file names and use  as is.\n
-                    Do not include source links and source file names that are irrelevant to the final answer\n.
+                    If you have source links or file names, include a list of source link, filename that are directly used to derive the final answer.\n
+                    You must include source_link as markdown format and file_name as is.\n
+                    Do NOT try to make up source links, file names and use  as are.\n
+                    Do not include source links and file names that are irrelevant to the final answer\n.
                 """,
             ),
             ("placeholder", "{chat_history}"),
