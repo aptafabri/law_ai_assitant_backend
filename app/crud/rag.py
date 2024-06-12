@@ -413,7 +413,7 @@ def rag_regulation(question: str):
     )
 
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
@@ -470,7 +470,7 @@ def rag_legal_source(question: str):
         template=multi_query_prompt_template,
     )
     base_retriever = MultiQueryRetriever.from_llm(
-        retriever=docsearch.as_retriever(search_kwargs={"k": 10}),
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
@@ -484,7 +484,7 @@ def rag_legal_source(question: str):
         combine_docs_chain=combine_documents_chain,
         question_generator=question_generator_chain,
         verbose=False,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 6}),
+        retriever=compression_retriever,
         return_source_documents=False,
     )
 
