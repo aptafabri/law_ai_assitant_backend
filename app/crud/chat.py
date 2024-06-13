@@ -1,4 +1,5 @@
 import os
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
@@ -15,13 +16,20 @@ import boto3
 import pytesseract as tess
 from PIL import Image
 from pdf2image import convert_from_bytes
-from schemas.message import ChatAdd, SessionSummary, LegalMessage, LegalChatAdd
+from schemas.message import (
+    ChatAdd,
+    SessionSummary,
+    LegalMessage,
+    LegalChatAdd,
+    SharedSessionSummary,
+)
 from core.config import settings
 from core.prompt import (
     summary_legal_session_prompt_template,
     summary_session_prompt_template,
 )
 from langsmith import traceable
+import uuid
 
 # tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
@@ -400,3 +408,76 @@ def remove_sessions_by_user_id(user_id: int, db_session: Session):
     except Exception as e:
         print("Error:", e)
         return False
+
+
+def create_session_sharelink(user_id: int, session_id: str, db_session: Session):
+    current_session = (
+        db_session.query(LegalSessionSummary)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.session_id == session_id,
+        )
+        .first()
+    )
+    if current_session is None:
+        raise HTTPException(status_code=400, detail="There is no Session.")
+
+    if current_session.is_shared == True:
+        raise HTTPException(
+            status_code=400, detail="You have already shared this session."
+        )
+    else:
+        current_session.is_shared = True
+        shared_id = uuid.uuid4().hex
+        current_session.shared_id = shared_id
+        db_session.commit()
+        shared_url = f"https://chat.adaletgpt.com/shared?shared_id={shared_id}"
+        print(shared_url)
+        return shared_url
+
+
+def get_shared_session_messages(shared_id: str, db_session: Session):
+    shared_session = (
+        db_session.query(LegalSessionSummary)
+        .filter(
+            LegalSessionSummary.is_shared == True,
+            LegalSessionSummary.shared_id == shared_id,
+        )
+        .first()
+    )
+    if shared_session is None:
+        raise HTTPException(status_code=400, detail="Invalid link.")
+    user_id = shared_session.user_id
+    session_id = shared_session.session_id
+    session_summary = shared_session.summary
+    messages = get_messages_by_session_id(
+        user_id=user_id, session_id=session_id, session=db_session
+    )
+    session_messages = []
+    for message in messages:
+        session_messages.append(
+            {
+                "role": message.role,
+                "conten": message.content,
+                "legal_attached": message.legal_attached,
+                "legal_s3_key": message.legal_s3_key,
+                "legal_file_name": message.legal_file_name,
+            }
+        )
+
+    return session_summary, session_messages
+
+
+def get_shared_sessions_by_user_id(
+    user_id: int, db_session: Session
+) -> List[SharedSessionSummary]:
+    shared_sessions = (
+        db_session.query(LegalSessionSummary.session_id, LegalSessionSummary.summary)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.is_shared == True,
+        )
+        .order_by(LegalSessionSummary.favourite_date.desc())
+        .all()
+    )
+    return shared_sessions

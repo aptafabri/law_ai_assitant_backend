@@ -1,17 +1,19 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class ChatRequest(BaseModel):
     session_id: str
     question: str
 
-    
+
 class ChatAdd(BaseModel):
     user_id: int
     session_id: str
     content: str
     role: str
     created_date: datetime
+
 
 class LegalChatAdd(BaseModel):
     user_id: int
@@ -23,17 +25,20 @@ class LegalChatAdd(BaseModel):
     legal_attached: bool
     created_date: datetime
 
+
 class SessionSummary(BaseModel):
-    user_id:int
+    user_id: int
     session_id: str
     summary: str
     created_date: datetime
     is_favourite: bool
     favourite_date: datetime
 
+
 class Message(BaseModel):
     content: str
     role: str
+
 
 class LegalMessage(BaseModel):
     content: str
@@ -41,14 +46,28 @@ class LegalMessage(BaseModel):
     legal_attached: bool
     legal_file_name: str
     legal_s3_key: str
-    
+
+
 class SessionSummaryRequest(BaseModel):
-    session_id:str
-    question:str
-    answer:str
+    session_id: str
+    question: str
+    answer: str
+
 
 class DownloadLegalPdf(BaseModel):
-    session_id:str
+    session_id: str
     legal_s3_key: str
     legal_file_name: str
-   
+
+
+class CreateSharedLinkRequest(BaseModel):
+    session_id: str
+
+
+class DisplaySharedSessionRequest(BaseModel):
+    shared_id: str
+
+
+class SharedSessionSummary(BaseModel):
+    session_id: str
+    summary: str

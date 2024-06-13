@@ -15,11 +15,17 @@ from crud.chat import (
     download_legal_description,
     delete_s3_bucket_folder,
     remove_sessions_by_user_id,
+    create_session_sharelink,
+    get_shared_session_messages,
+    get_shared_sessions_by_user_id,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
     SessionSummary,
     LegalMessage,
+    CreateSharedLinkRequest,
+    DisplaySharedSessionRequest,
+    SharedSessionSummary,
 )
 from core.auth_bearer import JWTBearer
 import urllib.parse
@@ -51,7 +57,7 @@ def get_chat_history(
     body: dict = Body(),
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
-):
+) -> List[LegalMessage]:
     session_id = body["session_id"]
     user_id = get_userid_by_token(dependencies)
     chat_history = get_messages_by_session_id(
@@ -155,3 +161,46 @@ def remove_all_session(
             content={"Success": False, "message": " Internal Server Error."},
             status_code=500,
         )
+
+
+@router.post("/create-share-link", tags=["ChatController"])
+def create_share_link(
+    request: CreateSharedLinkRequest,
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    user_id = get_userid_by_token(dependencies)
+    session_id = request.session_id
+    print(user_id, session_id)
+    shared_url = create_session_sharelink(
+        user_id=user_id, session_id=session_id, db_session=session
+    )
+    print(shared_url)
+    return JSONResponse(
+        content={"Success": True, "shared_link": shared_url}, status_code=200
+    )
+
+
+@router.post("/display-shared-session", tags=["ChatController"])
+def display_shared_session(
+    request: DisplaySharedSessionRequest, session: Session = Depends(get_session)
+):
+    shared_id = request.shared_id
+    session_summary, session_messages = get_shared_session_messages(
+        shared_id=shared_id, db_session=session
+    )
+    return JSONResponse(
+        content={"summary": session_summary, "messages": session_messages},
+        status_code=200,
+    )
+
+
+@router.post("/get-shared-links", tags=["ChatController"])
+def get_shared_sessions(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+) -> List[SharedSessionSummary]:
+    user_id = get_userid_by_token(dependencies)
+    shared_sessions = get_shared_sessions_by_user_id(
+        user_id=user_id, db_session=session
+    )
+    return shared_sessions

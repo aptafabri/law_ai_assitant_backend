@@ -45,7 +45,6 @@ def create_user(user: UserCreate, session: Session):
 
 def login_user(auth: UserLogin, session: Session):
     user = session.query(User).filter(User.email == auth.email).first()
-    print(user)
     if user is None:
         raise HTTPException(status_code=400, detail="Incorrect Email")
 

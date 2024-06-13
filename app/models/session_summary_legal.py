@@ -12,3 +12,5 @@ class LegalSessionSummary(Base):
     created_date = Column(DateTime, default=datetime.datetime.now)
     is_favourite = Column(Boolean, default=False)
     favourite_date = Column(DateTime, default=datetime.datetime.now)
+    is_shared = Column(Boolean, default=False)
+    shared_id = Column(String(100), nullable=True)
