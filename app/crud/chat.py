@@ -472,7 +472,7 @@ def get_shared_sessions_by_user_id(
     user_id: int, db_session: Session
 ) -> List[SharedSessionSummary]:
     shared_sessions = (
-        db_session.query(LegalSessionSummary.session_id, LegalSessionSummary.summary)
+        db_session.query(LegalSessionSummary)
         .filter(
             LegalSessionSummary.user_id == user_id,
             LegalSessionSummary.is_shared == True,
@@ -481,3 +481,38 @@ def get_shared_sessions_by_user_id(
         .all()
     )
     return shared_sessions
+
+
+def delete_shared_sessions_by_user_id(user_id: int, db_session: Session):
+    try:
+        db_session.query(LegalSessionSummary).filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.is_shared == True,
+        ).update(
+            {LegalSessionSummary.is_shared: False, LegalSessionSummary.shared_id: None}
+        )
+        db_session.commit()
+        return True
+    except Exception as e:
+        print("error occured", e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error :{e}")
+
+
+def delete_shared_session_by_id(user_id: int, session_id: str, db_session: Session):
+
+    shared_session = (
+        db_session.query(LegalSessionSummary)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.session_id == session_id,
+            LegalSessionSummary.is_shared == True,
+        )
+        .first()
+    )
+    if shared_session is not None:
+        shared_session.is_shared = False
+        shared_session.shared_id = None
+        db_session.commit()
+        return True
+    else:
+        raise HTTPException(status_code=400, detail="Invalid session_id or token")

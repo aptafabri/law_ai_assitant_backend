@@ -18,14 +18,17 @@ from crud.chat import (
     create_session_sharelink,
     get_shared_session_messages,
     get_shared_sessions_by_user_id,
+    delete_shared_sessions_by_user_id,
+    delete_shared_session_by_id,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
     SessionSummary,
     LegalMessage,
+    SharedSessionSummary,
     CreateSharedLinkRequest,
     DisplaySharedSessionRequest,
-    SharedSessionSummary,
+    DeleteSharedSessionRequest,
 )
 from core.auth_bearer import JWTBearer
 import urllib.parse
@@ -196,11 +199,40 @@ def display_shared_session(
 
 
 @router.post("/get-shared-links", tags=["ChatController"])
-def get_shared_sessions(
-    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+def get_all_shared_sessions(
+    token=Depends(JWTBearer()), session: Session = Depends(get_session)
 ) -> List[SharedSessionSummary]:
-    user_id = get_userid_by_token(dependencies)
+    user_id = get_userid_by_token(token)
     shared_sessions = get_shared_sessions_by_user_id(
         user_id=user_id, db_session=session
     )
     return shared_sessions
+
+
+@router.post("/delete-all-shared-sessions", tags=["ChatController"])
+def delete_all_shared_sessions(
+    token=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(token)
+    deleted_status = delete_shared_sessions_by_user_id(user_id, session)
+    return JSONResponse(
+        content={"Success": deleted_status, "messages": "Deleted all shared links."},
+        status_code=200,
+    )
+
+
+@router.post("/delete-shared-session", tags=["ChatController"])
+def delete_shared_session(
+    request: DeleteSharedSessionRequest,
+    token=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    user_id = get_userid_by_token(token)
+    session_id = request.session_id
+    deleted_status = delete_shared_session_by_id(
+        user_id=user_id, session_id=session_id, db_session=session
+    )
+    return JSONResponse(
+        content={"Success": deleted_status, "messages": "Deleted shared link."},
+        status_code=200,
+    )

@@ -71,3 +71,7 @@ class DisplaySharedSessionRequest(BaseModel):
 class SharedSessionSummary(BaseModel):
     session_id: str
     summary: str
+
+
+class DeleteSharedSessionRequest(BaseModel):
+    session_id: str
