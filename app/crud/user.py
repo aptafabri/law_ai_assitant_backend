@@ -18,6 +18,8 @@ import secrets
 from crud.notify import send_reset_password_mail, send_verify_email
 import asyncio
 from core.utils import create_access_token
+from models.session_summary_legal import LegalSessionSummary
+from models import LegalChatHistory
 
 
 def create_user(user: UserCreate, session: Session):
@@ -245,3 +247,31 @@ def verify_register_token(token: str):
             return None, None
     except InvalidTokenError as e:
         return None, None
+
+
+def export_data_by_user_id(user_id: int, db_session: Session):
+    chat_history = (
+        db_session.query(LegalChatHistory)
+        .filter(LegalChatHistory.user_id == user_id)
+        .order_by(LegalChatHistory.created_date.asc())
+        .all()
+    )
+    session_sumamries = (
+        db_session.query(LegalSessionSummary)
+        .filter(LegalSessionSummary.user_id == user_id)
+        .order_by(LegalSessionSummary.created_date.desc())
+        .all()
+    )
+    chat_history_dict = {}
+    for session in session_sumamries:
+        session_id = session.session_id
+        if session_id not in chat_history_dict:
+            chat_history_dict[session_id] = {"summary": session.summary, "messages": []}
+    print(chat_history_dict)
+    for message in chat_history:
+        session_id = message.session_id
+        chat_history_dict[session_id]["messages"].append(
+            {"content": message.content, "role": message.role}
+        )
+    print(chat_history_dict)
+    return chat_history_dict

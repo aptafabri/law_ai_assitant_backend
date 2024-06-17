@@ -32,3 +32,4 @@ sendgrid
 sse-starlette
 email-validator
 dnspython
+jinja2

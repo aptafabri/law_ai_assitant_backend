@@ -1,0 +1,71 @@
+<html>
+  <head>
+    <title>ChatGPT Data Export</title>
+    <style>
+      body {
+        margin: 20px;
+      }
+      h4 {
+        font-family: sans-serif;
+        margin: 0;
+      }
+      #root {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .conversation {
+        border: 1px solid black;
+        padding: 20px;
+        background-color: #f3f3f3;
+      }
+      .message {
+        white-space: pre-wrap;
+        margin: 20px 0;
+      }
+      .author {
+        font-weight: bold;
+        margin-bottom: 4px;
+      }
+      .author::first-letter {
+        text-transform: uppercase;
+      }
+    </style> 
+  </head>
+  <script>
+    var jsonData = {{ json_data }}
+    window.onload = function() {
+          var root = document.getElementById("root");
+          for (let key in jsonData){
+            var div = document.createElement("div")
+            div.className = "conversation";
+            div.innerHTML = "<h4>" + jsonData[key].summary + "</h4>";
+            if (jsonData.hasOwnProperty(key)) {
+                let messages = jsonData[key].messages;
+                var user_message = ""
+                var ai_message = ""
+                for(let i  = 0; i < messages.length-1; i+=2){
+                    if (messages[i].role ==="user") user_message = messages[i].content;
+                    else ai_message = messages[i].content
+                    
+                    if (messages[i+1].role === "user") user_message = messages[i+1].content;
+                    else ai_message = messages[i+1].content
+                    var user_message_element = document.createElement("pre");
+                    user_message_element.className = "message";
+                    user_message_element.innerHTML = `<div class="author">User</div><div>${user_message}</div>`;
+
+                    var ai_message_element = document.createElement("pre");
+                    ai_message_element.className = "message";
+                    ai_message_element.innerHTML = `<div class="author">AdaletGPT</div><div>${ai_message}</div>`;
+                    div.appendChild(user_message_element)
+                    div.appendChild(ai_message_element)
+                }
+            }
+            root.appendChild(div)
+          }
+      }
+  </script>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
