@@ -30,6 +30,8 @@ from core.prompt import (
 )
 from langsmith import traceable
 import uuid
+from datetime import datetime
+
 
 # tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
@@ -430,8 +432,9 @@ def create_session_sharelink(user_id: int, session_id: str, db_session: Session)
         current_session.is_shared = True
         shared_id = uuid.uuid4().hex
         current_session.shared_id = shared_id
-        db_session.commit()
+        current_session.shared_date = datetime.now()
         shared_url = f"https://chat.adaletgpt.com/shared?shared_id={shared_id}"
+        db_session.commit()
         print(shared_url)
         return shared_url
 
@@ -477,7 +480,7 @@ def get_shared_sessions_by_user_id(
             LegalSessionSummary.user_id == user_id,
             LegalSessionSummary.is_shared == True,
         )
-        .order_by(LegalSessionSummary.favourite_date.desc())
+        .order_by(LegalSessionSummary.shared_date.desc())
         .all()
     )
     return shared_sessions
@@ -489,7 +492,11 @@ def delete_shared_sessions_by_user_id(user_id: int, db_session: Session):
             LegalSessionSummary.user_id == user_id,
             LegalSessionSummary.is_shared == True,
         ).update(
-            {LegalSessionSummary.is_shared: False, LegalSessionSummary.shared_id: None}
+            {
+                LegalSessionSummary.is_shared: False,
+                LegalSessionSummary.shared_id: None,
+                LegalSessionSummary.shared_date: None,
+            }
         )
         db_session.commit()
         return True
@@ -512,6 +519,7 @@ def delete_shared_session_by_id(user_id: int, session_id: str, db_session: Sessi
     if shared_session is not None:
         shared_session.is_shared = False
         shared_session.shared_id = None
+        shared_session.shared_date = None
         db_session.commit()
         return True
     else:

@@ -30,7 +30,7 @@ from schemas.user import (
     ResendVerificationRequest,
 )
 from crud.chat import remove_sessions_by_user_id
-from crud.notify import send_verify_email
+from crud.notify import send_verify_email, send_export_email
 from core.auth_bearer import JWTBearer
 from models import User, TokenTable
 from database.session import get_session
@@ -208,3 +208,43 @@ def resend_verification_email(
             )
     else:
         raise HTTPException(status_code=400, detail="Invalid token")
+
+
+@router.get("/export-data", tags=["User Controller"])
+def export_data(token: str, session: Session = Depends(get_session)):
+    user_id = get_userid_by_token(token=token)
+    chat_history_dict = export_data_by_user_id(user_id=user_id, db_session=session)
+
+    templates_dir = os.path.abspath(os.path.join(__file__, "../../../email_template"))
+    templates_env = Environment(loader=FileSystemLoader(templates_dir))
+    template = templates_env.get_template("export_template.html")
+    rendered_html = template.render(json_data=chat_history_dict)
+    html_file = BytesIO(rendered_html.encode("utf-8"))
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr("chat.html", html_file.getvalue())
+    zip_buffer.seek(0)
+
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/x-zip-compressed",
+        headers={"Content-Disposition": "attachment; filename=chat.zip"},
+    )
+
+
+@router.post("/request-exporting-data", tags=["User Controller"])
+def request_exporting_data(
+    dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(dependencies)
+    current_user = session.query(User).filter(User.id == user_id).first()
+    if current_user is None:
+        raise HTTPException(status_code=400, detail="User not found")
+    try:
+        token = create_access_token(current_user.id)
+        send_export_email(current_user.email, token)
+        return JSONResponse(
+            content={"message": "Export request sent."}, status_code=200
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
