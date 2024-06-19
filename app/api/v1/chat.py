@@ -175,10 +175,16 @@ def check_shared_session(
 ):
     user_id = get_userid_by_token(dependencies)
     session_id = request.session_id
-    is_shared, is_updatable = check_shared_session_status(
+    is_shared, is_updatable, shared_id = check_shared_session_status(
         user_id=user_id, session_id=session_id, db_session=session
     )
-    return JSONResponse(content={"is_shared": is_shared, "updatable": is_updatable})
+    return JSONResponse(
+        content={
+            "is_shared": is_shared,
+            "updatable": is_updatable,
+            "shared_id": shared_id,
+        }
+    )
 
 
 @router.post("/create-share-link", tags=["ChatController"])

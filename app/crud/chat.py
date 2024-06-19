@@ -422,6 +422,7 @@ def check_shared_session_status(user_id: int, session_id: str, db_session: Sessi
         .first()
     )
     is_shared = current_session.is_shared
+    shared_id = current_session.shared_id
     is_updatable = False
     if is_shared == True:
         updatable_messages = (
@@ -436,7 +437,7 @@ def check_shared_session_status(user_id: int, session_id: str, db_session: Sessi
         print(len(updatable_messages))
         is_updatable = True if len(updatable_messages) > 0 else False
 
-    return is_shared, is_updatable
+    return is_shared, is_updatable, shared_id
 
 
 def create_session_sharelink(user_id: int, session_id: str, db_session: Session):
