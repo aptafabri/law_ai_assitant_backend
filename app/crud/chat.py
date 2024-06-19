@@ -422,7 +422,7 @@ def check_shared_session_status(user_id: int, session_id: str, db_session: Sessi
         .first()
     )
     is_shared = current_session.is_shared
-    is_updatable = None
+    is_updatable = False
     if is_shared == True:
         updatable_messages = (
             db_session.query(LegalChatHistory)
