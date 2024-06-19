@@ -15,6 +15,7 @@ from crud.chat import (
     download_legal_description,
     delete_s3_bucket_folder,
     remove_sessions_by_user_id,
+    check_shared_session_status,
     create_session_sharelink,
     get_shared_session_messages,
     get_shared_sessions_by_user_id,
@@ -166,6 +167,20 @@ def remove_all_session(
         )
 
 
+@router.post("/check-shared-session", tags=["ChatController"])
+def check_shared_session(
+    request: CreateSharedLinkRequest,
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    user_id = get_userid_by_token(dependencies)
+    session_id = request.session_id
+    is_shared, is_updatable = check_shared_session_status(
+        user_id=user_id, session_id=session_id, db_session=session
+    )
+    return JSONResponse(content={"is_shared": is_shared, "updatable": is_updatable})
+
+
 @router.post("/create-share-link", tags=["ChatController"])
 def create_share_link(
     request: CreateSharedLinkRequest,
@@ -174,7 +189,6 @@ def create_share_link(
 ):
     user_id = get_userid_by_token(dependencies)
     session_id = request.session_id
-    print(user_id, session_id)
     shared_url = create_session_sharelink(
         user_id=user_id, session_id=session_id, db_session=session
     )

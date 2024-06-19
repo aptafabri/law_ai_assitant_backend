@@ -63,7 +63,7 @@ ids =  [
         "4643771c-568d-4d97-b542-c8624df7427d",
         "464e3237-f3c8-44c7-8a32-035ae721d5f1",
         "46811c64-c394-40f0-95c2-7dccbdc911b4"
-    ]
+]
 vectors = index.fetch(ids=ids)
 datas = vectors["vectors"]
 metadata_array = []

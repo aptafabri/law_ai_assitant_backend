@@ -412,6 +412,33 @@ def remove_sessions_by_user_id(user_id: int, db_session: Session):
         return False
 
 
+def check_shared_session_status(user_id: int, session_id: str, db_session: Session):
+    current_session = (
+        db_session.query(LegalSessionSummary)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.session_id == session_id,
+        )
+        .first()
+    )
+    is_shared = current_session.is_shared
+    is_updatable = None
+    if is_shared == True:
+        updatable_messages = (
+            db_session.query(LegalChatHistory)
+            .filter(
+                LegalChatHistory.user_id == user_id,
+                LegalChatHistory.session_id == session_id,
+                LegalChatHistory.created_date >= current_session.shared_date,
+            )
+            .all()
+        )
+        print(len(updatable_messages))
+        is_updatable = True if len(updatable_messages) > 0 else False
+
+    return is_shared, is_updatable
+
+
 def create_session_sharelink(user_id: int, session_id: str, db_session: Session):
     current_session = (
         db_session.query(LegalSessionSummary)
@@ -422,21 +449,18 @@ def create_session_sharelink(user_id: int, session_id: str, db_session: Session)
         .first()
     )
     if current_session is None:
-        raise HTTPException(status_code=400, detail="There is no Session.")
-
-    if current_session.is_shared == True:
         raise HTTPException(
-            status_code=400, detail="You have already shared this session."
+            status_code=400, detail="There is no Session.Invalid request."
         )
-    else:
-        current_session.is_shared = True
-        shared_id = uuid.uuid4().hex
-        current_session.shared_id = shared_id
-        current_session.shared_date = datetime.now()
-        shared_url = f"https://chat.adaletgpt.com/shared?shared_id={shared_id}"
-        db_session.commit()
-        print(shared_url)
-        return shared_url
+
+    current_session.is_shared = True
+    shared_id = uuid.uuid4().hex
+    current_session.shared_id = shared_id
+    current_session.shared_date = datetime.now()
+    shared_url = f"https://chat.adaletgpt.com/shared?shared_id={shared_id}"
+    db_session.commit()
+    print(shared_url)
+    return shared_url
 
 
 def get_shared_session_messages(shared_id: str, db_session: Session):
@@ -450,18 +474,30 @@ def get_shared_session_messages(shared_id: str, db_session: Session):
     )
     if shared_session is None:
         raise HTTPException(status_code=400, detail="Invalid link.")
+
     user_id = shared_session.user_id
     session_id = shared_session.session_id
     session_summary = shared_session.summary
-    messages = get_messages_by_session_id(
-        user_id=user_id, session_id=session_id, session=db_session
+    shared_date = shared_session.shared_date
+
+    messages = (
+        db_session.query(LegalChatHistory)
+        .filter(
+            LegalChatHistory.user_id == user_id,
+            LegalChatHistory.session_id == session_id,
+            LegalChatHistory.created_date <= shared_date,
+        )
+        .order_by(LegalChatHistory.created_date.asc())
+        .order_by(LegalChatHistory.id.asc())
+        .all()
     )
+
     session_messages = []
     for message in messages:
         session_messages.append(
             {
                 "role": message.role,
-                "conten": message.content,
+                "content": message.content,
                 "legal_attached": message.legal_attached,
                 "legal_s3_key": message.legal_s3_key,
                 "legal_file_name": message.legal_file_name,
