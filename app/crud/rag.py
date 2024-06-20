@@ -475,7 +475,7 @@ def rag_legal_source(question: str):
         prompt=QUERY_PROMPT,
     )
 
-    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=base_retriever
     )
