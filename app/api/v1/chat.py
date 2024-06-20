@@ -30,6 +30,7 @@ from schemas.message import (
     CreateSharedLinkRequest,
     DisplaySharedSessionRequest,
     DeleteSharedSessionRequest,
+    DisplaySharedSessionMessages,
 )
 from core.auth_bearer import JWTBearer
 import urllib.parse
@@ -204,7 +205,11 @@ def create_share_link(
     )
 
 
-@router.post("/display-shared-session", tags=["ChatController"])
+@router.post(
+    "/display-shared-session",
+    tags=["ChatController"],
+    response_model=DisplaySharedSessionMessages,
+)
 def display_shared_session(
     request: DisplaySharedSessionRequest, session: Session = Depends(get_session)
 ):
@@ -212,14 +217,21 @@ def display_shared_session(
     session_summary, session_messages, shared_date = get_shared_session_messages(
         shared_id=shared_id, db_session=session
     )
-    return JSONResponse(
-        content={
-            "summary": session_summary,
-            "shared_date": shared_date,
-            "messages": session_messages,
-        },
-        status_code=200,
+    messages = [
+        LegalMessage(
+            content=msg.content,
+            role=msg.role,
+            legal_attached=msg.legal_attached,
+            legal_file_name=msg.legal_file_name,
+            legal_s3_key=msg.legal_s3_key,
+        )
+        for msg in session_messages
+    ]
+    shared_session = DisplaySharedSessionMessages(
+        summary=session_summary, shared_date=shared_date, messages=messages
     )
+
+    return shared_session
 
 
 @router.post("/get-shared-links", tags=["ChatController"])

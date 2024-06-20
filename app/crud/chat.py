@@ -481,7 +481,7 @@ def get_shared_session_messages(shared_id: str, db_session: Session):
     session_summary = shared_session.summary
     shared_date = shared_session.shared_date
 
-    messages = (
+    messages: List[LegalMessage] = (
         db_session.query(LegalChatHistory)
         .filter(
             LegalChatHistory.user_id == user_id,
@@ -493,19 +493,7 @@ def get_shared_session_messages(shared_id: str, db_session: Session):
         .all()
     )
 
-    session_messages = []
-    for message in messages:
-        session_messages.append(
-            {
-                "role": message.role,
-                "content": message.content,
-                "legal_attached": message.legal_attached,
-                "legal_s3_key": message.legal_s3_key,
-                "legal_file_name": message.legal_file_name,
-            }
-        )
-
-    return session_summary, session_messages, shared_date
+    return session_summary, messages, shared_date
 
 
 def get_shared_sessions_by_user_id(

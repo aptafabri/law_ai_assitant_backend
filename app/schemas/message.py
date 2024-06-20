@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List, Any
 
 
 class ChatRequest(BaseModel):
@@ -46,6 +47,12 @@ class LegalMessage(BaseModel):
     legal_attached: bool
     legal_file_name: str
     legal_s3_key: str
+
+
+class DisplaySharedSessionMessages(BaseModel):
+    summary: str
+    shared_date: datetime
+    messages: List[LegalMessage]
 
 
 class SessionSummaryRequest(BaseModel):
