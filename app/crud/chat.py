@@ -505,7 +505,7 @@ def get_shared_session_messages(shared_id: str, db_session: Session):
             }
         )
 
-    return session_summary, session_messages
+    return session_summary, session_messages, shared_date
 
 
 def get_shared_sessions_by_user_id(

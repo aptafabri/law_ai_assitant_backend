@@ -209,11 +209,15 @@ def display_shared_session(
     request: DisplaySharedSessionRequest, session: Session = Depends(get_session)
 ):
     shared_id = request.shared_id
-    session_summary, session_messages = get_shared_session_messages(
+    session_summary, session_messages, shared_date = get_shared_session_messages(
         shared_id=shared_id, db_session=session
     )
     return JSONResponse(
-        content={"summary": session_summary, "messages": session_messages},
+        content={
+            "summary": session_summary,
+            "shared_date": shared_date,
+            "messages": session_messages,
+        },
         status_code=200,
     )
 
