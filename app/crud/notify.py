@@ -5,7 +5,7 @@ from core.config import settings
 from email_validator import validate_email, EmailNotValidError
 
 VERIFICATION_URL = "https://chat.adaletgpt.com/user/verify"
-DOWNLOAD_URL = "https://chat.adaletgpt.com/user/export-data"
+DOWNLOAD_URL = "https://chat.adaletgpt.com/user/exportdata"
 
 
 def send_reset_password_mail(recipient_email, user_name, verify_code):
