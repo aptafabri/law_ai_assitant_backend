@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     MAIL_FROM_NAME: str
     TAVILY_API_KEY: str
     SENDGRID_AUTH_EMAIL: str
+    AWS_EXPORTDATA_BUCKET_NAME: str
 
     class Config:
         env_file = ".env"

@@ -20,6 +20,17 @@ import asyncio
 from core.utils import create_access_token
 from models.session_summary_legal import LegalSessionSummary
 from models import LegalChatHistory
+from jinja2 import Template, Environment, FileSystemLoader
+from io import BytesIO
+import os
+import zipfile
+import boto3
+
+s3_client = boto3.client(
+    service_name="s3",
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_KEY,
+)
 
 
 def create_user(user: UserCreate, session: Session):
@@ -267,11 +278,37 @@ def export_data_by_user_id(user_id: int, db_session: Session):
         session_id = session.session_id
         if session_id not in chat_history_dict:
             chat_history_dict[session_id] = {"summary": session.summary, "messages": []}
-    print(chat_history_dict)
     for message in chat_history:
         session_id = message.session_id
         chat_history_dict[session_id]["messages"].append(
             {"content": message.content, "role": message.role}
         )
-    print(chat_history_dict)
     return chat_history_dict
+
+
+def export_data(user_id: int, db_session: Session):
+    try:
+        chat_history_dict = export_data_by_user_id(
+            user_id=user_id, db_session=db_session
+        )
+        templates_dir = os.path.abspath(os.path.join(__file__, "../../email_template"))
+        templates_env = Environment(loader=FileSystemLoader(templates_dir))
+        template = templates_env.get_template("export_template.html")
+        rendered_html = template.render(json_data=chat_history_dict)
+        html_file = BytesIO(rendered_html.encode("utf-8"))
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+            zip_file.writestr("chat.html", html_file.getvalue())
+        zip_buffer.seek(0)
+        s3_key = f"{user_id}/export_data/chat.zip"
+
+        s3_client.put_object(
+            Bucket=settings.AWS_EXPORTDATA_BUCKET_NAME, Body=zip_buffer, Key=s3_key
+        )
+        s3_url = (
+            f"https://{settings.AWS_EXPORTDATA_BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
+        )
+        return s3_url
+    except Exception as e:
+        print("error:", e)
+        return None

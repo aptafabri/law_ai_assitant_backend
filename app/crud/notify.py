@@ -63,13 +63,13 @@ def send_verify_email(recipient_email: str, token: str):
     return response.status_code
 
 
-def send_export_email(recipient_email: str, token: str):
+def send_export_email(recipient_email: str, url: str):
     message = Mail(
         from_email=settings.SENDGRID_AUTH_EMAIL,
         to_emails=[To(recipient_email)],
         subject="Export Data",
         is_multiple=True,
-        html_content=f'Please download your data by clicking the following link: <a href="{DOWNLOAD_URL}?token={token}">Download Link</a>',
+        html_content=f'Please download your data by clicking the following link: <a href="{url}">Download Link</a>',
     )
 
     sendgrid_api_key = settings.SENDGRID_API_KEY
