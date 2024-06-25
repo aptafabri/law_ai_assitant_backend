@@ -21,6 +21,7 @@ from crud.chat import (
     get_shared_sessions_by_user_id,
     delete_shared_sessions_by_user_id,
     delete_shared_session_by_id,
+    get_original_legal_case,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
@@ -272,3 +273,20 @@ def delete_shared_session(
         content={"Success": deleted_status, "messages": "Deleted shared link."},
         status_code=200,
     )
+
+
+@router.get("/get-legalcase", tags=["ChatController"])
+def get_original_legalcase(
+    case_id: str,
+    type: str,
+    # token=Depends(JWTBearer()),
+):
+    data = get_original_legal_case(case_id=case_id, data_type=type)
+    if type == "pdf":
+        return Response(
+            content=data["Body"].read(), media_type="application/pdf", status_code=200
+        )
+    else:
+        return Response(
+            content=data["Body"].read(), media_type="plain/text", status_code=200
+        )

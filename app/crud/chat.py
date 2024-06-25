@@ -549,3 +549,13 @@ def delete_shared_session_by_id(user_id: int, session_id: str, db_session: Sessi
         return True
     else:
         raise HTTPException(status_code=400, detail="Invalid session_id or token")
+
+
+def get_original_legal_case(case_id: str, data_type: str):
+    s3_key = f"{case_id}.{data_type}"
+    try:
+        data = s3_client.get_object(Bucket=settings.AWS_LEGALCASE_BUCKET_NAME, Key=s3_key)
+        return data
+    except Exception as e:
+        return None
+
