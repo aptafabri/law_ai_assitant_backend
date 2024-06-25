@@ -554,8 +554,11 @@ def delete_shared_session_by_id(user_id: int, session_id: str, db_session: Sessi
 def get_original_legal_case(case_id: str, data_type: str):
     s3_key = f"{case_id}.{data_type}"
     try:
-        data = s3_client.get_object(Bucket=settings.AWS_LEGALCASE_BUCKET_NAME, Key=s3_key)
+        data = s3_client.get_object(
+            Bucket=settings.AWS_LEGALCASE_BUCKET_NAME, Key=s3_key
+        )
         return data
+    except s3_client.exceptions.NoSuchKey:
+        raise HTTPException(status_code=400, detail="Legalcase file does not exist.")
     except Exception as e:
-        return None
-
+        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")

@@ -32,6 +32,7 @@ from schemas.message import (
     DisplaySharedSessionRequest,
     DeleteSharedSessionRequest,
     DisplaySharedSessionMessages,
+    GetOriginalLegalCaseRequest,
 )
 from core.auth_bearer import JWTBearer
 import urllib.parse
@@ -277,16 +278,19 @@ def delete_shared_session(
 
 @router.post("/get-legalcase", tags=["ChatController"])
 def get_original_legalcase(
-    case_id: str,
-    type: str,
-    # token=Depends(JWTBearer()),
+    request: GetOriginalLegalCaseRequest,
+    token=Depends(JWTBearer()),
 ):
-    data = get_original_legal_case(case_id=case_id, data_type=type)
-    if type == "pdf":
+    case_id = request.case_id
+    data_type = request.datatype
+    data = get_original_legal_case(case_id=case_id, data_type=data_type)
+    if data_type == "pdf":
         return Response(
             content=data["Body"].read(), media_type="application/pdf", status_code=200
         )
-    else:
+    elif data_type == "txt":
         return Response(
             content=data["Body"].read(), media_type="plain/text", status_code=200
         )
+    else:
+        return JSONResponse(content={"message": "Invalid datatype"}, status_code=400)

@@ -84,3 +84,7 @@ class SharedSessionSummary(BaseModel):
 
 class DeleteSharedSessionRequest(BaseModel):
     session_id: str
+
+class GetOriginalLegalCaseRequest(BaseModel):
+    case_id:str
+    datatype:str
