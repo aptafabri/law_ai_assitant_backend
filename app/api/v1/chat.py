@@ -275,7 +275,7 @@ def delete_shared_session(
     )
 
 
-@router.get("/get-legalcase", tags=["ChatController"])
+@router.post("/get-legalcase", tags=["ChatController"])
 def get_original_legalcase(
     case_id: str,
     type: str,
