@@ -286,7 +286,10 @@ def get_original_legalcase(
     data = get_original_legal_case(case_id=case_id, data_type=data_type)
     if data_type == "pdf":
         return Response(
-            content=data["Body"].read(), media_type="application/pdf", status_code=200
+            content=data["Body"].read(),
+            media_type="application/pdf",
+            status_code=200,
+            headers={"Content-Type": "application/pdf; charset=UTF-8"},
         )
     elif data_type == "txt":
         return Response(
