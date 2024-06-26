@@ -292,8 +292,11 @@ def get_original_legalcase(
             headers={"Content-Type": "application/pdf; charset=UTF-8"},
         )
     elif data_type == "txt":
-        return Response(
-            content=data["Body"].read(), media_type="plain/text", status_code=200
+        legal_txt = data["Body"].read().decode("utf-8")
+        return JSONResponse(
+            content={"content": legal_txt},
+            status_code=200,
+            headers={"Content-Type": "application/json"},
         )
     else:
         return JSONResponse(content={"message": "Invalid datatype"}, status_code=400)
