@@ -22,6 +22,7 @@ from schemas.message import (
     LegalMessage,
     LegalChatAdd,
     SharedSessionSummary,
+    ArchivedSessionSummary,
 )
 from core.config import settings
 from core.prompt import (
@@ -562,3 +563,80 @@ def get_original_legal_case(case_id: str, data_type: str):
         raise HTTPException(status_code=400, detail="Legalcase file does not exist.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+
+def archive_session(user_id: int, session_id: str, db_session: Session):
+    try:
+        current_session = (
+            db_session.query(LegalSessionSummary)
+            .filter(
+                LegalSessionSummary.user_id == user_id,
+                LegalSessionSummary.session_id == session_id,
+            )
+            .first()
+        )
+        if current_session is None:
+            raise HTTPException(
+                status_code=400, detail="There is no Session.Invalid request."
+            )
+        current_session.is_archived = True
+        current_session.archived_date = datetime.now()
+        db_session.commit()
+        return True
+    except Exception as e:
+        return False
+
+def get_archived_sessions_by_user_id(
+    user_id: int, db_session: Session
+) -> List[ArchivedSessionSummary]:
+    try:
+        archived_sessions = (
+            db_session.query(LegalSessionSummary)
+            .filter(
+                LegalSessionSummary.user_id == user_id,
+                LegalSessionSummary.is_archived == True,
+            )
+            .order_by(LegalSessionSummary.archived_date.desc())
+            .all()
+        )
+
+        return archived_sessions
+    except Exception as e:
+        print("error occured", e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error :{e}")
+
+def delete_archived_session_by_id(user_id: int, session_id: str, db_session: Session):
+    archived_session = (
+        db_session.query(LegalSessionSummary)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.session_id == session_id,
+            LegalSessionSummary.is_archived == True,
+        )
+        .first()
+    )
+    if archived_session is not None:
+        archived_session.is_archived = False
+        archived_session.shared_date = None
+        db_session.commit()
+        return True
+    else:
+        raise HTTPException(status_code=400, detail="Invalid session_id or token")
+
+def delete_archived_sessions_by_user_id(
+    user_id: int, db_session: Session
+):
+    try:
+        db_session.query(LegalSessionSummary).filter(
+            LegalSessionSummary.user_id == user_id, LegalSessionSummary.is_archived == True
+        ).update(
+            {
+                LegalSessionSummary.is_archived :False,
+                LegalSessionSummary.archived_date: None
+            }
+        )
+        db_session.commit()
+        return True    
+    except Exception as e:
+        print("error occured", e)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error :{e}")
+

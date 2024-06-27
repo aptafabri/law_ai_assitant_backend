@@ -71,6 +71,10 @@ class CreateSharedLinkRequest(BaseModel):
     session_id: str
 
 
+class ArchiveChatRequest(BaseModel):
+    session_id: str
+
+
 class DisplaySharedSessionRequest(BaseModel):
     shared_id: str
 
@@ -85,6 +89,13 @@ class SharedSessionSummary(BaseModel):
 class DeleteSharedSessionRequest(BaseModel):
     session_id: str
 
+
 class GetOriginalLegalCaseRequest(BaseModel):
-    case_id:str
-    datatype:str
+    case_id: str
+    datatype: str
+
+
+class ArchivedSessionSummary(BaseModel):
+    session_id: str
+    summary: str
+    archived_date: datetime

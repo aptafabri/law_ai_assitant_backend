@@ -15,3 +15,5 @@ class LegalSessionSummary(Base):
     is_shared = Column(Boolean, default=False)
     shared_id = Column(String(100), nullable=True)
     shared_date = Column(DateTime, default=datetime.datetime.now)
+    is_archived = Column(Boolean, default=False)
+    archived_date = Column(DateTime, default=datetime.datetime.now)

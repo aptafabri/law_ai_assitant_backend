@@ -22,6 +22,10 @@ from crud.chat import (
     delete_shared_sessions_by_user_id,
     delete_shared_session_by_id,
     get_original_legal_case,
+    archive_session,
+    get_archived_sessions_by_user_id,
+    delete_archived_session_by_id,
+    delete_archived_sessions_by_user_id,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
@@ -33,6 +37,8 @@ from schemas.message import (
     DeleteSharedSessionRequest,
     DisplaySharedSessionMessages,
     GetOriginalLegalCaseRequest,
+    ArchiveChatRequest,
+    ArchivedSessionSummary,
 )
 from core.auth_bearer import JWTBearer
 import urllib.parse
@@ -300,3 +306,60 @@ def get_original_legalcase(
         )
     else:
         return JSONResponse(content={"message": "Invalid datatype"}, status_code=400)
+
+
+@router.post("/archive-chat", tags=["ChatController"])
+def archive_chat(
+    request: ArchiveChatRequest,
+    token=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    user_id = get_userid_by_token(token)
+    session_id = request.session_id
+    archive_status = archive_session(
+        user_id=user_id, session_id=session_id, db_session=session
+    )
+
+    return JSONResponse(content={"Success": archive_status}, status_code=200)
+
+
+@router.post("/get-archived-chats", tags=["ChatController"])
+def get_all_archived_chat(
+    token=Depends(JWTBearer()), session: Session = Depends(get_session)
+) -> List[ArchivedSessionSummary]:
+    user_id = get_userid_by_token(token)
+    archived_sessions = get_archived_sessions_by_user_id(
+        user_id=user_id, db_session=session
+    )
+    return archived_sessions
+
+
+@router.post("/delete-archive-chat", tags=["ChatController"])
+def delete_archived_chat(
+    request: DeleteSharedSessionRequest,
+    token=Depends(JWTBearer()),
+    session: Session = Depends(get_session),
+):
+    user_id = get_userid_by_token(token)
+    session_id = request.session_id
+    deleted_status = delete_archived_session_by_id(
+        user_id=user_id, session_id=session_id, db_session=session
+    )
+    return JSONResponse(
+        content={"Success": deleted_status, "messages": "Deleted archived session."},
+        status_code=200,
+    )
+
+
+@router.post("/delete-all-archive-chats", tags=["ChatController"])
+def delete_all_archived_chats(
+    token=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(token)
+    deleted_status = delete_archived_sessions_by_user_id(
+        user_id=user_id, db_session=session
+    )
+    return JSONResponse(
+        content={"Success": deleted_status, "messages": "Deleted all archived chats."},
+        status_code=200,
+    )
