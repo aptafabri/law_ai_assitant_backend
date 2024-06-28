@@ -324,7 +324,7 @@ def archive_chat(
     return JSONResponse(content={"Success": archive_status}, status_code=200)
 
 
-@router.post("archive-all-chat", tags=["ChatController"])
+@router.post("/archive-all-chat", tags=["ChatController"])
 def archive_all_chat(
     token=Depends(JWTBearer()), session: Session = Depends(get_session)
 ):
