@@ -55,7 +55,10 @@ def get_sessions_by_userid(user_id: int, session: Session) -> List[SessionSummar
     session_summary_array: List[SessionSummary] = []
     results = (
         session.query(LegalSessionSummary)
-        .filter(LegalSessionSummary.user_id == user_id)
+        .filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.is_archived == False,
+        )
         .order_by(LegalSessionSummary.favourite_date.desc())
         .all()
     )
@@ -564,6 +567,7 @@ def get_original_legal_case(case_id: str, data_type: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
 
+
 def archive_session(user_id: int, session_id: str, db_session: Session):
     try:
         current_session = (
@@ -583,7 +587,25 @@ def archive_session(user_id: int, session_id: str, db_session: Session):
         db_session.commit()
         return True
     except Exception as e:
-        return False
+        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+
+
+def archive_all_session(user_id: int, db_session: Session):
+    try:
+        db_session.query(LegalSessionSummary).filter(
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.is_archived == False,
+        ).update(
+            {
+                LegalSessionSummary.is_archived: True,
+                LegalSessionSummary.archived_date: datetime.now(),
+            }
+        )
+        db_session.commit()
+        return True
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+
 
 def get_archived_sessions_by_user_id(
     user_id: int, db_session: Session
@@ -604,6 +626,7 @@ def get_archived_sessions_by_user_id(
         print("error occured", e)
         raise HTTPException(status_code=500, detail=f"Internal Server Error :{e}")
 
+
 def delete_archived_session_by_id(user_id: int, session_id: str, db_session: Session):
     archived_session = (
         db_session.query(LegalSessionSummary)
@@ -622,21 +645,20 @@ def delete_archived_session_by_id(user_id: int, session_id: str, db_session: Ses
     else:
         raise HTTPException(status_code=400, detail="Invalid session_id or token")
 
-def delete_archived_sessions_by_user_id(
-    user_id: int, db_session: Session
-):
+
+def delete_archived_sessions_by_user_id(user_id: int, db_session: Session):
     try:
         db_session.query(LegalSessionSummary).filter(
-            LegalSessionSummary.user_id == user_id, LegalSessionSummary.is_archived == True
+            LegalSessionSummary.user_id == user_id,
+            LegalSessionSummary.is_archived == True,
         ).update(
             {
-                LegalSessionSummary.is_archived :False,
-                LegalSessionSummary.archived_date: None
+                LegalSessionSummary.is_archived: False,
+                LegalSessionSummary.archived_date: None,
             }
         )
         db_session.commit()
-        return True    
+        return True
     except Exception as e:
         print("error occured", e)
         raise HTTPException(status_code=500, detail=f"Internal Server Error :{e}")
-

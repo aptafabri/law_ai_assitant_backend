@@ -26,6 +26,7 @@ from crud.chat import (
     get_archived_sessions_by_user_id,
     delete_archived_session_by_id,
     delete_archived_sessions_by_user_id,
+    archive_all_session,
 )
 from crud.user import get_userid_by_token
 from schemas.message import (
@@ -320,6 +321,15 @@ def archive_chat(
         user_id=user_id, session_id=session_id, db_session=session
     )
 
+    return JSONResponse(content={"Success": archive_status}, status_code=200)
+
+
+@router.post("archive-all-chat", tags=["ChatController"])
+def archive_all_chat(
+    token=Depends(JWTBearer()), session: Session = Depends(get_session)
+):
+    user_id = get_userid_by_token(token)
+    archive_status = archive_all_session(user_id=user_id, db_session=session)
     return JSONResponse(content={"Success": archive_status}, status_code=200)
 
 
