@@ -9,7 +9,7 @@ load_dotenv()
 from sqlalchemy.orm import Session
 from typing import Any
 from datetime import datetime
-from langchain.prompts import PromptTemplate
+from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.chains.llm import LLMChain
@@ -39,6 +39,7 @@ from core.prompt import (
     condense_question_prompt_template,
     summary_legal_conversation_prompt_template,
     legal_chat_qa_prompt_template,
+    general_chat_without_source_qa_prompt_template,
 )
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -430,6 +431,61 @@ def rag_regulation(question: str):
         verbose=False,
         retriever=compression_retriever,
         return_source_documents=False,
+    )
+
+    return qa.invoke({"question": question, "chat_history": []})
+
+
+@traceable(
+    run_type="llm",
+    name="RAG regulation chat without source",
+    project_name="adaletgpt",
+)
+def rag_regulation_without_source(question: str):
+    """
+    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
+    """
+
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(
+        general_chat_without_source_qa_prompt_template
+    )  # prompt_template defined above
+
+    ######  Setting Multiquery retriever as base retriver ######
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template=multi_query_prompt_template,
+    )
+
+    condense_question_prompt = PromptTemplate.from_template(
+        condense_question_prompt_template
+    )
+
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.INDEX_NAME,
+        namespace="YONETMELIK",
+    )
+
+    base_retriever = MultiQueryRetriever.from_llm(
+        retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
+        prompt=QUERY_PROMPT,
+    )
+
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=base_retriever
+    )
+
+    qa = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=compression_retriever,
+        return_source_documents=False,
+        condense_question_prompt=condense_question_prompt,
+        condense_question_llm=question_llm,
+        verbose=False,
+        combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
 
     return qa.invoke({"question": question, "chat_history": []})
