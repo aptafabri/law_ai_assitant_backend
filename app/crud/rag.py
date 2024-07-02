@@ -410,6 +410,7 @@ def rag_regulation(question: str):
         pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.INDEX_NAME,
+        namespace="YONETMELIK",
     )
 
     base_retriever = MultiQueryRetriever.from_llm(
