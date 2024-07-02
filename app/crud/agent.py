@@ -130,7 +130,6 @@ async def agent_run(
                 )
             elif kind == "on_tool_end":
                 print(f"Done tool: {event['name']}")
-                print(f"Tool output was: {event['data'].get('output')}")
                 print("--")
 
         if legal_session_exist(session_id=session_id, session=db_session) == False:
