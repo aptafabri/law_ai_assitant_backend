@@ -25,12 +25,11 @@ main_agent_prompt = """You are an AI assistant specialized in Turkish Law, and y
                     Don't mention about tools in answer.\n
                     You must use one tool for each question.\n
                     You must answer in Turkish.\n
-                    If you don't know, just say  don't know and don't try to make up answer.\n
-                    If you have source links in the tool's output, include a list of source links at the end of your response in Markdown format.\n
-                    These links should be directly used to derive the final answer.\n
+                    If you don't know, just say  don't know and don't try to make up answer.\n .
+                    If you have source links in the tool's output, include list of sources that are **directly** used to derive the answer at the end as Markdown format.\n
+                    Exclude source links that are irrelevant to the final answer.\n
                     Do NOT process the source links and use them as is.\n
-                    Do NOT try to make up the source links if you have no source links.\n
-                    Do NOT include source links that are irrelevant to the final answer.\n
+                    Do NOT try to make up the source links if you have no source links in tools output.\n
 """
 
 general_chat_qa_prompt_template = """
@@ -98,8 +97,8 @@ legal_chat_qa_prompt_template = """"
     You must answer in turkish.\n
     If you find the answer, write it in detail and include a list of source links that are **directly** used to derive the final answer.\n
     Do NOT process source links and use  as is.\n
+    Exclude the source links that are irrelevant to the final answer\n.
     If you don't know the answer to a question, please do not share false information.\n\n
-    Do not include source links that are irrelevant to the final answer\n.
 
     {context} \n
    
