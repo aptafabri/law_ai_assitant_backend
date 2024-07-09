@@ -32,7 +32,7 @@ from core.prompt import (
 from langsmith import traceable
 import uuid
 from datetime import datetime
-
+import asyncio
 
 # tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
@@ -229,7 +229,7 @@ async def summarize_session_streaming(question: str, answer: str, llm):
     return await llm_chain.ainvoke({"question": question, "answer": answer})
 
 
-def add_legal_session_summary(
+async def add_legal_session_summary(
     session_id: str, user_id: int, summary: str, session: Session
 ):
 

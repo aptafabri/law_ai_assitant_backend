@@ -12,7 +12,7 @@ def rag_regulation_tool():
     return StructuredTool.from_function(
         name="rag_regulation",
         description="useful when user's question is related with laws and regulations",
-        func=rag_regulation_without_source,
+        coroutine=rag_regulation_without_source,
         args_schema=RagRegulationToolSchema,
         infer_schema=True,
         verbose=True,

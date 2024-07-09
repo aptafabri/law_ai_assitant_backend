@@ -12,7 +12,7 @@ def rag_legal_tool():
     return StructuredTool(
         name="rag_legal",
         description="useful when user's query is realted with legal cases (case law or judicial decisions and precedents) and court decisions",
-        func=rag_legal_source,
+        coroutine=rag_legal_source,
         args_schema=RagLegalToolSchema,
         infer_schema=True,
         verbose=True,

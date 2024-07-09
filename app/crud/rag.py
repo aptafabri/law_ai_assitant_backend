@@ -273,7 +273,7 @@ async def rag_streaming_chat(
     )
 
 
-def add_chat_history(
+async def add_chat_history(
     user_id: int,
     session_id: str,
     question: str,
@@ -441,7 +441,7 @@ def rag_regulation(question: str):
     name="RAG regulation chat without source",
     project_name="adaletgpt",
 )
-def rag_regulation_without_source(question: str):
+async def rag_regulation_without_source(question: str):
     """
     making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
     """
@@ -488,7 +488,7 @@ def rag_regulation_without_source(question: str):
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
 
-    return qa.invoke({"question": question, "chat_history": []})
+    return await qa.ainvoke({"question": question, "chat_history": []})
 
 
 @traceable(
@@ -496,7 +496,7 @@ def rag_regulation_without_source(question: str):
     name="RAG with Legal Cases with source link",
     project_name="adaletgpt",
 )
-def rag_legal_source(question: str):
+async def rag_legal_source(question: str):
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
@@ -545,4 +545,4 @@ def rag_legal_source(question: str):
         return_source_documents=False,
     )
 
-    return qa.invoke({"question": question, "chat_history": []})
+    return await qa.ainvoke({"question": question, "chat_history": []})

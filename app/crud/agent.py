@@ -98,6 +98,7 @@ async def agent_run(
             max_token_limit=3000,
             ai_prefix="Question",
             human_prefix="Answer",
+            output_key="output",
         )
 
         agent_executor = AgentExecutor(
@@ -133,12 +134,16 @@ async def agent_run(
                 print("--")
 
         if legal_session_exist(session_id=session_id, session=db_session) == False:
+            # create the task which is running concurrently in background
+            # without waiting until finish summarize streaming
+            # summarize streaming and yield are excuting concurrently(in same time).
             summary_task = asyncio.create_task(
                 summarize_session_streaming(
                     question=question, answer=answer, llm=summary_streaming_llm
                 )
             )
             summary = ""
+
             async for summary_token in summary_streaming_callback.aiter():
                 summary += summary_token
                 print("summary streaming:", summary)
@@ -153,7 +158,26 @@ async def agent_run(
                 yield data_summary
             await summary_task
 
-            add_legal_session_summary(
+            # in this code, once finish the summarize streaming, then start yield data(time by time)
+
+            # summary = ""
+            # await summarize_session_streaming(
+            #     question=question, answer=answer, llm=summary_streaming_llm
+            # )
+            # async for summary_token in summary_streaming_callback.aiter():
+            #     summary += summary_token
+            #     print("summary streaming:", summary)
+            #     data_summary = json.dumps(
+            #         {
+            #             "message": {
+            #                 "data_type": 1,
+            #                 "content": summary,
+            #             }
+            #         }
+            #     )
+            #     yield data_summary
+
+            await add_legal_session_summary(
                 user_id=user_id,
                 session_id=session_id,
                 summary=summary,
@@ -182,7 +206,7 @@ async def agent_run(
 
         yield s3_key_data
 
-        add_chat_history(
+        await add_chat_history(
             user_id=user_id,
             session_id=session_id,
             question=question,
