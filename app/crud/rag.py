@@ -3,34 +3,27 @@ import sys
 import asyncio
 from dotenv import load_dotenv
 import json
-from time import sleep
 
 load_dotenv()
 from sqlalchemy.orm import Session
 from typing import Any
 from datetime import datetime
-from langchain.prompts import PromptTemplate, ChatPromptTemplate
+from langchain.prompts import PromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
 from langchain.chains.llm import LLMChain
-from langchain_community.llms import OpenAI
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
+from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain_pinecone import PineconeVectorStore
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.retrievers.contextual_compression import ContextualCompressionRetriever
 from langchain_cohere import CohereRerank
-from langchain.retrievers.multi_query import MultiQueryRetriever
 from core.config import settings
 from langsmith import traceable
 from langchain.callbacks import AsyncIteratorCallbackHandler
-from crud.chat import (
-    add_legal_chat_message,
-    add_legal_session_summary,
-    legal_session_exist,
-    init_postgres_chat_memory,
-    summarize_session_streaming,
-)
-import langchain
 from typing import List
 from schemas.message import LegalChatAdd
 from core.prompt import (
@@ -39,7 +32,15 @@ from core.prompt import (
     condense_question_prompt_template,
     summary_legal_conversation_prompt_template,
     legal_chat_qa_prompt_template,
+    legal_chat_qa_prompt_template_v2,
     general_chat_without_source_qa_prompt_template,
+)
+from crud.chat import (
+    add_legal_chat_message,
+    add_legal_session_summary,
+    legal_session_exist,
+    init_postgres_chat_memory,
+    summarize_session_streaming,
 )
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -83,19 +84,6 @@ def rag_chat(question: str, session_id: str = None):
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
 
-    # #####  Setting Multiquery retriever as base retriver ######
-    # QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template="""You are an AI language model assistant.\n
-    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n
-    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
-    #     Provide these alternative questions separated by newlines.\n
-
-    #     Original question: {question}""",
-    # )
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
-    # )
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
@@ -167,19 +155,6 @@ async def rag_streaming_chat(
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
 
-    # #####  Setting Multiquery retriever as base retriver ######
-    # QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template="""You are an AI language model assistant.\n
-    #     Your task is to generate 3 different versions of the given user question in turkish to retrieve relevant documents from a vector  database.\n
-    #     By generating multiple perspectives on the user question, your goal is to help the user overcome some of the limitations of distance-based similarity search.\n
-    #     Provide these alternative questions separated by newlines.\n
-
-    #     Original question: {question}""",
-    # )
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}), llm= ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0), prompt = QUERY_PROMPT
-    # )
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor,
@@ -522,21 +497,6 @@ async def rag_legal_source(question: str):
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
-    # QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template=multi_query_prompt_template,
-    # )
-    # base_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=docsearch.as_retriever(search_kwargs={"k": 50}),
-    #     llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
-    #     prompt=QUERY_PROMPT,
-    # )
-
-    # compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=base_retriever
-    # )
-
     qa = ConversationalRetrievalChain(
         combine_docs_chain=combine_documents_chain,
         question_generator=question_generator_chain,
@@ -546,3 +506,55 @@ async def rag_legal_source(question: str):
     )
 
     return await qa.ainvoke({"question": question, "chat_history": []})
+
+
+@traceable(
+    run_type="llm",
+    name="RAG with Legal Cases with source link",
+    project_name="adaletgpt",
+)
+async def rag_legal_source_v2(question: str):
+
+    # Contextualize question
+    contextualize_q_system_prompt = (
+        "Given a chat history and the latest user question "
+        "which might reference context in the chat history, "
+        "formulate a standalone question which can be understood "
+        "without the chat history. Do NOT answer the question, just "
+        "reformulate it if needed and otherwise return it as is."
+    )
+    contextualize_q_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", contextualize_q_system_prompt),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+    docsearch = PineconeVectorStore(
+        pinecone_api_key=settings.PINECONE_API_KEY,
+        embedding=embeddings,
+        index_name=settings.LEGAL_CASE_INDEX_NAME,
+    )
+    retriever = docsearch.as_retriever(search_kwargs={"k": 6})
+    history_aware_retriever = create_history_aware_retriever(
+        llm, retriever, contextualize_q_prompt
+    )
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", legal_chat_qa_prompt_template_v2),
+            MessagesPlaceholder("chat_history"),
+            ("human", "{input}"),
+        ]
+    )
+    # Below we use create_stuff_documents_chain to feed all retrieved context
+    # into the LLM. Note that we can also use StuffDocumentsChain and other
+    # instances of BaseCombineDocumentsChain.
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source_link"],
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
+    )
+    question_answer_chain = create_stuff_documents_chain(
+        llm=llm, prompt=qa_prompt, document_prompt=document_prompt
+    )
+    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+    return await rag_chain.ainvoke({"input": question, "chat_history": []})
