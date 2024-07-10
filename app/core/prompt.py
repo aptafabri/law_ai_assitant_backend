@@ -136,3 +136,26 @@ summary_legal_session_prompt_template = """
         Folllow Up question: {question}\n
         Standalone question:
     """
+
+legalcase_classify_prompt_template = """
+        You are an intelligent assistant. Your task is to classify the following question into one of the two categories based on the detailed descriptions provided.
+
+        Categories:
+        1. YARGITAY (Court of Cassation):
+        - Supervises the application of law by reviewing decisions made by lower courts.
+        - Ensures uniformity in jurisprudence across the country.
+        - Reviews factual errors in the determination of facts by lower courts.
+        - Reviews compensation amounts to ensure they are appropriate and justified.
+        - Orders retrials and annulments to ensure correct application of the law.
+
+        2. DANISTAY (Council of State):
+        - Adjudicates administrative cases involving decisions by the Council of Ministers, the Prime Ministry, ministries, and other public institutions.
+        - Provides opinions on draft laws within two months.
+        - Reviews concession agreements and contracts related to public services.
+        - Examines draft regulations and provides opinions.
+        - Resolves administrative disputes.
+        - Performs other legally mandated duties.
+
+        Question: {question}
+        Answer with the category name ("YARGITAY" or "DANISTAY") based on the descriptions above.
+"""
