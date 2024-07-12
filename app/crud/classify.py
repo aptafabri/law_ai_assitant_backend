@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from core.prompt import legalcase_classify_prompt_template
+from core.config import settings
 
 
 class CategoryQuestion(BaseModel):
@@ -13,7 +14,7 @@ class CategoryQuestion(BaseModel):
 
 
 class Classifier:
-    def __init__(self, model_name="gpt-4o", temperature=0):
+    def __init__(self, model_name=settings.LLM_MODEL_NAME, temperature=0):
         self.llm = ChatOpenAI(model=model_name, temperature=temperature)
         self.structured_llm_classifier = self.llm.with_structured_output(
             CategoryQuestion
@@ -26,4 +27,4 @@ class Classifier:
     def classify(self, question: str):
         classify_chain = self.classify_prompt | self.structured_llm_classifier
         result = classify_chain.invoke({"question": question})
-        return result.category
+        return result["category"]

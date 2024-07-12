@@ -26,6 +26,7 @@ from langsmith import traceable
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from typing import List
 from schemas.message import LegalChatAdd
+from crud.classify import Classifier
 from core.prompt import (
     general_chat_qa_prompt_template,
     multi_query_prompt_template,
@@ -63,6 +64,7 @@ question_llm = ChatOpenAI(
     model_kwargs={"top_p": 0.0},
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+namespace_classifier = Classifier()
 
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
@@ -479,7 +481,7 @@ async def rag_legal_source(question: str):
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source_link"],
-        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\n\t",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
@@ -492,22 +494,29 @@ async def rag_legal_source(question: str):
     question_generator_chain = LLMChain(
         llm=question_llm, prompt=condense_question_prompt
     )
+    namespace = namespace_classifier.classify(question=question)
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
+        namespace=namespace,
     )
-    base_retriever = docsearch.as_retriever(search_kwargs={"k": 6})
+    ## similarity search with multi-query and reranking ######
+    retriever_sim = docsearch.as_retriever(
+        search_type="similarity", search_kwargs={"k": 10}
+    )
+    ## getting 3 different input query and 3*10 chunks #######
     MULTI_QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
         template=multi_query_prompt_template,
     )
     multi_retriever = MultiQueryRetriever.from_llm(
-        retriever=base_retriever,
+        retriever=retriever_sim,
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=MULTI_QUERY_PROMPT,
     )
-    compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
+    ## reranking the multi retriever with cohere reranker ####
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=multi_retriever
     )
@@ -516,7 +525,7 @@ async def rag_legal_source(question: str):
         combine_docs_chain=combine_documents_chain,
         question_generator=question_generator_chain,
         verbose=False,
-        retriever=base_retriever,
+        retriever=compression_retriever,
         return_source_documents=False,
     )
 
@@ -580,7 +589,7 @@ async def rag_legal_source_v2(question: str):
     # instances of BaseCombineDocumentsChain.
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source_link"],
-        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\n\t",
     )
     question_answer_chain = create_stuff_documents_chain(
         llm=llm, prompt=qa_prompt, document_prompt=document_prompt

@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     SENDGRID_AUTH_EMAIL: str
     AWS_EXPORTDATA_BUCKET_NAME: str
     AWS_LEGALCASE_BUCKET_NAME:str
+    AGENT_LLM_MODEL_NAME: str
 
     class Config:
         env_file = ".env"
