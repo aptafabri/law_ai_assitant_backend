@@ -26,4 +26,4 @@ class Classifier:
     def classify(self, question: str):
         classify_chain = self.classify_prompt | self.structured_llm_classifier
         result = classify_chain.invoke({"question": question})
-        return result.category
+        return result["category"]

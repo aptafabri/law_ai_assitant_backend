@@ -35,6 +35,7 @@ from core.prompt import (
     legal_chat_qa_prompt_template_v2,
     general_chat_without_source_qa_prompt_template,
 )
+from crud.classify import Classifier
 from crud.chat import (
     add_legal_chat_message,
     add_legal_session_summary,
@@ -62,6 +63,7 @@ question_llm = ChatOpenAI(
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
+namespace_classifier = Classifier()
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
     def on_llm_end(self, *args, **kwargs) -> Any:
@@ -491,17 +493,38 @@ async def rag_legal_source(question: str):
     question_generator_chain = LLMChain(
         llm=question_llm, prompt=condense_question_prompt
     )
-
+    namespace = namespace_classifier.classify(question=question)
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
+        namespace=namespace
+    )
+    
+    ## similarity search with multi-query and reranking ######
+    retriever_sim = docsearch.as_retriever(
+        search_type="similarity", search_kwargs={"k": 10}
+    )
+    ## getting 3 different input query and 3*10 chunks #######
+    MULTI_QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template=multi_query_prompt_template,
+    )
+    multi_retriever = MultiQueryRetriever.from_llm(
+        retriever=retriever_sim,
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
+        prompt=MULTI_QUERY_PROMPT,
+    )
+    ## reranking the multi retriever with cohere reranker ####
+    compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
+    compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=multi_retriever
     )
     qa = ConversationalRetrievalChain(
         combine_docs_chain=combine_documents_chain,
         question_generator=question_generator_chain,
         verbose=False,
-        retriever=docsearch.as_retriever(search_kwargs={"k": 6}),
+        retriever=compression_retriever,
         return_source_documents=False,
     )
 
