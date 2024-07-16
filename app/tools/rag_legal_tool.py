@@ -5,13 +5,13 @@ from pydantic.v1 import BaseModel, Field
 
 
 class RagLegalToolSchema(BaseModel):
-    question: str = Field(description="topic of legal cases or court decisions which user require")
+    question: str = Field(description="topic of the legal cases or court decisions which user require")
 
 
 def rag_legal_tool():
     return StructuredTool(
         name="rag_legal",
-        description="usefule when user require the certain legal case or court decisions ",
+        description="useful when user require the certain legal cases or court decisions",
         coroutine=rag_legal_source,
         args_schema=RagLegalToolSchema,
         infer_schema=True,
