@@ -20,7 +20,6 @@ main_agent_prompt = """You are an AI assistant specialized in Turkish Law, and y
                     Your purpose is to answer about law and current event.\n
                     You can use the rag_legal, rag_regulation, and tavily_search_result_json tools.\n
                     Do not answer to question with your knowledge and must rely only on the answer that you get from the tools.\n
-                    Do not process the question and pass it directly to the tools as is.
                     If the question is not related on law or current event, kindly require the questions which are related on these.\n
                     If the question is unclear, ask for more details.\n
                     Don't mention about tools in answer.\n
@@ -88,18 +87,15 @@ condense_question_prompt_template = """
 #     """
 
 legal_chat_qa_prompt_template = """
-    Given the following guidelines, please answer the question based on the following context.
+    Use the following pieces of context to answer the question at the end.
+    If you don't know the answer, just kindly say that you don't know, don't try to make up an answer.
+    In case of this, do not include any source links.
+    If you know the answer, include a list of source links that are **directly** used to derive the final answer and are related with the answer.
+    Exclude the source links that are irrelevant to the final answer.
+    Use the source links as they are, and do not try to make up the source links.
 
-    Guidelines:
-    1. Derive your answer strictly from the provided context. Do not introduce any new information.
-    2. Include a list of source links that are **directly** used to derive the answer. Exclude the source links that are irrelevant to the final answer. Use the source links as they are, and do not try to make up the source links.
-    3. Ensure complete contextuality: Address all aspects of the query, linking back to specific details in the context.
-    4. Don't use like "In the context provided" or "According to my knowledge."
-
-    <Context>\n
     {context} \n
-    </Context>\n
-    
+   
     Question : {question}\n
     Helpful Answer:
 """
