@@ -520,15 +520,16 @@ async def rag_legal_source(question: str):
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=multi_retriever
     )
-    qa = ConversationalRetrievalChain(
-        combine_docs_chain=combine_documents_chain,
-        question_generator=question_generator_chain,
-        verbose=False,
-        retriever=compression_retriever,
-        return_source_documents=False,
-    )
+    return await compression_retriever.ainvoke(question)
+    # qa = ConversationalRetrievalChain(
+    #     combine_docs_chain=combine_documents_chain,
+    #     question_generator=question_generator_chain,
+    #     verbose=False,
+    #     retriever=compression_retriever,
+    #     return_source_documents=False,
+    # )
 
-    return await qa.ainvoke({"question": question, "chat_history": []})
+    # return await qa.ainvoke({"question": question, "chat_history": []})
 
 
 @traceable(
