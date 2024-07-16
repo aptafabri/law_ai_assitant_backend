@@ -54,13 +54,11 @@ llm = ChatOpenAI(
     model_name=settings.LLM_MODEL_NAME,
     temperature=0,
     max_tokens=3000,
-    model_kwargs={"top_p": 0.0},
 )
 question_llm = ChatOpenAI(
     model_name=settings.QUESTION_MODEL_NAME,
     temperature=0.3,
     max_tokens=3000,
-    model_kwargs={"top_p": 0.0},
 )
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -489,34 +487,21 @@ async def rag_legal_source(question: str):
     condense_question_prompt = PromptTemplate.from_template(
         condense_question_prompt_template
     )
+
     question_generator_chain = LLMChain(
         llm=question_llm, prompt=condense_question_prompt
     )
+
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
-    base_retriever = docsearch.as_retriever(search_kwargs={"k": 6})
-    MULTI_QUERY_PROMPT = PromptTemplate(
-        input_variables=["question"],
-        template=multi_query_prompt_template,
-    )
-    multi_retriever = MultiQueryRetriever.from_llm(
-        retriever=base_retriever,
-        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
-        prompt=MULTI_QUERY_PROMPT,
-    )
-    compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
-    compression_retriever = ContextualCompressionRetriever(
-        base_compressor=compressor, base_retriever=multi_retriever
-    )
-
     qa = ConversationalRetrievalChain(
         combine_docs_chain=combine_documents_chain,
         question_generator=question_generator_chain,
         verbose=False,
-        retriever=base_retriever,
+        retriever=docsearch.as_retriever(search_kwargs={"k": 6}),
         return_source_documents=False,
     )
 
@@ -550,23 +535,9 @@ async def rag_legal_source_v2(question: str):
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
     )
-    base_retriever = docsearch.as_retriever(search_kwargs={"k": 6})
-    # MULTI_QUERY_PROMPT = PromptTemplate(
-    #     input_variables=["question"],
-    #     template=multi_query_prompt_template,
-    # )
-    # multi_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=base_retriever,
-    #     llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
-    #     prompt=MULTI_QUERY_PROMPT,
-    # )
-    # compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
-    # compression_retriever = ContextualCompressionRetriever(
-    #     base_compressor=compressor, base_retriever=multi_retriever
-    # )
-
+    retriever = docsearch.as_retriever(search_kwargs={"k": 6})
     history_aware_retriever = create_history_aware_retriever(
-        llm, base_retriever, contextualize_q_prompt
+        llm, retriever, contextualize_q_prompt
     )
     qa_prompt = ChatPromptTemplate.from_messages(
         [
