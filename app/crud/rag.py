@@ -481,7 +481,7 @@ async def rag_legal_source(question: str):
     document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source_link"],
-        template="<Legal Case>\nContent:{page_content}\nSource Link:{source_link}\n</Legal Case>",
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\n\t",
     )
     combine_documents_chain = StuffDocumentsChain(
         llm_chain=document_llm_chain,
@@ -512,11 +512,11 @@ async def rag_legal_source(question: str):
     )
     multi_retriever = MultiQueryRetriever.from_llm(
         retriever=retriever_sim,
-        llm=ChatOpenAI(model_name="gpt-4-turbo", temperature=0, max_tokens=3000),
+        llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=MULTI_QUERY_PROMPT,
     )
     ## reranking the multi retriever with cohere reranker ####
-    compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
+    compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=multi_retriever
     )
