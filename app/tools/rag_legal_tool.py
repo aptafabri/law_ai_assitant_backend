@@ -5,7 +5,7 @@ from pydantic.v1 import BaseModel, Field
 
 
 class RagLegalToolSchema(BaseModel):
-    question: str = Field(description="user's question")
+    question: str = Field(description="user's question which require the legal cases or court decisions ")
 
 
 def rag_legal_tool():
