@@ -45,9 +45,9 @@ async def agent_run(
     db_session: Session = None,
 ):
 
-    agent_llm = ChatOpenAI(
+    llm = ChatOpenAI(
         verbose=True,
-        model_name=settings.AGENT_LLM_MODEL_NAME,
+        model_name=settings.LLM_MODEL_NAME,
         temperature=0,
         openai_api_key=settings.OPENAI_API_KEY,
         streaming=True,
@@ -82,13 +82,13 @@ async def agent_run(
             TavilySearchResults(max_results=1),
         ]
 
-        agent = create_tool_calling_agent(agent_llm, tools, prompt)
+        agent = create_tool_calling_agent(llm, tools, prompt)
 
         """initialize session memory for agent"""
         chat_memory = init_postgres_chat_memory(session_id=session_id)
         memory = ConversationSummaryBufferMemory(
             llm=ChatOpenAI(
-                model_name=settings.LLM_MODEL_NAME,
+                model_name="gpt-4-1106-preview",
                 temperature=0,
                 model_kwargs={"user": f"{user_id}"},
             ),
