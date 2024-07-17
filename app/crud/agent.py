@@ -106,7 +106,7 @@ async def agent_run(
         )
         answer = ""
         async for event in agent_executor.astream_events(
-            {"input": standalone_question}, version="v1"
+            {"input": standalone_question}, version="v2"
         ):
             kind = event["event"]
             if kind == "on_chat_model_stream":
