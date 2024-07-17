@@ -10,7 +10,6 @@ from models.session_summary_legal import LegalSessionSummary
 from models import LegalChatHistory
 from datetime import datetime
 from langchain_postgres import PostgresChatMessageHistory
-from langchain_core.output_parsers import StrOutputParser
 import psycopg
 from core.config import settings
 import boto3
@@ -226,7 +225,7 @@ def summarize_session(question: str, answer: str):
 
 async def summarize_session_streaming(question: str, answer: str, llm):
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
-    llm_chain = prompt | llm | StrOutputParser()
+    llm_chain = LLMChain(llm=llm, prompt=prompt)
     return await llm_chain.ainvoke({"question": question, "answer": answer})
 
 

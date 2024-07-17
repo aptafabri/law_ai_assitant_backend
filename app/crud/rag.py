@@ -475,24 +475,24 @@ async def rag_regulation_without_source(question: str):
 )
 async def rag_legal_source(question: str):
 
-    # QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
-    # document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
-    # document_prompt = PromptTemplate(
-    #     input_variables=["page_content", "source_link"],
-    #     template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
-    # )
-    # combine_documents_chain = StuffDocumentsChain(
-    #     llm_chain=document_llm_chain,
-    #     document_variable_name="context",
-    #     document_prompt=document_prompt,
-    # )
-    # condense_question_prompt = PromptTemplate.from_template(
-    #     condense_question_prompt_template
-    # )
+    QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
+    document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
+    document_prompt = PromptTemplate(
+        input_variables=["page_content", "source_link"],
+        template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
+    )
+    combine_documents_chain = StuffDocumentsChain(
+        llm_chain=document_llm_chain,
+        document_variable_name="context",
+        document_prompt=document_prompt,
+    )
+    condense_question_prompt = PromptTemplate.from_template(
+        condense_question_prompt_template
+    )
 
-    # question_generator_chain = LLMChain(
-    #     llm=question_llm, prompt=condense_question_prompt
-    # )
+    question_generator_chain = LLMChain(
+        llm=question_llm, prompt=condense_question_prompt
+    )
     namespace = namespace_classifier.classify(question=question)
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
