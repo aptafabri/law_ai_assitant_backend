@@ -62,9 +62,7 @@ jobs:
           key: ${{ secrets.KEY }}
           script: |
             cd /home/ubuntu/AdaletGPT_Backend/
-            if [ -d "venv" ]; then
-              rm -rf venv
-            fi
+            sudo rm -rf venv
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
