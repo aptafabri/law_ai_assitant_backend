@@ -6,6 +6,7 @@ from typing import List
 from langchain_openai import ChatOpenAI
 from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from models.session_summary_legal import LegalSessionSummary
 from models import LegalChatHistory
 from datetime import datetime
@@ -225,7 +226,7 @@ def summarize_session(question: str, answer: str):
 
 async def summarize_session_streaming(question: str, answer: str, llm):
     prompt = PromptTemplate.from_template(summary_session_prompt_template)
-    llm_chain = LLMChain(llm=llm, prompt=prompt)
+    llm_chain = prompt | llm | StrOutputParser()
     return await llm_chain.ainvoke({"question": question, "answer": answer})
 
 
