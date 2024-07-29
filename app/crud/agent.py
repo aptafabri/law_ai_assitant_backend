@@ -47,7 +47,7 @@ async def agent_run(
 
     llm = ChatOpenAI(
         verbose=True,
-        model_name=settings.LLM_MODEL_NAME,
+        model_name="gpt-4-turbo",
         temperature=0,
         openai_api_key=settings.OPENAI_API_KEY,
         streaming=True,
