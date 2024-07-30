@@ -12,6 +12,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from crud.chat import init_postgres_chat_memory
 from sqlalchemy.orm import Session
 from typing import Any
+from core import settings
 from langchain.callbacks import AsyncIteratorCallbackHandler
 from langchain.agents import (
     AgentExecutor,
@@ -47,7 +48,7 @@ async def agent_run(
 
     llm = ChatOpenAI(
         verbose=True,
-        model_name="gpt-4-turbo",
+        model_name=settings.LLM_MODEL_NAME,
         temperature=0,
         openai_api_key=settings.OPENAI_API_KEY,
         streaming=True,
