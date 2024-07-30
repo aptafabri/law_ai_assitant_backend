@@ -13,3 +13,6 @@ class User(Base):
     is_active = Column(Boolean, default=False)
     verify_code = Column(String(50), nullable=True)
     verify_code_expiry = Column(DateTime, default=datetime.datetime.now)
+    created_date = Column(DateTime, default=datetime.datetime.now)
+    activated_by_admin = Column(Boolean, default=False)
+ 

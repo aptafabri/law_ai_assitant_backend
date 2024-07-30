@@ -35,6 +35,7 @@ from core.auth_bearer import JWTBearer
 from models import User, TokenTable
 from database.session import get_session
 from core.utils import create_access_token
+from datetime import datetime
 
 router = APIRouter()
 from fastapi.responses import JSONResponse
@@ -174,6 +175,7 @@ def verify(token: str, session: Session = Depends(get_session)):
             user = session.query(User).filter(User.id == id).first()
 
             user.is_active = True
+            user.created_date = datetime.now()
             session.add(user)
             session.commit()
             session.refresh(user)

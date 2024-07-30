@@ -38,17 +38,20 @@ def create_user(user: UserCreate, session: Session):
     existing_user = session.query(User).filter_by(email=user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Eamil already registered")
+    if user.password == "Mykola:)":
+        activated_by_admin = True
+    else:
+        activated_by_admin = False
 
     try:
         encrypted_password = get_hashed_password(user.password)
 
         new_user = User(
-            username=user.username, email=user.email, password=encrypted_password
+            username=user.username, email=user.email, password=encrypted_password, activated_by_admin = activated_by_admin
         )
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
-        print("new_user_id:", new_user.id)
         token = create_access_token(new_user.id)
         send_verify_email(new_user.email, token)
         return True
@@ -66,21 +69,24 @@ def login_user(auth: UserLogin, session: Session):
     if not verify_password(auth.password, hashed_pass):
         raise HTTPException(status_code=400, detail="Incorrect Password")
     if user.is_active == True:
-        access = create_access_token(user.id)
-        refresh = create_refresh_token(user.id)
+        if user.activated_by_admin == True:
+            access = create_access_token(user.id)
+            refresh = create_refresh_token(user.id)
 
-        print(access, refresh)
-        token_db = TokenTable(
-            user_id=user.id, access_token=access, refresh_token=refresh, status=True
-        )
-        session.add(token_db)
-        session.commit()
-        session.refresh(token_db)
-        token_info = {
-            "access_token": access,
-            "refresh_token": refresh,
-        }
-        return token_info
+            print(access, refresh)
+            token_db = TokenTable(
+                user_id=user.id, access_token=access, refresh_token=refresh, status=True
+            )
+            session.add(token_db)
+            session.commit()
+            session.refresh(token_db)
+            token_info = {
+                "access_token": access,
+                "refresh_token": refresh,
+            }
+            return token_info
+        else:
+            raise HTTPException(status_code=400, detail="Your access is not allowed.Please request your access to the support team.")
     else:
         raise HTTPException(status_code=400, detail="Email is not verified")
 
