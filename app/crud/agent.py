@@ -27,6 +27,7 @@ from crud.chat import (
     legal_session_exist,
 )
 from crud.rag import add_chat_history
+from langchain_community.callbacks import get_openai_callback
 
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
@@ -89,7 +90,7 @@ async def agent_run(
         chat_memory = init_postgres_chat_memory(session_id=session_id)
         memory = ConversationSummaryBufferMemory(
             llm=ChatOpenAI(
-                model_name="gpt-4-1106-preview",
+                model_name="gpt-4o-mini",
                 temperature=0,
                 model_kwargs={"user": f"{user_id}"},
             ),
@@ -106,118 +107,121 @@ async def agent_run(
             agent=agent, tools=tools, verbose=True, memory=memory
         )
         answer = ""
-        async for event in agent_executor.astream_events(
-            {"input": standalone_question}, version="v1"
-        ):
-            kind = event["event"]
-            if kind == "on_chat_model_stream":
-                content = event["data"]["chunk"].content
-                if content:
-                    print("streaming_answer:", answer)
-                    answer += content
-                    data = json.dumps(
+        with get_openai_callback() as cb:
+            async for event in agent_executor.astream_events(
+                {"input": standalone_question}, version="v1"
+            ):
+                kind = event["event"]
+                if kind == "on_chat_model_stream":
+                    content = event["data"]["chunk"].content
+                    if content:
+                        print("streaming_answer:", answer)
+                        answer += content
+                        data = json.dumps(
+                            {
+                                "message": {
+                                    "data_type": 0,
+                                    "content": answer,
+                                }
+                            }
+                        )
+                        yield data
+
+                elif kind == "on_tool_start":
+                    print("--")
+                    print(
+                        f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+                    )
+                elif kind == "on_tool_end":
+                    print(f"Done tool: {event['name']}")
+                    print("--")
+
+            if legal_session_exist(session_id=session_id, session=db_session) == False:
+                # create the task which is running concurrently in background
+                # without waiting until finish summarize streaming
+                # summarize streaming and yield are excuting concurrently(in same time).
+                summary_task = asyncio.create_task(
+                    summarize_session_streaming(
+                        question=question, answer=answer, llm=summary_streaming_llm
+                    )
+                )
+                summary = ""
+
+                async for summary_token in summary_streaming_callback.aiter():
+                    summary += summary_token
+                    print("summary streaming:", summary)
+                    data_summary = json.dumps(
                         {
                             "message": {
-                                "data_type": 0,
-                                "content": answer,
+                                "data_type": 1,
+                                "content": summary,
                             }
                         }
                     )
-                    yield data
+                    yield data_summary
+                await summary_task
 
-            elif kind == "on_tool_start":
-                print("--")
-                print(
-                    f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+                # in this code, once finish the summarize streaming, then start yield data(time by time)
+
+                # summary = ""
+                # await summarize_session_streaming(
+                #     question=question, answer=answer, llm=summary_streaming_llm
+                # )
+                # async for summary_token in summary_streaming_callback.aiter():
+                #     summary += summary_token
+                #     print("summary streaming:", summary)
+                #     data_summary = json.dumps(
+                #         {
+                #             "message": {
+                #                 "data_type": 1,
+                #                 "content": summary,
+                #             }
+                #         }
+                #     )
+                #     yield data_summary
+
+                await add_legal_session_summary(
+                    user_id=user_id,
+                    session_id=session_id,
+                    summary=summary,
+                    session=db_session,
                 )
-            elif kind == "on_tool_end":
-                print(f"Done tool: {event['name']}")
-                print("--")
 
-        if legal_session_exist(session_id=session_id, session=db_session) == False:
-            # create the task which is running concurrently in background
-            # without waiting until finish summarize streaming
-            # summarize streaming and yield are excuting concurrently(in same time).
-            summary_task = asyncio.create_task(
-                summarize_session_streaming(
-                    question=question, answer=answer, llm=summary_streaming_llm
-                )
-            )
-            summary = ""
-
-            async for summary_token in summary_streaming_callback.aiter():
-                summary += summary_token
-                print("summary streaming:", summary)
-                data_summary = json.dumps(
-                    {
-                        "message": {
-                            "data_type": 1,
-                            "content": summary,
-                        }
+            legal_file_data = json.dumps(
+                {
+                    "message": {
+                        "data_type": 2,
+                        "content": legal_file_name,
                     }
-                )
-                yield data_summary
-            await summary_task
+                }
+            )
 
-            # in this code, once finish the summarize streaming, then start yield data(time by time)
+            yield legal_file_data
 
-            # summary = ""
-            # await summarize_session_streaming(
-            #     question=question, answer=answer, llm=summary_streaming_llm
-            # )
-            # async for summary_token in summary_streaming_callback.aiter():
-            #     summary += summary_token
-            #     print("summary streaming:", summary)
-            #     data_summary = json.dumps(
-            #         {
-            #             "message": {
-            #                 "data_type": 1,
-            #                 "content": summary,
-            #             }
-            #         }
-            #     )
-            #     yield data_summary
+            s3_key_data = json.dumps(
+                {
+                    "message": {
+                        "data_type": 3,
+                        "content": legal_s3_key,
+                    }
+                }
+            )
 
-            await add_legal_session_summary(
+            yield s3_key_data
+
+            await add_chat_history(
                 user_id=user_id,
                 session_id=session_id,
-                summary=summary,
-                session=db_session,
+                question=question,
+                answer=answer,
+                legal_attached=legal_attached,
+                legal_file_name=legal_file_name,
+                legal_s3_key=legal_s3_key,
+                db_session=db_session,
             )
-
-        legal_file_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 2,
-                    "content": legal_file_name,
-                }
-            }
-        )
-
-        yield legal_file_data
-
-        s3_key_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 3,
-                    "content": legal_s3_key,
-                }
-            }
-        )
-
-        yield s3_key_data
-
-        await add_chat_history(
-            user_id=user_id,
-            session_id=session_id,
-            question=question,
-            answer=answer,
-            legal_attached=legal_attached,
-            legal_file_name=legal_file_name,
-            legal_s3_key=legal_s3_key,
-            db_session=db_session,
-        )
-        print("added chat history")
+            print("added chat history")
+            print(f"Total Tokens: {cb.total_tokens}")
+            print(f"Total Cost (USD): ${cb.total_cost}")
 
     except Exception as e:
 
