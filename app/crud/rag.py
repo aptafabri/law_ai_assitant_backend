@@ -261,18 +261,18 @@ async def add_chat_history(
     db_session: Session,
 ):
     """add chat history for memory management"""
-    # chat_memory = init_postgres_chat_memory(session_id=session_id)
-    # memory = ConversationSummaryBufferMemory(
-    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
-    #     memory_key="chat_history",
-    #     return_messages=True,
-    #     chat_memory=chat_memory,
-    #     max_token_limit=3000,
-    #     output_key="answer",
-    #     ai_prefix="Question",
-    #     human_prefix="Answer",
-    # )
-    # memory.save_context({"input": question}, {"answer": answer})
+    chat_memory = init_postgres_chat_memory(session_id=session_id)
+    memory = ConversationSummaryBufferMemory(
+        llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
+        memory_key="chat_history",
+        return_messages=True,
+        chat_memory=chat_memory,
+        max_token_limit=3000,
+        output_key="answer",
+        ai_prefix="Question",
+        human_prefix="Answer",
+    )
+    memory.save_context({"input": question}, {"answer": answer})
     created_date = datetime.now()
     user_message = LegalChatAdd(
         user_id=user_id,
