@@ -14,10 +14,12 @@ from sqlalchemy.orm import Session
 from typing import Any
 from core import settings
 from langchain.callbacks import AsyncIteratorCallbackHandler
+from langchain_community.callbacks import get_openai_callback
 from langchain.agents import (
     AgentExecutor,
     create_tool_calling_agent,
 )
+from crud.user import calculate_llm_token
 from crud.chat import (
     summarize_session_streaming,
     init_postgres_chat_memory,
@@ -106,107 +108,114 @@ async def agent_run(
             agent=agent, tools=tools, verbose=True, memory=memory
         )
         answer = ""
-        async for event in agent_executor.astream_events(
-            {"input": standalone_question}, version="v1"
-        ):
-            kind = event["event"]
-            if kind == "on_chat_model_stream":
-                content = event["data"]["chunk"].content
-                if content:
-                    print("streaming_answer:", answer)
-                    answer += content
-                    data = json.dumps(
+        with get_openai_callback() as cb:
+            async for event in agent_executor.astream_events(
+                {"input": standalone_question}, version="v1"
+            ):
+                kind = event["event"]
+                if kind == "on_chat_model_stream":
+                    content = event["data"]["chunk"].content
+                    if content:
+                        print("streaming_answer:", answer)
+                        answer += content
+                        data = json.dumps(
+                            {
+                                "message": {
+                                    "data_type": 0,
+                                    "content": answer,
+                                }
+                            }
+                        )
+                        yield data
+
+                elif kind == "on_tool_start":
+                    print("--")
+                    print(
+                        f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+                    )
+                elif kind == "on_tool_end":
+                    print(f"Done tool: {event['name']}")
+                    print("--")
+
+            if legal_session_exist(session_id=session_id, session=db_session) == False:
+                # create the task which is running concurrently in background
+                # without waiting until finish summarize streaming
+                # summarize streaming and yield are excuting concurrently(in same time).
+                summary_task = asyncio.create_task(
+                    summarize_session_streaming(
+                        question=question, answer=answer, llm=summary_streaming_llm
+                    )
+                )
+                summary = ""
+
+                async for summary_token in summary_streaming_callback.aiter():
+                    summary += summary_token
+                    print("summary streaming:", summary)
+                    data_summary = json.dumps(
                         {
                             "message": {
-                                "data_type": 0,
-                                "content": answer,
+                                "data_type": 1,
+                                "content": summary,
                             }
                         }
                     )
-                    yield data
+                    yield data_summary
+                await summary_task
 
-            elif kind == "on_tool_start":
-                print("--")
-                print(
-                    f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
+                # in this code, once finish the summarize streaming, then start yield data(time by time)
+
+                # summary = ""
+                # await summarize_session_streaming(
+                #     question=question, answer=answer, llm=summary_streaming_llm
+                # )
+                # async for summary_token in summary_streaming_callback.aiter():
+                #     summary += summary_token
+                #     print("summary streaming:", summary)
+                #     data_summary = json.dumps(
+                #         {
+                #             "message": {
+                #                 "data_type": 1,
+                #                 "content": summary,
+                #             }
+                #         }
+                #     )
+                #     yield data_summary
+
+                await add_legal_session_summary(
+                    user_id=user_id,
+                    session_id=session_id,
+                    summary=summary,
+                    session=db_session,
                 )
-            elif kind == "on_tool_end":
-                print(f"Done tool: {event['name']}")
-                print("--")
 
-        if legal_session_exist(session_id=session_id, session=db_session) == False:
-            # create the task which is running concurrently in background
-            # without waiting until finish summarize streaming
-            # summarize streaming and yield are excuting concurrently(in same time).
-            summary_task = asyncio.create_task(
-                summarize_session_streaming(
-                    question=question, answer=answer, llm=summary_streaming_llm
-                )
-            )
-            summary = ""
-
-            async for summary_token in summary_streaming_callback.aiter():
-                summary += summary_token
-                print("summary streaming:", summary)
-                data_summary = json.dumps(
-                    {
-                        "message": {
-                            "data_type": 1,
-                            "content": summary,
-                        }
+            legal_file_data = json.dumps(
+                {
+                    "message": {
+                        "data_type": 2,
+                        "content": legal_file_name,
                     }
-                )
-                yield data_summary
-            await summary_task
-
-            # in this code, once finish the summarize streaming, then start yield data(time by time)
-
-            # summary = ""
-            # await summarize_session_streaming(
-            #     question=question, answer=answer, llm=summary_streaming_llm
-            # )
-            # async for summary_token in summary_streaming_callback.aiter():
-            #     summary += summary_token
-            #     print("summary streaming:", summary)
-            #     data_summary = json.dumps(
-            #         {
-            #             "message": {
-            #                 "data_type": 1,
-            #                 "content": summary,
-            #             }
-            #         }
-            #     )
-            #     yield data_summary
-
-            await add_legal_session_summary(
-                user_id=user_id,
-                session_id=session_id,
-                summary=summary,
-                session=db_session,
+                }
             )
 
-        legal_file_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 2,
-                    "content": legal_file_name,
+            yield legal_file_data
+
+            s3_key_data = json.dumps(
+                {
+                    "message": {
+                        "data_type": 3,
+                        "content": legal_s3_key,
+                    }
                 }
-            }
-        )
+            )
 
-        yield legal_file_data
+            yield s3_key_data
 
-        s3_key_data = json.dumps(
-            {
-                "message": {
-                    "data_type": 3,
-                    "content": legal_s3_key,
-                }
-            }
-        )
-
-        yield s3_key_data
-
+        print("added chat history")
+        print(f"Total Tokens: {cb.total_tokens}")
+        print(f"Total Cost (USD): ${cb.total_cost}")
+        total_llm_tokens = cb.total_tokens
+        
+        
         await add_chat_history(
             user_id=user_id,
             session_id=session_id,
@@ -217,7 +226,13 @@ async def agent_run(
             legal_s3_key=legal_s3_key,
             db_session=db_session,
         )
-        print("added chat history")
+        print(user_id, total_llm_tokens, db_session)
+        await calculate_llm_token(
+            user_id= user_id,
+            db_session = db_session,
+            total_llm_tokens=total_llm_tokens
+        )
+        print("added token amount")
 
     except Exception as e:
 

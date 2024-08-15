@@ -1,5 +1,6 @@
 from models import User, TokenTable
 from database.session import Base, engine, SessionLocal
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo
 from fastapi import Depends, Response, HTTPException
@@ -318,3 +319,16 @@ def export_data(user_id: int, db_session: Session):
     except Exception as e:
         print("error:", e)
         return None
+
+async def calculate_llm_token(user_id:int, db_session:Session, total_llm_tokens:int):
+    try:    
+        update_user = db_session.query(User).filter(User.id==user_id).first()
+        if update_user is None:
+            raise HTTPException(status_code=400, detail="User not found.")
+        current_llm_tokens = update_user.llm_token*1000
+        current_llm_tokens = (current_llm_tokens - total_llm_tokens)/1000
+        update_user.llm_token = current_llm_tokens
+        db_session.commit()
+    except SQLAlchemyError as e:
+        print("An error occurred while adding a message to the database:", str(e))
+        db_session.rollback()

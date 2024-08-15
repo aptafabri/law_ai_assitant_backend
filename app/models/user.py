@@ -9,10 +9,12 @@ class User(Base):
     username = Column(String(50), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
+    llm_token = Column(Float, default=100)
     reset_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=False)
     verify_code = Column(String(50), nullable=True)
     verify_code_expiry = Column(DateTime, default=datetime.datetime.now)
     created_date = Column(DateTime, default=datetime.datetime.now)
     activated_by_admin = Column(Boolean, default=False)
+    
  
