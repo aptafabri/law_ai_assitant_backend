@@ -41,7 +41,7 @@ tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
+os.environ["LANGCHAIN_API_KEY"] = "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"
 
 
 s3_client = boto3.client(
