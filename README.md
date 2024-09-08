@@ -1,78 +1,162 @@
-# FastAPI Boilerplate
+Here's a `README.md` template that you can use to set up and run the **AdaletGPT_Backend** project for development.
 
-A template to start on FastAPI backend projects.
+---
 
-## Getting Started
+# AdaletGPT Backend
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+This is the backend for the AdaletGPT project, a FastAPI-based application designed to assist legal professionals with document generation, case searches, and more.
+
+## Table of Contents
+- [Project Setup](#project-setup)
+- [Running the Application Locally](#running-the-application-locally)
+- [Running with Docker](#running-with-docker)
+- [Database Setup](#database-setup)
+- [Testing](#testing)
+- [Environment Variables](#environment-variables)
+
+## Project Setup
 
 ### Prerequisites
+- **Python 3.11+**
+- **Pipenv** or **Virtualenv**
+- **Docker** (if running with Docker)
+- **PostgreSQL** (if running the app with PostgreSQL)
+  
+### Clone the repository
 
-You'll need `python@3.8`, `pipenv` and `postgresql@12` installed on your system to run the project.
+```bash
+git clone https://github.com/your-repo/AdaletGPT_Backend.git
+cd AdaletGPT_Backend
+```
 
-### Installing
+### Install Dependencies
 
-Run the following command to install all the project dependencies.
-```shell script
+#### Using Pipenv (preferred):
+
+```bash
+pip install pipenv
+pipenv install
+```
+
+#### Using Virtualenv:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # on Windows: `venv\Scripts\activate`
 pip install -r requirements.txt
 ```
-Make sure your local PostgreSQL server is running on `http://localhost:5432`. Then, create a new database called `fastapi_db`.
-```shell script
-psql postgres
-postgres=# create database fastapi_db;
+
+### Set Up Environment Variables
+
+Create a `.env` file in the root directory of the project and provide the following environment variables (refer to the `.env.example` file if available):
+
+```env
+API_V1_STR=/api/v1
+PROJECT_NAME=AdaletGPT
+SECRET_KEY=your-secret-key
+SQLALCHEMY_DATABASE_URI=postgresql://user:password@localhost/dbname
+POSTGRES_CHAT_HISTORY_URI=postgresql://user:password@localhost/chat_history
+OPENAI_API_KEY=your-openai-api-key
+PINECONE_API_KEY=your-pinecone-api-key
+INDEX_NAME=your-index-name
+LEGAL_CASE_INDEX_NAME=your-legal-case-index
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_MINUTES=1440
+LLM_MODEL_NAME=gpt-3.5-turbo
+QUESTION_MODEL_NAME=gpt-3.5-turbo
+ALGORITHM=HS256
+JWT_SECRET_KEY=your-jwt-secret-key
+JWT_REFRESH_SECRET_KEY=your-jwt-refresh-secret-key
+COHERE_API_KEY=your-cohere-api-key
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_KEY=your-aws-secret-key
+AWS_BUCKET_NAME=your-bucket-name
+SENDGRID_API_KEY=your-sendgrid-api-key
+MAIL_USERNAME=your-email-username
+MAIL_PASSWORD=your-email-password
+MAIL_FROM=your-email@example.com
+MAIL_PORT=587
+MAIL_SERVER=smtp.sendgrid.net
+MAIL_FROM_NAME="AdaletGPT Support"
+TAVILY_API_KEY=your-tavily-api-key
+SENDGRID_AUTH_EMAIL=your-auth-email@example.com
+AWS_EXPORTDATA_BUCKET_NAME=your-export-bucket-name
+AWS_LEGALCASE_BUCKET_NAME=your-legalcase-bucket-name
 ```
-**Note:** If you have a different database URL, set it in the `.env` environment file.
 
-Now, run the `prestart.sh` script that'll create the tables and add initial data.
-```shell script
-./prestart.sh
+### Database Setup
+
+The app uses PostgreSQL by default, but you can use SQLite for local development.
+
+#### Using PostgreSQL:
+1. Install PostgreSQL and ensure it’s running.
+2. Update the `SQLALCHEMY_DATABASE_URI` and `POSTGRES_CHAT_HISTORY_URI` in your `.env` file to point to your local database.
+
+#### Using SQLite:
+1. If you prefer SQLite for development, set the `SQLALCHEMY_DATABASE_URI` in your `.env` file as follows:
+   ```env
+   SQLALCHEMY_DATABASE_URI=sqlite:///./sql_app.db
+   ```
+
+2. Run migrations (if any):
+   ```bash
+   alembic upgrade head
+   ```
+
+## Running the Application Locally
+
+After setting up the environment and dependencies, you can run the FastAPI app locally using Uvicorn.
+
+### Start the FastAPI Server:
+
+#### With Pipenv:
+```bash
+pipenv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-If there are any changes to the `SQLALCHEMY_DATABASE_URI` key in the `.env` file, please run the `prestart.sh` script again.
 
-### Running
-
-After all the above mentioned steps, you can start the application using the following command:
-```shell script
-gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
+#### With Virtualenv:
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-The application will be available at https://localhost:8000.
 
-## Development
+The app will now be accessible at `http://localhost:8000`.
 
-These instructions will provide you some useful information on developing this application.
+You can explore the API documentation at `http://localhost:8000/docs`.
 
-### Migrations
+## Running with Docker
 
-If there are any changes to the SQLAlchemy ORM models, you can run the following command to generate `alembic` migrations.
-```shell script
-alembic revision --autogenerate -m "<migration message>"
+### Build the Docker Image:
+
+```bash
+docker build -t adaletgpt-backend .
 ```
-This command will generate a new migration file in the `migrations` directory. Remember to check the generated migration file before committing.
+
+### Run the Docker Container:
+
+```bash
+docker run -p 8000:8000 adaletgpt-backend
+```
+
+The app should now be running at `http://localhost:8000`.
 
 ## Testing
 
-The application unit tests are inside the `app/tests` module.
+The project includes a set of unit and integration tests. You can run them as follows:
 
-Run the following command in the terminal to execute the application unit tests.
-```shell script
-pytest app/tests
+1. Make sure the environment is set up.
+2. Run tests using `pytest`:
+
+```bash
+pytest
 ```
 
-## Deployment
+## Environment Variables
 
-The application can be deployed in production using `gunicorn`, you don't need to make any code changes for the same.
-Head over to the [Uvicorn Deployment](https://www.uvicorn.org/deployment/) documentation for complete instructions.
+- The application uses environment variables for configuration, which should be set in a `.env` file at the project root.
+- Example environment variables are listed in the `.env.example` file.
 
-## Built With
+Make sure to adjust the environment variables according to your setup, particularly the API keys, database URIs, and secret keys.
 
-* [FastAPI](https://fastapi.tiangolo.com/) - The API framework used
-* [SQLAlchemy](https://www.sqlalchemy.org/) - Database ORM
-* [Pipenv](https://pypi.org/project/pipenv/) - Dependency and virtual environment manager
+---
 
-## Authors
-
-* **Surya Kant Bansal** - *Initial work* - [skb1129](https://github.com/skb1129)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This `README.md` should provide clear instructions for developers to set up, run, and test the project. Let me know if you need further adjustments!
