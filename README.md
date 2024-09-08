@@ -1,7 +1,3 @@
-Here's a `README.md` template that you can use to set up and run the **AdaletGPT_Backend** project for development.
-
----
-
 # AdaletGPT Backend
 
 This is the backend for the AdaletGPT project, a FastAPI-based application designed to assist legal professionals with document generation, case searches, and more.
@@ -156,7 +152,3 @@ pytest
 - Example environment variables are listed in the `.env.example` file.
 
 Make sure to adjust the environment variables according to your setup, particularly the API keys, database URIs, and secret keys.
-
----
-
-This `README.md` should provide clear instructions for developers to set up, run, and test the project. Let me know if you need further adjustments!
