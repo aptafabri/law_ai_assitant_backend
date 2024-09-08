@@ -49,7 +49,6 @@ Create a `.env` file in the root directory of the project and provide the follow
 ```env
 API_V1_STR=/api/v1
 PROJECT_NAME=AdaletGPT
-SECRET_KEY=your-secret-key
 SQLALCHEMY_DATABASE_URI=postgresql://user:password@localhost/dbname
 POSTGRES_CHAT_HISTORY_URI=postgresql://user:password@localhost/chat_history
 OPENAI_API_KEY=your-openai-api-key
