@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     class Config:
         # Load .env.development if PYTHON_ENV is set to 'development', otherwise load .env
-        env_file = ".env.development" if os.getenv('PYTHON_ENV') == 'development' else ".env"
+        env_file = ".env.development" if os.getenv('ADALETGPT_ENV') == 'development' else ".env"
 
 
 settings = Settings()
