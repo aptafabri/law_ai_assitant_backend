@@ -2,7 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main  # Deploy to production
+      - dev   # Deploy to development
 
 jobs:
   continuous-integration:
@@ -37,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: pip3 install -r requirements.txt
 
-  continuous-deployment:
+  continuous-deployment-prod:
     runs-on: ubuntu-latest
     needs: [continuous-integration]
     if: github.ref == 'refs/heads/main'
@@ -45,7 +47,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Copy files via SSH key
+      - name: Copy files to production via SSH
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.HOST }}
@@ -54,12 +56,48 @@ jobs:
           source: "app/, requirements.txt, .env, adaletgpt_backend.service"
           target: ./AdaletGPT_Backend/
 
-      - name: Install dependencies and restart service
+      - name: Install dependencies and restart production service
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+          script: |
+            cd /home/ubuntu/AdaletGPT_Backend/
+            sudo rm -rf venv
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+            deactivate
+            sudo cp /home/ubuntu/AdaletGPT_Backend/adaletgpt_backend.service /etc/systemd/system/adaletgpt_backend.service
+            sudo systemctl daemon-reload
+            sudo systemctl stop adaletgpt_backend
+            sudo systemctl start adaletgpt_backend
+            sudo systemctl enable adaletgpt_backend
+
+  continuous-deployment-dev:
+    runs-on: ubuntu-latest
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Copy files to development via SSH
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.DEV_KEY }}
+          source: "app/, requirements.txt, .env, adaletgpt_backend.service"
+          target: ./AdaletGPT_Backend/
+
+      - name: Install dependencies and restart development service
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: ${{ secrets.DEV_USERNAME }}
+          key: ${{ secrets.DEV_KEY }}
           script: |
             cd /home/ubuntu/AdaletGPT_Backend/
             sudo rm -rf venv
