@@ -1,3 +1,4 @@
+import os
 import secrets
 
 from pydantic_settings import BaseSettings
@@ -34,10 +35,11 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: str
     SENDGRID_AUTH_EMAIL: str
     AWS_EXPORTDATA_BUCKET_NAME: str
-    AWS_LEGALCASE_BUCKET_NAME:str
+    AWS_LEGALCASE_BUCKET_NAME: str
 
     class Config:
-        env_file = ".env"
+        # Load .env.development if PYTHON_ENV is set to 'development', otherwise load .env
+        env_file = ".env.development" if os.getenv('PYTHON_ENV') == 'development' else ".env"
 
 
 settings = Settings()
