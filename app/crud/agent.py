@@ -91,7 +91,7 @@ async def agent_run(
         chat_memory = init_postgres_chat_memory(session_id=session_id)
         memory = ConversationSummaryBufferMemory(
             llm=ChatOpenAI(
-                model_name="gpt-4-1106-preview",
+                model_name=settings.QUESTION_MODEL_NAME,
                 temperature=0,
                 model_kwargs={"user": f"{user_id}"},
             ),
