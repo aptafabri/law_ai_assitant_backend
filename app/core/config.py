@@ -38,8 +38,7 @@ class Settings(BaseSettings):
     AWS_LEGALCASE_BUCKET_NAME: str
 
     class Config:
-        # Load .env.development if PYTHON_ENV is set to 'development', otherwise load .env
-        env_file = ".env.development" if os.getenv('ADALETGPT_ENV') == 'development' else ".env"
+        env_file = ".env"
 
 
 settings = Settings()
