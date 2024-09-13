@@ -16,3 +16,6 @@ dataset/
 
 # IntelliJ
 .idea/
+
+.env
+.env.*
