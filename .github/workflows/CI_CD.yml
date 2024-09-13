@@ -53,7 +53,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          source: "app/, requirements.txt, .env, adaletgpt_backend.service"
+          source: "app/, requirements.txt, adaletgpt_backend.service"
           target: ./AdaletGPT_Backend/
 
       - name: Install dependencies and restart production service
@@ -89,7 +89,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           username: ${{ secrets.DEV_USERNAME }}
           key: ${{ secrets.DEV_KEY }}
-          source: "app/, requirements.txt, .env.development, adaletgpt_backend.service"
+          source: "app/, requirements.txt, adaletgpt_backend.service"
           target: ./AdaletGPT_Backend/
 
       - name: Install dependencies and restart development service
