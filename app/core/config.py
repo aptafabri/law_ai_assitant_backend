@@ -1,3 +1,4 @@
+import os
 import secrets
 
 from pydantic_settings import BaseSettings
@@ -34,7 +35,7 @@ class Settings(BaseSettings):
     TAVILY_API_KEY: str
     SENDGRID_AUTH_EMAIL: str
     AWS_EXPORTDATA_BUCKET_NAME: str
-    AWS_LEGALCASE_BUCKET_NAME:str
+    AWS_LEGALCASE_BUCKET_NAME: str
 
     class Config:
         env_file = ".env"
