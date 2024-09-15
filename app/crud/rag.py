@@ -44,6 +44,11 @@ from crud.chat import (
     summarize_session_streaming,
 )
 
+from log_config import configure_logging
+
+# Configure logging
+logger = configure_logging()
+
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
