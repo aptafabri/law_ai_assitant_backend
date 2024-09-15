@@ -1,14 +1,27 @@
-import uvicorn
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from api.v1 import api_router
 from core import settings
-from fastapi.middleware.cors import CORSMiddleware
+from log_config import configure_logging
 
-app = FastAPI(title=settings.PROJECT_NAME)
+# FastAPI lifespan manager
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Configure logging when the application starts
+    logger = configure_logging()
 
+    # Startup event
+    logger.info("Application startup")
+    yield
+    # Shutdown event
+    logger.info("Application shutdown")
 
+# Pass the lifespan context manager to FastAPI
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+
+# CORS middleware
 origins = ["*"]
 
 app.add_middleware(
@@ -19,5 +32,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)

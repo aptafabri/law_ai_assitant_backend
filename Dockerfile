@@ -10,10 +10,12 @@ RUN apt-get update && \
 
 RUN pip install -r requirements.txt
 
-COPY ./app .
+# Copy the app directory
+COPY ./app .  
 
 COPY .env .env
 
-# Run the initial DB Script to build sqlite.db, then run main app
-# CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker main:app"]
+# Ensure that /app is in the PYTHONPATH
+ENV PYTHONPATH="/app"
+
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8000 --env-file .env"]
