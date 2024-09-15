@@ -30,10 +30,15 @@ from crud.chat import (
 )
 from crud.rag import add_chat_history
 
+from log_config import configure_logging
+
+# Configure logging
+logger = configure_logging()
+
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
     def on_llm_end(self, *args, **kwargs) -> Any:
-        print("ended streaming")
+        logger.info("Ended LLM streaming")
         return self.done.set()
 
 
@@ -47,6 +52,12 @@ async def agent_run(
     legal_file_name: str,
     db_session: Session = None,
 ):
+    logger.info(f"Starting agent_run for user_id: {user_id}, session_id: {session_id}")
+    logger.debug(f"Standalone question: {standalone_question}")
+    logger.debug(f"Question: {question}")
+    logger.debug(f"Legal attached: {legal_attached}")
+    logger.debug(f"Legal S3 key: {legal_s3_key}")
+    logger.debug(f"Legal file name: {legal_file_name}")
 
     llm = ChatOpenAI(
         verbose=True,
@@ -56,6 +67,7 @@ async def agent_run(
         streaming=True,
         model_kwargs={"user": f"{user_id}"},
     )
+    logger.debug("Initialized ChatOpenAI llm")
 
     summary_streaming_callback = QueueCallbackHandler()
     summary_streaming_llm = ChatOpenAI(
@@ -66,6 +78,8 @@ async def agent_run(
         model_name=settings.LLM_MODEL_NAME,
         model_kwargs={"user": f"{user_id}"},
     )
+    logger.debug("Initialized summary_streaming_llm")
+
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -77,8 +91,10 @@ async def agent_run(
             ("placeholder", "{agent_scratchpad}"),
         ]
     )
+    logger.debug("Created ChatPromptTemplate for agent")
 
     try:
+        logger.debug("Initializing tools for agent")
         tools = [
             rag_regulation_tool(),
             rag_legal_tool(),
@@ -86,8 +102,9 @@ async def agent_run(
         ]
 
         agent = create_tool_calling_agent(llm, tools, prompt)
+        logger.debug("Agent created with create_tool_calling_agent")
 
-        """initialize session memory for agent"""
+        logger.debug("Initializing session memory for agent")
         chat_memory = init_postgres_chat_memory(session_id=session_id)
         memory = ConversationSummaryBufferMemory(
             llm=ChatOpenAI(
@@ -103,12 +120,17 @@ async def agent_run(
             human_prefix="Answer",
             output_key="output",
         )
+        logger.debug("ConversationSummaryBufferMemory initialized")
 
         agent_executor = AgentExecutor(
             agent=agent, tools=tools, verbose=True, memory=memory
         )
+        logger.debug("AgentExecutor initialized")
+
         answer = ""
+        logger.info("Starting agent execution")
         with get_openai_callback() as cb:
+            logger.info("Processing agent events")
             async for event in agent_executor.astream_events(
                 {"input": standalone_question}, version="v1"
             ):
@@ -116,7 +138,7 @@ async def agent_run(
                 if kind == "on_chat_model_stream":
                     content = event["data"]["chunk"].content
                     if content:
-                        print("streaming_answer:", answer)
+                        logger.debug(f"Streaming answer: {answer}")
                         answer += content
                         data = json.dumps(
                             {
@@ -129,18 +151,16 @@ async def agent_run(
                         yield data
 
                 elif kind == "on_tool_start":
-                    print("--")
-                    print(
+                    logger.debug("--")
+                    logger.info(
                         f"Starting tool: {event['name']} with inputs: {event['data'].get('input')}"
                     )
                 elif kind == "on_tool_end":
-                    print(f"Done tool: {event['name']}")
-                    print("--")
+                    logger.info(f"Finished tool: {event['name']}")
+                    logger.debug("--")
 
-            if legal_session_exist(session_id=session_id, session=db_session) == False:
-                # create the task which is running concurrently in background
-                # without waiting until finish summarize streaming
-                # summarize streaming and yield are excuting concurrently(in same time).
+            if not legal_session_exist(session_id=session_id, session=db_session):
+                logger.info(f"Session {session_id} does not exist. Generating summary.")
                 summary_task = asyncio.create_task(
                     summarize_session_streaming(
                         question=question, answer=answer, llm=summary_streaming_llm
@@ -150,7 +170,7 @@ async def agent_run(
 
                 async for summary_token in summary_streaming_callback.aiter():
                     summary += summary_token
-                    print("summary streaming:", summary)
+                    logger.debug(f"Summary streaming: {summary}")
                     data_summary = json.dumps(
                         {
                             "message": {
@@ -162,31 +182,13 @@ async def agent_run(
                     yield data_summary
                 await summary_task
 
-                # in this code, once finish the summarize streaming, then start yield data(time by time)
-
-                # summary = ""
-                # await summarize_session_streaming(
-                #     question=question, answer=answer, llm=summary_streaming_llm
-                # )
-                # async for summary_token in summary_streaming_callback.aiter():
-                #     summary += summary_token
-                #     print("summary streaming:", summary)
-                #     data_summary = json.dumps(
-                #         {
-                #             "message": {
-                #                 "data_type": 1,
-                #                 "content": summary,
-                #             }
-                #         }
-                #     )
-                #     yield data_summary
-
                 await add_legal_session_summary(
                     user_id=user_id,
                     session_id=session_id,
                     summary=summary,
                     session=db_session,
                 )
+                logger.info(f"Added legal session summary for session_id: {session_id}")
 
             legal_file_data = json.dumps(
                 {
@@ -198,6 +200,7 @@ async def agent_run(
             )
 
             yield legal_file_data
+            logger.debug(f"Yielded legal file data: {legal_file_name}")
 
             s3_key_data = json.dumps(
                 {
@@ -209,13 +212,14 @@ async def agent_run(
             )
 
             yield s3_key_data
+            logger.debug(f"Yielded legal S3 key data: {legal_s3_key}")
 
-        print("added chat history")
-        print(f"Total Tokens: {cb.total_tokens}")
-        print(f"Total Cost (USD): ${cb.total_cost}")
+        logger.info("Agent execution completed")
+        logger.info(f"Total Tokens: {cb.total_tokens}")
+        logger.info(f"Total Cost (USD): ${cb.total_cost}")
         total_llm_tokens = cb.total_tokens
-        
-        
+
+        logger.debug("Adding chat history")
         await add_chat_history(
             user_id=user_id,
             session_id=session_id,
@@ -226,14 +230,15 @@ async def agent_run(
             legal_s3_key=legal_s3_key,
             db_session=db_session,
         )
-        print(user_id, total_llm_tokens, db_session)
+        logger.info("Chat history added successfully")
+
+        logger.debug("Calculating LLM token usage")
         await calculate_llm_token(
-            user_id= user_id,
-            db_session = db_session,
+            user_id=user_id,
+            db_session=db_session,
             total_llm_tokens=total_llm_tokens
         )
-        print("added token amount")
+        logger.info("LLM token usage calculated and updated")
 
     except Exception as e:
-
-        print(f"An error occurred: {e}")
+        logger.error(f"An error occurred: {e}")
