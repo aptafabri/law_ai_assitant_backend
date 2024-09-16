@@ -78,6 +78,8 @@ def configure_logging(logger_name: str):
 
         # Adjust logging levels for specific loggers
         logging.getLogger('sse_starlette.sse').setLevel(logging.INFO)
+        logging.getLogger('openai._base_client').setLevel(logging.INFO)
+        logging.getLogger('httpcore.http11').setLevel(logging.INFO)
 
     # Apply logging configuration
     logging.basicConfig(level=log_level, handlers=handlers)
