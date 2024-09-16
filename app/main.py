@@ -10,7 +10,7 @@ from log_config import configure_logging
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Configure logging when the application starts
-    logger = configure_logging()
+    logger = configure_logging(__name__)
 
     # Startup event
     logger.info("Application startup")

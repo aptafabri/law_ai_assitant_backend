@@ -2,13 +2,11 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 from datetime import datetime
-
-# Load environment variables (for local testing, if needed)
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def configure_logging():
+def configure_logging(logger_name: str):
     # Determine environment
     env = os.getenv("ADALETGPT_ENV", "development")
 
@@ -26,7 +24,6 @@ def configure_logging():
     handlers = []
 
     if env == "production":
-        # Timed rotation for daily logs, with date in the filename
         timed_handler = TimedRotatingFileHandler(
             f"logs/backend_production_{current_date}.log", when="midnight", interval=1, backupCount=7
         )
@@ -35,7 +32,6 @@ def configure_logging():
         )
         handlers.append(timed_handler)
 
-        # Rotating handler based on size, with date in the filename
         size_handler = RotatingFileHandler(
             f"logs/backend_production_size_{current_date}.log", maxBytes=10 * 1024 * 1024, backupCount=5
         )
@@ -45,7 +41,6 @@ def configure_logging():
         handlers.append(size_handler)
 
     elif env == "development":
-        # Development: Log to console and file, rotate by size with date in the filename
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -61,14 +56,12 @@ def configure_logging():
         handlers.append(file_handler)
 
     elif env == "local":
-        # Local: Log to console and file, more frequent rotation with date in the filename
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(console_handler)
 
-        # Rotate more frequently, keeping logs small for easier local inspection
         file_handler = RotatingFileHandler(
             f"logs/backend_local_{current_date}.log", maxBytes=1 * 1024 * 1024, backupCount=2
         )
@@ -80,5 +73,6 @@ def configure_logging():
     # Apply logging configuration
     logging.basicConfig(level=log_level, handlers=handlers)
 
-    logger = logging.getLogger(__name__)
+    # Get the logger with the provided name
+    logger = logging.getLogger(logger_name)
     return logger

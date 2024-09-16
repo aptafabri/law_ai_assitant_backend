@@ -33,7 +33,7 @@ from crud.rag import add_chat_history
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):

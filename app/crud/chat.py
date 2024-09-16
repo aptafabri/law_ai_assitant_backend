@@ -38,7 +38,7 @@ import asyncio
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 # tess.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 tess.pytesseract.tesseract_cmd = "/usr/bin/tesseract"

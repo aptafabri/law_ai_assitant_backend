@@ -47,7 +47,7 @@ from crud.chat import (
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"

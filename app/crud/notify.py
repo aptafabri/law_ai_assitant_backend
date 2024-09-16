@@ -7,7 +7,7 @@ from email_validator import validate_email, EmailNotValidError
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 VERIFICATION_URL = "https://chat.adaletgpt.com/user/verify"
 DOWNLOAD_URL = "https://chat.adaletgpt.com/user/exportdata"

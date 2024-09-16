@@ -8,7 +8,7 @@ from core import settings
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 def decodeJWT(jwtoken: str):
     try:

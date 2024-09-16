@@ -29,7 +29,7 @@ import boto3
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 s3_client = boto3.client(
     service_name="s3",
