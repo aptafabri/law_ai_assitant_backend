@@ -42,6 +42,8 @@ def configure_logging(logger_name: str):
 
         # Adjust logging levels for specific loggers
         logging.getLogger('sse_starlette.sse').setLevel(logging.ERROR)
+        logging.getLogger('openai._base_client').setLevel(logging.ERROR)
+        logging.getLogger('httpcore.http11').setLevel(logging.ERROR)
 
     elif env == "development":
         console_handler = logging.StreamHandler()
@@ -60,6 +62,8 @@ def configure_logging(logger_name: str):
 
         # Adjust logging levels for specific loggers
         logging.getLogger('sse_starlette.sse').setLevel(logging.WARNING)
+        logging.getLogger('openai._base_client').setLevel(logging.WARNING)
+        logging.getLogger('httpcore.http11').setLevel(logging.WARNING)
 
     elif env == "local":
         console_handler = logging.StreamHandler()
