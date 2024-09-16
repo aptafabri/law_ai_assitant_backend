@@ -138,7 +138,6 @@ async def agent_run(
                 if kind == "on_chat_model_stream":
                     content = event["data"]["chunk"].content
                     if content:
-                        logger.debug(f"Streaming answer: {answer}")
                         answer += content
                         data = json.dumps(
                             {
@@ -159,6 +158,9 @@ async def agent_run(
                     logger.info(f"Finished tool: {event['name']}")
                     logger.debug("--")
 
+            # After streaming is complete, log the final answer
+            logger.info(f"Final answer: {answer}")
+
             if not legal_session_exist(session_id=session_id, session=db_session):
                 logger.info(f"Session {session_id} does not exist. Generating summary.")
                 summary_task = asyncio.create_task(
@@ -170,7 +172,6 @@ async def agent_run(
 
                 async for summary_token in summary_streaming_callback.aiter():
                     summary += summary_token
-                    logger.debug(f"Summary streaming: {summary}")
                     data_summary = json.dumps(
                         {
                             "message": {
@@ -181,6 +182,7 @@ async def agent_run(
                     )
                     yield data_summary
                 await summary_task
+                logger.info(f"Final summary: {summary}")
 
                 await add_legal_session_summary(
                     user_id=user_id,

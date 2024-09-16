@@ -40,6 +40,9 @@ def configure_logging(logger_name: str):
         )
         handlers.append(size_handler)
 
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.ERROR)
+
     elif env == "development":
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
@@ -55,6 +58,9 @@ def configure_logging(logger_name: str):
         )
         handlers.append(file_handler)
 
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.WARNING)
+
     elif env == "local":
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
@@ -69,6 +75,9 @@ def configure_logging(logger_name: str):
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(file_handler)
+
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.INFO)
 
     # Apply logging configuration
     logging.basicConfig(level=log_level, handlers=handlers)
