@@ -11,7 +11,7 @@ def configure_logging(logger_name: str):
     env = os.getenv("ADALETGPT_ENV", "development")
 
     # Set logging level
-    log_level = logging.DEBUG if env in ["development", "local"] else logging.INFO
+    log_level = logging.INFO if env in ["development", "local"] else logging.WARNING
 
     # Create log directory if it doesn't exist
     if not os.path.exists("logs"):
