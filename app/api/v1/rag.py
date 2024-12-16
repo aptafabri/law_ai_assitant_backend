@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body, File, UploadFile, Form
+from fastapi import APIRouter, Depends, Body, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from sqlalchemy.orm import Session
@@ -256,6 +256,8 @@ async def rag_agent_streaming(
         if not file:
             standalone_question = question
             logger.debug("No file attached in the request.")
+        if file.size > 500*1024:
+            return JSONResponse(status_code=413, content="The File is too large. Please attach the file which is smaller than 500KB.")
         else:
             logger.info(f"File attached: {file.filename}")
             pdf_contents = await file.read()
