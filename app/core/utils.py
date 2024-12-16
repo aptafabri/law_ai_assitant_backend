@@ -51,7 +51,7 @@ def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> 
             )
             logger.debug(f"Default access token expiry set to {expires}.")
 
-        to_encode = {"exp": expires, "sub": int(subject)}
+        to_encode = {"exp": expires, "sub": str(subject)}
         encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, settings.ALGORITHM)
         # Log that the access token was created successfully
         logger.info(f"Access token created for subject {subject}.")

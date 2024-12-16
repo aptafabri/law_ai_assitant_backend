@@ -1,0 +1,293 @@
+2024-12-16 18:03:03,758 - main - INFO - Application startup
+2024-12-16 18:03:10,627 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2024-12-16 18:03:10,628 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2024-12-16 18:03:12,466 - core.utils - INFO - Access token created for subject 88.
+2024-12-16 18:03:12,467 - core.utils - INFO - Refresh token created for subject 88.
+2024-12-16 18:03:12,468 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2024-12-16 18:03:14,769 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2024-12-16 18:03:32,664 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:03:32,666 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:03:48,606 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:03:48,607 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:04:32,130 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:04:32,131 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:06:02,032 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:06:02,033 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:06:24,587 - main - INFO - Application shutdown
+2024-12-16 18:06:40,974 - main - INFO - Application startup
+2024-12-16 18:06:49,462 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:06:49,463 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:10:08,962 - main - INFO - Application shutdown
+2024-12-16 18:10:27,589 - main - INFO - Application startup
+2024-12-16 18:10:40,401 - main - INFO - Application shutdown
+2024-12-16 18:10:57,354 - main - INFO - Application startup
+2024-12-16 18:11:47,072 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 18:11:47,073 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:12:25,071 - main - INFO - Application shutdown
+2024-12-16 18:12:43,050 - main - INFO - Application startup
+2024-12-16 18:12:53,961 - core.auth_bearer - ERROR - Invalid JWT token provided Subject must be a string
+2024-12-16 18:12:53,962 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:16:10,697 - main - INFO - Application shutdown
+2024-12-16 18:16:29,321 - main - INFO - Application startup
+2024-12-16 18:16:37,164 - core.auth_bearer - ERROR - Invalid JWT token provided Subject must be a string
+2024-12-16 18:16:37,165 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:16:48,545 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2024-12-16 18:16:48,546 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2024-12-16 18:16:50,040 - core.utils - INFO - Access token created for subject 88.
+2024-12-16 18:16:50,041 - core.utils - INFO - Refresh token created for subject 88.
+2024-12-16 18:16:50,042 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2024-12-16 18:16:52,033 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2024-12-16 18:17:04,897 - core.auth_bearer - ERROR - Invalid JWT token provided Subject must be a string
+2024-12-16 18:17:04,898 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 18:25:59,541 - main - INFO - Application shutdown
+2024-12-16 18:26:17,645 - main - INFO - Application startup
+2024-12-16 19:06:02,302 - core.auth_bearer - ERROR - Invalid JWT token provided Subject must be a string
+2024-12-16 19:06:02,303 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 19:14:47,291 - main - INFO - Application startup
+2024-12-16 19:15:18,341 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2024-12-16 19:15:18,342 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2024-12-16 19:15:19,844 - core.utils - INFO - Access token created for subject 88.
+2024-12-16 19:15:19,845 - core.utils - INFO - Refresh token created for subject 88.
+2024-12-16 19:15:19,845 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2024-12-16 19:15:21,836 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2024-12-16 19:15:54,779 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 19:16:40,449 - main - INFO - Application shutdown
+2024-12-16 19:17:02,922 - main - INFO - Application startup
+2024-12-16 19:17:06,955 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 19:17:08,186 - crud.agent - INFO - Starting agent_run for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:09,082 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:12,287 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2024-12-16 19:17:13,959 - crud.agent - INFO - Starting agent execution
+2024-12-16 19:17:17,656 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:17:18,892 - crud.agent - INFO - Starting tool: rag_legal
+2024-12-16 19:17:18,895 - crud.rag - INFO - Starting rag_legal_source
+2024-12-16 19:17:18,898 - langchain_core.tracers.core - WARNING - Parent run a23833fb-626c-47ef-b49f-29e36a0539dc not found for run 0b8f35cc-7e4e-4d2b-ab9b-89a56199ef3a. Treating as a root run.
+2024-12-16 19:17:20,147 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:17:22,432 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 19:17:22,987 - langchain_core.tracers.core - WARNING - Parent run a23833fb-626c-47ef-b49f-29e36a0539dc not found for run fe2c9b1a-209c-4904-aa74-060e3162bd82. Treating as a root run.
+2024-12-16 19:17:24,434 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:17:26,302 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:27,418 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:27,776 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:17:27,779 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:17:28,210 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:17:31,959 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:32,335 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:32,835 - httpx - INFO - HTTP Request: POST https://api.cohere.com/v1/rerank "HTTP/1.1 200 OK"
+2024-12-16 19:17:32,853 - crud.rag - INFO - rag_legal_source completed successfully
+2024-12-16 19:17:32,869 - crud.agent - INFO - Finished tool: rag_legal
+2024-12-16 19:17:36,018 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:17:40,476 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 19:17:52,633 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 19:17:53,480 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:17:53,589 - crud.agent - INFO - Agent execution completed
+2024-12-16 19:17:53,591 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:53,608 - crud.agent - INFO - Total Tokens: 1884
+2024-12-16 19:17:53,608 - crud.agent - INFO - Total Cost (USD): $0.02196
+2024-12-16 19:17:53,609 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:54,550 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:17:54,808 - crud.rag - INFO - Adding chat history for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:54,808 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:56,806 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:17:58,963 - crud.rag - INFO - Chat history added successfully
+2024-12-16 19:17:58,964 - crud.agent - INFO - Chat history added successfully
+2024-12-16 19:17:58,964 - crud.user - INFO - Calculating LLM token for user 88
+2024-12-16 19:17:59,365 - crud.user - ERROR - Error updating LLM token for user 88: (psycopg.errors.UndefinedFunction) operator does not exist: integer = character varying
+LINE 3: WHERE users.id = $1::VARCHAR 
+                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.llm_token AS users_llm_token, users.reset_verified AS users_reset_verified, users.is_active AS users_is_active, users.verify_code AS users_verify_code, users.verify_code_expiry AS users_verify_code_expiry, users.created_date AS users_created_date, users.activated_by_admin AS users_activated_by_admin 
+FROM users 
+WHERE users.id = %(id_1)s::VARCHAR 
+ LIMIT %(param_1)s::INTEGER]
+[parameters: {'id_1': '88', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2024-12-16 19:17:59,764 - crud.agent - INFO - LLM token usage calculated and updated
+2024-12-16 19:23:23,126 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 19:23:24,358 - crud.chat - INFO - Uploading legal description for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:23:54,213 - crud.chat - INFO - Reading PDF file contents
+2024-12-16 19:23:54,217 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2024-12-16 19:23:54,221 - crud.chat - INFO - Generating question with legal PDF and question
+2024-12-16 19:23:55,680 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:23:56,750 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:23:56,768 - crud.agent - INFO - Starting agent_run for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:23:56,853 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:23:57,207 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:00,679 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2024-12-16 19:24:02,599 - crud.agent - INFO - Starting agent execution
+2024-12-16 19:24:05,582 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:24:06,334 - crud.agent - INFO - Starting tool: rag_legal
+2024-12-16 19:24:06,337 - crud.rag - INFO - Starting rag_legal_source
+2024-12-16 19:24:06,339 - langchain_core.tracers.core - WARNING - Parent run 26b8623b-bcdf-4f79-aaf2-1892bf7abcea not found for run 7e44ae00-e1a5-47f6-8c7e-9f74670e6c66. Treating as a root run.
+2024-12-16 19:24:06,485 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:07,837 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:24:07,905 - langchain_core.tracers.core - WARNING - Parent run 26b8623b-bcdf-4f79-aaf2-1892bf7abcea not found for run c4de0275-9790-4d01-981b-7b6aeae78d20. Treating as a root run.
+2024-12-16 19:24:09,318 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:24:10,387 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:11,490 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:12,118 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:24:12,196 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:24:12,429 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:12,475 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 19:24:15,864 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:16,388 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:18,294 - httpx - INFO - HTTP Request: POST https://api.cohere.com/v1/rerank "HTTP/1.1 200 OK"
+2024-12-16 19:24:18,312 - crud.rag - INFO - rag_legal_source completed successfully
+2024-12-16 19:24:18,332 - crud.agent - INFO - Finished tool: rag_legal
+2024-12-16 19:24:20,346 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:24:25,578 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 19:24:44,299 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 19:24:44,504 - crud.agent - INFO - Agent execution completed
+2024-12-16 19:24:44,514 - crud.agent - INFO - Total Tokens: 1866
+2024-12-16 19:24:44,515 - crud.agent - INFO - Total Cost (USD): $0.02142
+2024-12-16 19:24:44,515 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:24:44,576 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 19:24:45,717 - crud.rag - INFO - Adding chat history for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:24:45,717 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:24:46,176 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 19:24:47,880 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 19:24:50,036 - crud.rag - INFO - Chat history added successfully
+2024-12-16 19:24:50,037 - crud.agent - INFO - Chat history added successfully
+2024-12-16 19:24:50,038 - crud.user - INFO - Calculating LLM token for user 88
+2024-12-16 19:24:50,437 - crud.user - ERROR - Error updating LLM token for user 88: (psycopg.errors.UndefinedFunction) operator does not exist: integer = character varying
+LINE 3: WHERE users.id = $1::VARCHAR 
+                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.llm_token AS users_llm_token, users.reset_verified AS users_reset_verified, users.is_active AS users_is_active, users.verify_code AS users_verify_code, users.verify_code_expiry AS users_verify_code_expiry, users.created_date AS users_created_date, users.activated_by_admin AS users_activated_by_admin 
+FROM users 
+WHERE users.id = %(id_1)s::VARCHAR 
+ LIMIT %(param_1)s::INTEGER]
+[parameters: {'id_1': '88', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2024-12-16 19:24:50,842 - crud.agent - INFO - LLM token usage calculated and updated
+2024-12-16 19:27:31,319 - main - INFO - Application shutdown
+2024-12-16 19:28:44,557 - main - INFO - Application startup
+2024-12-16 19:28:49,489 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 19:45:47,803 - main - INFO - Application shutdown
+2024-12-16 19:46:04,925 - main - INFO - Application startup
+2024-12-16 19:46:13,837 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 19:49:09,193 - main - INFO - Application shutdown
+2024-12-16 19:50:16,316 - main - INFO - Application startup
+2024-12-16 19:50:46,971 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 20:18:54,293 - main - INFO - Application shutdown
+2024-12-16 20:19:12,278 - main - INFO - Application startup
+2024-12-16 20:21:31,420 - main - INFO - Application startup
+2024-12-16 20:24:25,955 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2024-12-16 20:24:25,956 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2024-12-16 20:24:33,845 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2024-12-16 20:24:33,846 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2024-12-16 20:24:35,356 - core.utils - INFO - Access token created for subject 88.
+2024-12-16 20:24:35,357 - core.utils - INFO - Refresh token created for subject 88.
+2024-12-16 20:24:35,357 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2024-12-16 20:24:37,380 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2024-12-16 20:24:55,901 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 20:35:36,401 - main - INFO - Application shutdown
+2024-12-16 20:35:54,135 - main - INFO - Application startup
+2024-12-16 20:36:01,056 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 20:38:39,744 - main - INFO - Application shutdown
+2024-12-16 20:39:47,997 - main - INFO - Application startup
+2024-12-16 20:39:50,528 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 20:39:51,745 - crud.chat - INFO - Uploading legal description for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:05,108 - crud.chat - INFO - Reading PDF file contents
+2024-12-16 20:40:05,113 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2024-12-16 20:40:05,117 - crud.chat - INFO - Generating question with legal PDF and question
+2024-12-16 20:40:06,763 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 20:40:07,155 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:07,171 - crud.agent - INFO - Starting agent_run for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:07,229 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:07,548 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 20:40:10,556 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2024-12-16 20:40:12,184 - crud.agent - INFO - Starting agent execution
+2024-12-16 20:40:15,291 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:16,201 - crud.agent - INFO - Starting tool: rag_legal
+2024-12-16 20:40:16,204 - crud.rag - INFO - Starting rag_legal_source
+2024-12-16 20:40:16,208 - langchain_core.tracers.core - WARNING - Parent run 014fd0c2-8f33-414d-9bc1-34e883e4020b not found for run 1dfb955d-6345-422e-897b-671dce594788. Treating as a root run.
+2024-12-16 20:40:17,592 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:19,083 - langchain_core.tracers.core - WARNING - Parent run 014fd0c2-8f33-414d-9bc1-34e883e4020b not found for run 8cc6eb0d-6ee1-4dc9-abe7-e73807f111b4. Treating as a root run.
+2024-12-16 20:40:20,533 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:20,814 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 20:40:23,289 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 20:40:23,344 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 20:40:23,454 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 20:40:28,434 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 20:40:30,126 - httpx - INFO - HTTP Request: POST https://api.cohere.com/v1/rerank "HTTP/1.1 200 OK"
+2024-12-16 20:40:30,164 - crud.rag - INFO - rag_legal_source completed successfully
+2024-12-16 20:40:30,189 - crud.agent - INFO - Finished tool: rag_legal
+2024-12-16 20:40:32,372 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:35,558 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 20:40:42,622 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 20:40:43,981 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 20:40:44,013 - crud.agent - INFO - Agent execution completed
+2024-12-16 20:40:44,024 - crud.agent - INFO - Total Tokens: 2474
+2024-12-16 20:40:44,025 - crud.agent - INFO - Total Cost (USD): $0.0276
+2024-12-16 20:40:44,026 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:45,237 - crud.rag - INFO - Adding chat history for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:45,238 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:47,266 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 20:40:49,430 - crud.rag - INFO - Chat history added successfully
+2024-12-16 20:40:49,431 - crud.agent - INFO - Chat history added successfully
+2024-12-16 20:40:49,431 - crud.user - INFO - Calculating LLM token for user 88
+2024-12-16 20:40:49,834 - crud.user - ERROR - Error updating LLM token for user 88: (psycopg.errors.UndefinedFunction) operator does not exist: integer = character varying
+LINE 3: WHERE users.id = $1::VARCHAR 
+                       ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password AS users_password, users.llm_token AS users_llm_token, users.reset_verified AS users_reset_verified, users.is_active AS users_is_active, users.verify_code AS users_verify_code, users.verify_code_expiry AS users_verify_code_expiry, users.created_date AS users_created_date, users.activated_by_admin AS users_activated_by_admin 
+FROM users 
+WHERE users.id = %(id_1)s::VARCHAR 
+ LIMIT %(param_1)s::INTEGER]
+[parameters: {'id_1': '88', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2024-12-16 20:40:49,854 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 20:40:50,236 - crud.agent - INFO - LLM token usage calculated and updated
+2024-12-16 20:40:50,839 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 20:48:37,932 - main - INFO - Application shutdown
+2024-12-16 21:26:07,617 - main - INFO - Application startup
+2024-12-16 21:26:26,615 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2024-12-16 21:26:26,616 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2024-12-16 21:26:28,195 - core.utils - INFO - Access token created for subject 88.
+2024-12-16 21:26:28,195 - core.utils - INFO - Refresh token created for subject 88.
+2024-12-16 21:26:28,196 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2024-12-16 21:26:30,217 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2024-12-16 21:26:45,732 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2024-12-16 21:26:47,124 - crud.chat - INFO - Uploading legal description for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:06,225 - crud.chat - INFO - Reading PDF file contents
+2024-12-16 21:27:06,228 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2024-12-16 21:27:06,247 - crud.chat - INFO - Generating question with legal PDF and question
+2024-12-16 21:27:07,896 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 21:27:11,505 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:11,543 - crud.agent - INFO - Starting agent_run for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:11,622 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:11,937 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 21:27:15,006 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2024-12-16 21:27:17,268 - crud.agent - INFO - Starting agent execution
+2024-12-16 21:27:20,961 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:21,969 - crud.agent - INFO - Starting tool: rag_legal
+2024-12-16 21:27:21,972 - crud.rag - INFO - Starting rag_legal_source
+2024-12-16 21:27:21,975 - langchain_core.tracers.core - WARNING - Parent run 7ce0ceb5-6a7e-4e58-8c2b-10abf9f95e5c not found for run f68fb1e0-3972-4a44-a926-d755e30496f8. Treating as a root run.
+2024-12-16 21:27:24,183 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:25,514 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')
+2024-12-16 21:27:25,793 - langchain_core.tracers.core - WARNING - Parent run 7ce0ceb5-6a7e-4e58-8c2b-10abf9f95e5c not found for run c2bc0a94-1282-4990-9ed7-29adacfbff4d. Treating as a root run.
+2024-12-16 21:27:27,246 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:30,759 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 21:27:31,035 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 21:27:31,791 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/embeddings "HTTP/1.1 200 OK"
+2024-12-16 21:27:33,224 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithAuthError('Authentication failed for https://api.smith.langchain.com/runs/batch. HTTPError(\'401 Client Error: Unauthorized for url: https://api.smith.langchain.com/runs/batch\', \'{"detail":"Using legacy API key. Please generate a new API key."}\')')
+2024-12-16 21:27:39,367 - httpx - INFO - HTTP Request: POST https://api.cohere.com/v1/rerank "HTTP/1.1 200 OK"
+2024-12-16 21:27:39,407 - crud.rag - INFO - rag_legal_source completed successfully
+2024-12-16 21:27:39,429 - crud.agent - INFO - Finished tool: rag_legal
+2024-12-16 21:27:41,509 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:54,977 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2024-12-16 21:27:55,023 - crud.agent - INFO - Agent execution completed
+2024-12-16 21:27:55,037 - crud.agent - INFO - Total Tokens: 3069
+2024-12-16 21:27:55,038 - crud.agent - INFO - Total Cost (USD): $0.03339
+2024-12-16 21:27:55,038 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:56,264 - crud.rag - INFO - Adding chat history for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:56,264 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:27:58,300 - crud.chat - INFO - Adding legal chat message for user_id: 88, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2024-12-16 21:28:00,584 - crud.rag - INFO - Chat history added successfully
+2024-12-16 21:28:00,584 - crud.agent - INFO - Chat history added successfully
+2024-12-16 21:28:00,584 - crud.user - INFO - Calculating LLM token for user 88
+2024-12-16 21:28:01,782 - crud.user - INFO - LLM token updated for user 88
+2024-12-16 21:28:01,782 - crud.agent - INFO - LLM token usage calculated and updated
+2024-12-16 21:28:02,982 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithError("Failed to POST https://api.smith.langchain.com/runs/batch in LangSmith API. ('Connection broken: IncompleteRead(0 bytes read, 65 more expected)', IncompleteRead(0 bytes read, 65 more expected))\n")
+2024-12-16 21:28:10,744 - langsmith.client - WARNING - Failed to batch ingest runs: LangSmithConnectionError('Connection error caused failure to POST https://api.smith.langchain.com/runs/batch  in LangSmith API. Please confirm your internet connection.. SSLError(MaxRetryError("HTTPSConnectionPool(host=\'api.smith.langchain.com\', port=443): Max retries exceeded with url: /runs/batch (Caused by SSLError(SSLEOFError(8, \'EOF occurred in violation of protocol (_ssl.c:2393)\')))"))')

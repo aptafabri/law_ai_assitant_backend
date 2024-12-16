@@ -155,7 +155,7 @@ def get_userid_by_token(token: str) -> int:
     logger.debug("Decoding token to retrieve user ID")
     try:
         payload = jwt.decode(token, settings.JWT_SECRET_KEY, settings.ALGORITHM)
-        return payload["sub"]
+        return int(payload["sub"])
     except InvalidTokenError as e:
         logger.error(f"Invalid token: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid token")
