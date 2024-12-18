@@ -253,48 +253,49 @@ async def rag_agent_streaming(
     try:
         user_id = get_userid_by_token(dependencies)
         created_date = datetime.now()
-        if not file:
+        if file is None:
             standalone_question = question
             logger.debug("No file attached in the request.")
-        if file.size > 500*1024:
-            return JSONResponse(status_code=413, content="The File is too large. Please attach the file which is smaller than 500KB.")
         else:
-            logger.info(f"File attached: {file.filename}")
-            pdf_contents = await file.read()
-            attached_pdf = True
-            file_name = file.filename
-            logger.debug(f"File name: {file_name}")
-            time_stamp = created_date.timestamp()
-            legal_s3_key = f"{time_stamp}_{file_name}"
-            upload_legal_description(
-                file_content=pdf_contents,
-                user_id=user_id,
-                session_id=session_id,
-                legal_s3_key=legal_s3_key,
-            )
-            logger.debug(f"Uploaded legal description with s3 key: {legal_s3_key}")
-            pdf_contents = read_pdf(pdf_contents)
-            logger.debug("Read PDF contents.")
-            standalone_question = generate_question(
-                pdf_contents=pdf_contents, question=question
-            )
-            logger.debug("Generated standalone question.")
-        return EventSourceResponse(
-            agent_run(
-                standalone_question=standalone_question,
-                question=question,
-                session_id=session_id,
-                user_id=user_id,
-                db_session=session,
-                legal_attached=attached_pdf,
-                legal_file_name=file_name,
-                legal_s3_key=legal_s3_key,
-            ),
-            media_type="text/event-stream",
-        )
-    except Exception as e:
-        logger.exception(f"An error occurred in /chat-agent-streaming endpoint: {e}")
+            if file.size > 500*1024:
+                return JSONResponse(status_code=413, content="The File is too large. Please attach the file which is smaller than 500KB.")
+            else:
+                logger.info(f"File attached: {file.filename}")
+                pdf_contents = await file.read()
+                attached_pdf = True
+                file_name = file.filename
+                logger.debug(f"File name: {file_name}")
+                time_stamp = created_date.timestamp()
+                legal_s3_key = f"{time_stamp}_{file_name}"
+                upload_legal_description(
+                    file_content=pdf_contents,
+                    user_id=user_id,
+                    session_id=session_id,
+                    legal_s3_key=legal_s3_key,
+                )
+                logger.debug(f"Uploaded legal description with s3 key: {legal_s3_key}")
+                pdf_contents = read_pdf(pdf_contents)
+                logger.debug("Read PDF contents.")
+                standalone_question = generate_question(
+                    pdf_contents=pdf_contents, question=question
+                )
+                logger.debug("Generated standalone question.")
+                return EventSourceResponse(
+                    agent_run(
+                        standalone_question=standalone_question,
+                        question=question,
+                        session_id=session_id,
+                        user_id=user_id,
+                        db_session=session,
+                        legal_attached=attached_pdf,
+                        legal_file_name=file_name,
+                        legal_s3_key=legal_s3_key,
+                    ),
+                    media_type="text/event-stream",
+                )
+    except Exception as ex:
+        logger.exception(f"An error occurred in /chat-agent-streaming endpoint: {ex}")
         return JSONResponse(
-            content={"error": "An internal error occurred."},
+            content={"error": f"An internal error occurred:{ex}"},
             status_code=500,
         )
