@@ -24,6 +24,7 @@ from tools.rag_legal_tool import rag_legal_tool
 from tools.rag_regulation_tool import rag_regulation_tool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.callbacks import get_openai_callback  # Ensure this is from langchain, not langchain_community
+from core.creativity_grader import get_llm_parameter
 
 # Configure logging
 logger = configure_logging(__name__)
@@ -62,10 +63,18 @@ async def agent_run(
     logger.info(f"Starting agent_run for user_id: {user_id}, session_id: {session_id}")
     
     try:
-        # Initialize LLM with function calling support
+        
+        # Getting llm parameter(temperature , and  max_tokens)  based on creativity score from standalone_question
+        llm_parameters = get_llm_parameter(question=standalone_question)
+        temperature = llm_parameters.get("temperature", 1)
+        max_tokens  = llm_parameters.get("max_tokens", 3000) 
+        print("llm parameter(temperature and max_tokens):", temperature, max_tokens)
+        
+        # Initialize Agent LLM with function calling support
         llm = ChatOpenAI(
             model_name=settings.LLM_MODEL_NAME,  # Ensure the model supports function calling
-            temperature=0,
+            temperature = temperature,
+            max_tokens = max_tokens,
             openai_api_key=settings.OPENAI_API_KEY,
             streaming=True,
             model_kwargs={"user": str(user_id)},

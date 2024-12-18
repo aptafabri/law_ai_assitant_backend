@@ -25,7 +25,7 @@ def configure_logging(logger_name: str):
 
     if env == "production":
         timed_handler = TimedRotatingFileHandler(
-            f"logs/backend_production_{current_date}.log", when="midnight", interval=1, backupCount=7
+            f"logs/backend_production_{current_date}.log", when="midnight", interval=1, backupCount=7, encoding="utf-8"
         )
         timed_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -33,7 +33,7 @@ def configure_logging(logger_name: str):
         handlers.append(timed_handler)
 
         size_handler = RotatingFileHandler(
-            f"logs/backend_production_size_{current_date}.log", maxBytes=10 * 1024 * 1024, backupCount=5
+            f"logs/backend_production_size_{current_date}.log", maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
         )
         size_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -53,7 +53,7 @@ def configure_logging(logger_name: str):
         handlers.append(console_handler)
 
         file_handler = RotatingFileHandler(
-            f"logs/backend_development_{current_date}.log", maxBytes=5 * 1024 * 1024, backupCount=3
+            f"logs/backend_development_{current_date}.log", maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
         )
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -73,7 +73,7 @@ def configure_logging(logger_name: str):
         handlers.append(console_handler)
 
         file_handler = RotatingFileHandler(
-            f"logs/backend_local_{current_date}.log", maxBytes=1 * 1024 * 1024, backupCount=2
+            f"logs/backend_local_{current_date}.log", maxBytes=1 * 1024 * 1024, backupCount=2, encoding="utf-8"
         )
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")

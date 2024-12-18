@@ -52,7 +52,7 @@ logger = configure_logging(__name__)
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_PROJECT"] = f"adaletgpt"
 os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_API_KEY"] = "ls__41665b6c9eb44311950da14609312f3c"
+os.environ["LANGCHAIN_API_KEY"] = "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"
 
 session_store = {}
 
