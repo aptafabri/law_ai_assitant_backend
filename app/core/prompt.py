@@ -129,4 +129,13 @@ Legal Case Description: {pdf_contents}\n
 Folllow Up question: {question}\n
 Standalone question:"""
 
+creativity_grader_prompt_template = """"As a AI grader, you are tasked with evaluating the creativity required to respond to following question.
+For the question provided, assess the level of creativity needed to generate an appropriate legal response.
+Rate the creativity on a scale from 1 to 10, where 1 indicates minimal creativity (e.g., straightforward legal questions such as statutory interpretations or fact-based inquiries) and 10 indicates maximum creativity (e.g., abstract legal concepts, creative legal arguments, or hypothetical legal scenarios).
+
+Question: {question}\n
+
+Creativity Score:
+
+"""
 
