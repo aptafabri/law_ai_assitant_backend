@@ -2,18 +2,16 @@ import logging
 import os
 from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
 from datetime import datetime
-
-# Load environment variables (for local testing, if needed)
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def configure_logging():
+def configure_logging(logger_name: str):
     # Determine environment
     env = os.getenv("ADALETGPT_ENV", "development")
 
     # Set logging level
-    log_level = logging.DEBUG if env in ["development", "local"] else logging.INFO
+    log_level = logging.INFO if env in ["development", "local"] else logging.WARNING
 
     # Create log directory if it doesn't exist
     if not os.path.exists("logs"):
@@ -26,26 +24,28 @@ def configure_logging():
     handlers = []
 
     if env == "production":
-        # Timed rotation for daily logs, with date in the filename
         timed_handler = TimedRotatingFileHandler(
-            f"logs/backend_production_{current_date}.log", when="midnight", interval=1, backupCount=7
+            f"logs/backend_production_{current_date}.log", when="midnight", interval=1, backupCount=7, encoding="utf-8"
         )
         timed_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(timed_handler)
 
-        # Rotating handler based on size, with date in the filename
         size_handler = RotatingFileHandler(
-            f"logs/backend_production_size_{current_date}.log", maxBytes=10 * 1024 * 1024, backupCount=5
+            f"logs/backend_production_size_{current_date}.log", maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
         )
         size_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(size_handler)
 
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.ERROR)
+        logging.getLogger('openai._base_client').setLevel(logging.ERROR)
+        logging.getLogger('httpcore.http11').setLevel(logging.ERROR)
+
     elif env == "development":
-        # Development: Log to console and file, rotate by size with date in the filename
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -53,32 +53,41 @@ def configure_logging():
         handlers.append(console_handler)
 
         file_handler = RotatingFileHandler(
-            f"logs/backend_development_{current_date}.log", maxBytes=5 * 1024 * 1024, backupCount=3
+            f"logs/backend_development_{current_date}.log", maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
         )
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(file_handler)
+
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.WARNING)
+        logging.getLogger('openai._base_client').setLevel(logging.WARNING)
+        logging.getLogger('httpcore.http11').setLevel(logging.WARNING)
 
     elif env == "local":
-        # Local: Log to console and file, more frequent rotation with date in the filename
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(console_handler)
 
-        # Rotate more frequently, keeping logs small for easier local inspection
         file_handler = RotatingFileHandler(
-            f"logs/backend_local_{current_date}.log", maxBytes=1 * 1024 * 1024, backupCount=2
+            f"logs/backend_local_{current_date}.log", maxBytes=1 * 1024 * 1024, backupCount=2, encoding="utf-8"
         )
         file_handler.setFormatter(
             logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         handlers.append(file_handler)
+
+        # Adjust logging levels for specific loggers
+        logging.getLogger('sse_starlette.sse').setLevel(logging.INFO)
+        logging.getLogger('openai._base_client').setLevel(logging.INFO)
+        logging.getLogger('httpcore.http11').setLevel(logging.INFO)
 
     # Apply logging configuration
     logging.basicConfig(level=log_level, handlers=handlers)
 
-    logger = logging.getLogger(__name__)
+    # Get the logger with the provided name
+    logger = logging.getLogger(logger_name)
     return logger

@@ -8,7 +8,7 @@ from core import settings
 from log_config import configure_logging
 
 # Configure logging
-logger = configure_logging()
+logger = configure_logging(__name__)
 
 def decodeJWT(jwtoken: str):
     try:
@@ -48,7 +48,7 @@ class JWTBearer(HTTPBearer):
             payload = jwt.decode(
                 credentials.credentials, settings.JWT_SECRET_KEY, settings.ALGORITHM
             )
-            user_id = payload["sub"]
+            user_id = int(payload["sub"])
 
             logger.info(f"Token validated successfully for user ID: {user_id}")
 
@@ -71,7 +71,6 @@ class JWTBearer(HTTPBearer):
 
     def verify_jwt(self, jwtoken: str) -> bool:
         isTokenValid: bool = False
-
         try:
             payload = decodeJWT(jwtoken)
         except:
