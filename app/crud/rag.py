@@ -70,21 +70,18 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 namespace_classifier = Classifier()
 
-
 class QueueCallbackHandler(AsyncIteratorCallbackHandler):
     def on_llm_end(self, *args, **kwargs) -> Any:
-        logger.info("Ended LLM streaming")
+        print("ended streaming")
         return self.done.set()
 
 
 @traceable(run_type="llm", name="RAG with Legal Cases", project_name="adaletgpt")
 def rag_chat(question: str, session_id: str = None):
-    logger.info(f"Starting rag_chat for session_id: {session_id}")
-    logger.debug(f"Question received: {question}")
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         legal_chat_qa_prompt_template
-    )
+    )  # prompt_template
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -119,10 +116,7 @@ def rag_chat(question: str, session_id: str = None):
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
         memory=memory,
     )
-    logger.debug("Initialized ConversationalRetrievalChain in rag_chat")
-    result = qa.invoke({"question": question, "chat_history": []})
-    logger.info("rag_chat completed successfully")
-    return result
+    return qa.invoke({"question": question, "chat_history": []})
 
 
 @traceable(
@@ -139,10 +133,6 @@ async def rag_streaming_chat(
     chat_history: Any = [],
     db_session: Session = None,
 ):
-    logger.info(f"Starting rag_streaming_chat for session_id: {session_id}, user_id: {user_id}")
-    logger.debug(f"Standalone question: {standalone_question}")
-    logger.debug(f"Question: {question}")
-    logger.debug(f"Legal attached: {legal_attached}, legal_file_name: {legal_file_name}, legal_s3_key: {legal_s3_key}")
 
     answer_streaming_callback = QueueCallbackHandler()
     summary_streaming_callback = QueueCallbackHandler()
@@ -162,7 +152,7 @@ async def rag_streaming_chat(
     )
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         legal_chat_qa_prompt_template
-    )
+    )  # prompt_template
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -185,14 +175,12 @@ async def rag_streaming_chat(
         condense_question_llm=question_llm,
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
-    logger.debug("Initialized ConversationalRetrievalChain in rag_streaming_chat")
-
     answer_task = asyncio.create_task(
         qa.ainvoke({"question": standalone_question, "chat_history": chat_history})
     )
     answer = ""
     async for answer_token in answer_streaming_callback.aiter():
-        logger.debug(f"Streaming answer token: {answer_token}")
+        print("streaming answer:", answer_token)
         answer += answer_token
         data = json.dumps(
             {
@@ -206,8 +194,9 @@ async def rag_streaming_chat(
 
     await answer_task
 
+    """create session summary if the user is sending new chat message"""
+
     if legal_session_exist(session_id=session_id, session=db_session) == False:
-        logger.info(f"Session {session_id} does not exist. Generating summary.")
         summary_task = asyncio.create_task(
             summarize_session_streaming(
                 question=question, answer=answer, llm=summary_streaming_llm
@@ -216,7 +205,7 @@ async def rag_streaming_chat(
         summary = ""
         async for summary_token in summary_streaming_callback.aiter():
             summary += summary_token
-            logger.debug(f"Streaming summary token: {summary_token}")
+            print("summary streaming:", summary)
             data_summary = json.dumps(
                 {
                     "message": {
@@ -231,7 +220,6 @@ async def rag_streaming_chat(
         add_legal_session_summary(
             user_id=user_id, session_id=session_id, summary=summary, session=db_session
         )
-        logger.info(f"Added legal session summary for session_id: {session_id}")
 
     legal_file_data = json.dumps(
         {
@@ -243,7 +231,6 @@ async def rag_streaming_chat(
     )
 
     yield legal_file_data
-    logger.debug(f"Yielded legal file name: {legal_file_name}")
 
     s3_key_data = json.dumps(
         {
@@ -255,10 +242,8 @@ async def rag_streaming_chat(
     )
 
     yield s3_key_data
-    logger.debug(f"Yielded legal S3 key: {legal_s3_key}")
 
-    logger.debug("Adding chat history")
-    await add_chat_history(
+    add_chat_history(
         user_id=user_id,
         session_id=session_id,
         question=question,
@@ -268,7 +253,6 @@ async def rag_streaming_chat(
         legal_s3_key=legal_s3_key,
         db_session=db_session,
     )
-    logger.info("rag_streaming_chat completed successfully")
 
 
 async def add_chat_history(
@@ -281,11 +265,19 @@ async def add_chat_history(
     legal_s3_key: str,
     db_session: Session,
 ):
-    logger.info(f"Adding chat history for user_id: {user_id}, session_id: {session_id}")
-    logger.debug(f"Question: {question}")
-    logger.debug(f"Answer: {answer}")
-    logger.debug(f"Legal attached: {legal_attached}, legal_file_name: {legal_file_name}, legal_s3_key: {legal_s3_key}")
-
+    """add chat history for memory management"""
+    # chat_memory = init_postgres_chat_memory(session_id=session_id)
+    # memory = ConversationSummaryBufferMemory(
+    #     llm=ChatOpenAI(model_name="gpt-4-1106-preview", temperature=0.2),
+    #     memory_key="chat_history",
+    #     return_messages=True,
+    #     chat_memory=chat_memory,
+    #     max_token_limit=3000,
+    #     output_key="answer",
+    #     ai_prefix="Question",
+    #     human_prefix="Answer",
+    # )
+    # memory.save_context({"input": question}, {"answer": answer})
     created_date = datetime.now()
     user_message = LegalChatAdd(
         user_id=user_id,
@@ -309,12 +301,10 @@ async def add_chat_history(
     )
     add_legal_chat_message(user_message, db_session)
     add_legal_chat_message(ai_message, db_session)
-    logger.info("Chat history added successfully")
 
 
 @traceable(run_type="llm", name="Get Relevant Legal Cases", project_name="adaletgpt")
 def get_relevant_legal_cases(session_id: str):
-    logger.info(f"Retrieving relevant legal cases for session_id: {session_id}")
     chat_memory = init_postgres_chat_memory(session_id=session_id)
     memory = ConversationSummaryBufferMemory(
         llm=llm,
@@ -328,20 +318,17 @@ def get_relevant_legal_cases(session_id: str):
     )
     messages = memory.load_memory_variables({})
     if messages["chat_history"] == "":
-        logger.info("No chat history found")
         return []
-    logger.debug(f"Chat history: {messages['chat_history']}")
-
+    print("chat_history", messages["chat_history"])
     prompt = PromptTemplate(
         input_variables=["conversation"],
         template=summary_legal_conversation_prompt_template,
     )
 
     llm_chain = LLMChain(llm=llm, prompt=prompt)
+
     response = llm_chain.invoke({"conversation": messages["chat_history"]})
     conversation_summary = response["text"]
-    logger.debug(f"Conversation summary: {conversation_summary}")
-
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
     docsearch = PineconeVectorStore(
@@ -359,12 +346,11 @@ def get_relevant_legal_cases(session_id: str):
     reranked_docs = compression_retriever.get_relevant_documents(
         query=conversation_summary
     )
-    logger.debug("Retrieved and reranked documents")
-    legal_cases_docs: List[str] = []
+    legal_caese_docs: List[str] = []
     for doc in reranked_docs:
-        legal_cases_docs.append(doc.page_content)
-    logger.info("Relevant legal cases retrieved successfully")
-    return legal_cases_docs
+        legal_caese_docs.append(doc.page_content)
+
+    return legal_caese_docs
 
 
 @traceable(
@@ -373,13 +359,15 @@ def get_relevant_legal_cases(session_id: str):
     project_name="adaletgpt",
 )
 def rag_regulation(question: str):
-    logger.info("Starting rag_regulation")
-    logger.debug(f"Question: {question}")
+    """
+    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
+    """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         general_chat_qa_prompt_template
-    )
+    )  # prompt_template defined above
 
+    ######  Setting Multiquery retriever as base retriver ######
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
         template=multi_query_prompt_template,
@@ -413,7 +401,6 @@ def rag_regulation(question: str):
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
-    logger.debug("Initialized MultiQueryRetriever in rag_regulation")
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
@@ -427,10 +414,8 @@ def rag_regulation(question: str):
         retriever=compression_retriever,
         return_source_documents=False,
     )
-    logger.debug("Initialized ConversationalRetrievalChain in rag_regulation")
-    result = qa.invoke({"question": question, "chat_history": []})
-    logger.info("rag_regulation completed successfully")
-    return result
+
+    return qa.invoke({"question": question, "chat_history": []})
 
 
 @traceable(
@@ -439,13 +424,15 @@ def rag_regulation(question: str):
     project_name="adaletgpt",
 )
 async def rag_regulation_without_source(question: str):
-    logger.info("Starting rag_regulation_without_source")
-    logger.debug(f"Question: {question}")
+    """
+    making answer witn relevant documents and custom prompt with memory(chat_history) and source link..
+    """
 
     QA_CHAIN_PROMPT = PromptTemplate.from_template(
         general_chat_without_source_qa_prompt_template
-    )
+    )  # prompt_template defined above
 
+    ######  Setting Multiquery retriever as base retriver ######
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
         template=multi_query_prompt_template,
@@ -467,7 +454,6 @@ async def rag_regulation_without_source(question: str):
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=QUERY_PROMPT,
     )
-    logger.debug("Initialized MultiQueryRetriever in rag_regulation_without_source")
 
     compressor = CohereRerank(top_n=10, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
@@ -483,10 +469,8 @@ async def rag_regulation_without_source(question: str):
         verbose=False,
         combine_docs_chain_kwargs={"prompt": QA_CHAIN_PROMPT},
     )
-    logger.debug("Initialized ConversationalRetrievalChain in rag_regulation_without_source")
-    result = await qa.ainvoke({"question": question, "chat_history": []})
-    logger.info("rag_regulation_without_source completed successfully")
-    return result
+
+    return await qa.ainvoke({"question": question, "chat_history": []})
 
 
 @traceable(
@@ -495,24 +479,38 @@ async def rag_regulation_without_source(question: str):
     project_name="adaletgpt",
 )
 async def rag_legal_source(question: str):
-    logger.info("Starting rag_legal_source")
-    logger.debug(f"Question: {question}")
 
+    # QA_CHAIN_PROMPT = PromptTemplate.from_template(legal_chat_qa_prompt_template)
+    # document_llm_chain = LLMChain(llm=llm, prompt=QA_CHAIN_PROMPT, verbose=False)
+    # document_prompt = PromptTemplate(
+    #     input_variables=["page_content", "source_link"],
+    #     template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
+    # )
+    # combine_documents_chain = StuffDocumentsChain(
+    #     llm_chain=document_llm_chain,
+    #     document_variable_name="context",
+    #     document_prompt=document_prompt,
+    # )
+    # condense_question_prompt = PromptTemplate.from_template(
+    #     condense_question_prompt_template
+    # )
+
+    # question_generator_chain = LLMChain(
+    #     llm=question_llm, prompt=condense_question_prompt
+    # )
     namespace = namespace_classifier.classify(question=question)
-    logger.debug(f"Classified namespace: {namespace}")
-
     docsearch = PineconeVectorStore(
         pinecone_api_key=settings.PINECONE_API_KEY,
         embedding=embeddings,
         index_name=settings.LEGAL_CASE_INDEX_NAME,
-        namespace=namespace,
+        namespace=namespace
     )
-
+    
+    ## similarity search with multi-query and reranking ######
     retriever_sim = docsearch.as_retriever(
         search_type="similarity", search_kwargs={"k": 10}
     )
-    logger.debug("Initialized similarity retriever in rag_legal_source")
-
+    ## getting 3 different input query and 3*10 chunks #######
     MULTI_QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
         template=multi_query_prompt_template,
@@ -522,17 +520,21 @@ async def rag_legal_source(question: str):
         llm=ChatOpenAI(model_name="gpt-4o", temperature=0, max_tokens=3000),
         prompt=MULTI_QUERY_PROMPT,
     )
-    logger.debug("Initialized MultiQueryRetriever in rag_legal_source")
-
+    ## reranking the multi retriever with cohere reranker ####
     compressor = CohereRerank(top_n=6, cohere_api_key=settings.COHERE_API_KEY)
     compression_retriever = ContextualCompressionRetriever(
         base_compressor=compressor, base_retriever=multi_retriever
     )
-    logger.debug("Initialized ContextualCompressionRetriever in rag_legal_source")
+    return await compression_retriever.ainvoke(question)
+    # qa = ConversationalRetrievalChain(
+    #     combine_docs_chain=combine_documents_chain,
+    #     question_generator=question_generator_chain,
+    #     verbose=False,
+    #     retriever=compression_retriever,
+    #     return_source_documents=False,
+    # )
 
-    result = await compression_retriever.ainvoke(question)
-    logger.info("rag_legal_source completed successfully")
-    return result
+    # return await qa.ainvoke({"question": question, "chat_history": []})
 
 
 @traceable(
@@ -541,9 +543,8 @@ async def rag_legal_source(question: str):
     project_name="adaletgpt",
 )
 async def rag_legal_source_v2(question: str):
-    logger.info("Starting rag_legal_source_v2")
-    logger.debug(f"Question: {question}")
 
+    # Contextualize question
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
         "which might reference context in the chat history, "
@@ -567,8 +568,6 @@ async def rag_legal_source_v2(question: str):
     history_aware_retriever = create_history_aware_retriever(
         llm, retriever, contextualize_q_prompt
     )
-    logger.debug("Initialized history-aware retriever in rag_legal_source_v2")
-
     qa_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", legal_chat_qa_prompt_template_v2),
@@ -576,6 +575,9 @@ async def rag_legal_source_v2(question: str):
             ("human", "{input}"),
         ]
     )
+    # Below we use create_stuff_documents_chain to feed all retrieved context
+    # into the LLM. Note that we can also use StuffDocumentsChain and other
+    # instances of BaseCombineDocumentsChain.
     document_prompt = PromptTemplate(
         input_variables=["page_content", "source_link"],
         template="Context:\n \tContent:{page_content}\n \tSource Link:{source_link}\n\t",
@@ -583,11 +585,5 @@ async def rag_legal_source_v2(question: str):
     question_answer_chain = create_stuff_documents_chain(
         llm=llm, prompt=qa_prompt, document_prompt=document_prompt
     )
-    logger.debug("Initialized question-answer chain in rag_legal_source_v2")
-
     rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-    logger.debug("Initialized retrieval chain in rag_legal_source_v2")
-
-    result = await rag_chain.ainvoke({"input": question, "chat_history": []})
-    logger.info("rag_legal_source_v2 completed successfully")
-    return result
+    return await rag_chain.ainvoke({"input": question, "chat_history": []})
