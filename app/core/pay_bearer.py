@@ -2,25 +2,13 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from models import TokenTable, User
+from models import TokenTable
 from database.session import get_session
 from core import settings
 from log_config import configure_logging
-import datetime
 
 # Configure logging
 logger = configure_logging(__name__)
-
-## subscription checkout function using current date and subscription expiry
-def is_subscription_expired(subscription_expiry: datetime.datetime) -> bool:
-    """Returns True if the subscription is expired, False otherwise."""
-    # Get the current time
-    current_time = datetime.datetime.now()
-
-    # Compare subscription expiry with the current time
-    if subscription_expiry < current_time:
-        return True
-    return False
 
 def decodeJWT(jwtoken: str):
     try:
@@ -35,12 +23,12 @@ def decodeJWT(jwtoken: str):
         logger.error("Invalid JWT token provided.")
         return None
 
-class JWTBearer(HTTPBearer):
+class AUTHBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
-        super(JWTBearer, self).__init__(auto_error=auto_error)
+        super(AUTHBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
-        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        credentials: HTTPAuthorizationCredentials = await super(AUTHBearer, self).__call__(request)
 
         if credentials:
             logger.debug(f"Authorization credentials received.")
@@ -74,17 +62,8 @@ class JWTBearer(HTTPBearer):
             )
 
             if data:
-                user =session.query(User).filter(User.id == user_id).first()
-                if not user:
-                    raise HTTPException(status_code=404, detail="User not found")
-                if user.subscription_plan is None:
-                    raise HTTPException(status_code=400, detail="User has no subscription plan.")
-                if user.subscription_expiry is None:
-                    raise HTTPException(status_code=400, detail="Subscription expiry is not set for this user.")
-                if is_subscription_expired(user.subscription_expiry):
-                    raise HTTPException(status_code=400, detail="Subscription has expired.")
-                print("Your payment status is Active now!!!")
                 return credentials.credentials
+
             else:
                 raise HTTPException(status_code=403, detail="Token blocked.")
         else:
@@ -105,4 +84,4 @@ class JWTBearer(HTTPBearer):
             
         return isTokenValid
 
-jwt_bearer = JWTBearer()
+jwt_bearer = AUTHBearer()

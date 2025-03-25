@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     SENDGRID_AUTH_EMAIL: str
     AWS_EXPORTDATA_BUCKET_NAME: str
     AWS_LEGALCASE_BUCKET_NAME: str
-
+    PAYMENT_CALLBACK_URL:str
     class Config:
         env_file = ".env"
 

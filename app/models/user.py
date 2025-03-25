@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Enum
 from database.session import Base
 import datetime
-
+from schemas.payment import SubscriptionPlan
 
 class User(Base):
     __tablename__ = "users"
@@ -16,5 +16,6 @@ class User(Base):
     verify_code_expiry = Column(DateTime, default=datetime.datetime.now)
     created_date = Column(DateTime, default=datetime.datetime.now)
     activated_by_admin = Column(Boolean, default=False)
-    
- 
+    subscription_plan =  Column(Enum(SubscriptionPlan), nullable=True)
+    subscription_expiry = Column(DateTime, nullable=True)  # Subscription expiry
+    paid_price = Column(Float, nullable=True)  # Store payment amount

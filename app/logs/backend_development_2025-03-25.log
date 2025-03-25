@@ -1,0 +1,318 @@
+2025-03-25 00:19:29,871 - main - INFO - Application startup
+2025-03-25 00:20:09,645 - main - INFO - Application shutdown
+2025-03-25 00:20:28,721 - main - INFO - Application startup
+2025-03-25 00:20:59,794 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2025-03-25 00:20:59,795 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2025-03-25 00:21:47,987 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2025-03-25 00:21:47,988 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2025-03-25 00:22:34,727 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 00:22:34,728 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 00:22:36,373 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 00:22:36,374 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 00:22:36,375 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 00:22:38,583 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 00:23:09,185 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:23:10,509 - crud.user - INFO - Retrieving user info
+2025-03-25 00:23:15,023 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:25:38,374 - main - INFO - Application shutdown
+2025-03-25 00:25:57,236 - main - INFO - Application startup
+2025-03-25 00:27:47,597 - main - INFO - Application shutdown
+2025-03-25 00:28:06,422 - main - INFO - Application startup
+2025-03-25 00:33:59,910 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:34:01,304 - crud.user - INFO - Retrieving user info
+2025-03-25 00:34:06,149 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:36:41,809 - main - INFO - Application startup
+2025-03-25 00:36:43,573 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:36:44,926 - crud.user - INFO - Retrieving user info
+2025-03-25 00:36:48,962 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:38:01,231 - main - INFO - Application startup
+2025-03-25 00:38:05,378 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:38:06,703 - crud.user - INFO - Retrieving user info
+2025-03-25 00:38:10,694 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:38:33,066 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:38:34,375 - crud.user - INFO - Retrieving user info
+2025-03-25 00:38:35,700 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:39:22,579 - main - INFO - Application shutdown
+2025-03-25 00:39:41,610 - main - INFO - Application startup
+2025-03-25 00:40:10,918 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2025-03-25 00:40:10,919 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2025-03-25 00:40:21,628 - core.auth_bearer - ERROR - Invalid JWT token provided.
+2025-03-25 00:40:21,628 - core.auth_bearer - ERROR - Invalid or expired JWT token.
+2025-03-25 00:40:26,667 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-25 00:40:26,667 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-25 00:40:28,329 - core.utils - INFO - Access token created for subject 88.
+2025-03-25 00:40:28,330 - core.utils - INFO - Refresh token created for subject 88.
+2025-03-25 00:40:28,330 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2025-03-25 00:40:30,577 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2025-03-25 00:40:41,749 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 00:40:41,750 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 00:40:43,369 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 00:40:43,369 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 00:40:43,370 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 00:40:45,611 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 00:41:04,350 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:41:05,698 - crud.user - INFO - Retrieving user info
+2025-03-25 00:41:10,079 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:42:27,546 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:42:28,894 - crud.user - INFO - Retrieving user info
+2025-03-25 00:42:30,247 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:42:31,066 - main - INFO - Application shutdown
+2025-03-25 00:43:16,543 - main - INFO - Application startup
+2025-03-25 00:43:22,157 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:43:46,463 - main - INFO - Application shutdown
+2025-03-25 00:44:06,074 - main - INFO - Application startup
+2025-03-25 00:44:24,598 - main - INFO - Application startup
+2025-03-25 00:44:24,601 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:44:25,943 - crud.user - INFO - Retrieving user info
+2025-03-25 00:44:29,977 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:44:50,567 - main - INFO - Application shutdown
+2025-03-25 00:45:09,446 - main - INFO - Application startup
+2025-03-25 00:45:28,556 - main - INFO - Application startup
+2025-03-25 00:45:47,175 - main - INFO - Application startup
+2025-03-25 00:46:01,851 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:46:03,175 - crud.user - INFO - Retrieving user info
+2025-03-25 00:46:07,739 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:46:31,579 - main - INFO - Application shutdown
+2025-03-25 00:46:50,589 - main - INFO - Application startup
+2025-03-25 00:47:09,029 - main - INFO - Application startup
+2025-03-25 00:47:10,982 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:47:12,336 - crud.user - INFO - Retrieving user info
+2025-03-25 00:47:16,326 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:47:58,475 - main - INFO - Application shutdown
+2025-03-25 00:48:17,082 - main - INFO - Application startup
+2025-03-25 00:48:24,981 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:48:26,341 - crud.user - INFO - Retrieving user info
+2025-03-25 00:48:30,400 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:48:56,616 - main - INFO - Application shutdown
+2025-03-25 00:49:16,229 - main - INFO - Application startup
+2025-03-25 00:49:35,551 - main - INFO - Application startup
+2025-03-25 00:49:39,747 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:49:41,096 - crud.user - INFO - Retrieving user info
+2025-03-25 00:49:45,513 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:51:51,885 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 00:51:51,885 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 00:51:53,589 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 00:51:53,590 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 00:51:53,591 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 00:51:55,963 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 00:52:10,254 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:52:11,572 - crud.user - INFO - Retrieving user info
+2025-03-25 00:52:12,900 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:52:39,798 - main - INFO - Application shutdown
+2025-03-25 00:52:59,380 - main - INFO - Application startup
+2025-03-25 00:53:50,742 - main - INFO - Application shutdown
+2025-03-25 00:54:09,074 - main - INFO - Application startup
+2025-03-25 00:54:42,265 - main - INFO - Application shutdown
+2025-03-25 00:55:01,411 - main - INFO - Application startup
+2025-03-25 00:55:06,316 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 00:55:07,699 - crud.user - INFO - Retrieving user info
+2025-03-25 00:55:11,667 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 00:55:22,079 - main - INFO - Application shutdown
+2025-03-25 00:55:44,627 - main - INFO - Application startup
+2025-03-25 00:58:06,122 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 01:00:33,350 - main - INFO - Application shutdown
+2025-03-25 01:03:17,764 - main - INFO - Application startup
+2025-03-25 01:03:17,768 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 01:03:19,115 - crud.user - INFO - Retrieving user info
+2025-03-25 01:03:23,318 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 01:05:12,426 - main - INFO - Application shutdown
+2025-03-25 01:05:31,238 - main - INFO - Application startup
+2025-03-25 01:06:58,179 - main - INFO - Application shutdown
+2025-03-25 01:07:17,235 - main - INFO - Application startup
+2025-03-25 01:07:35,774 - main - INFO - Application startup
+2025-03-25 01:07:40,408 - main - INFO - Application shutdown
+2025-03-25 01:10:08,718 - main - INFO - Application startup
+2025-03-25 01:10:28,619 - main - INFO - Application startup
+2025-03-25 01:10:48,272 - main - INFO - Application startup
+2025-03-25 01:11:07,958 - main - INFO - Application startup
+2025-03-25 01:11:17,986 - main - INFO - Application shutdown
+2025-03-25 01:11:36,798 - main - INFO - Application startup
+2025-03-25 01:11:55,470 - main - INFO - Application startup
+2025-03-25 01:14:10,580 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 01:14:11,939 - crud.user - INFO - Retrieving user info
+2025-03-25 01:14:16,257 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 01:16:20,834 - main - INFO - Application shutdown
+2025-03-25 01:16:39,227 - main - INFO - Application startup
+2025-03-25 01:21:06,131 - main - INFO - Application shutdown
+2025-03-25 01:21:25,366 - main - INFO - Application startup
+2025-03-25 01:21:35,138 - main - INFO - Application shutdown
+2025-03-25 01:21:55,029 - main - INFO - Application startup
+2025-03-25 01:23:34,494 - main - INFO - Application shutdown
+2025-03-25 01:23:53,394 - main - INFO - Application startup
+2025-03-25 01:24:12,427 - main - INFO - Application startup
+2025-03-25 01:25:28,149 - main - INFO - Application shutdown
+2025-03-25 01:25:47,273 - main - INFO - Application startup
+2025-03-25 01:26:49,285 - main - INFO - Application shutdown
+2025-03-25 01:27:08,749 - main - INFO - Application startup
+2025-03-25 01:27:24,557 - main - INFO - Application shutdown
+2025-03-25 01:27:43,820 - main - INFO - Application startup
+2025-03-25 01:27:48,459 - main - INFO - Application shutdown
+2025-03-25 01:54:39,045 - main - INFO - Application startup
+2025-03-25 01:54:58,184 - main - INFO - Application startup
+2025-03-25 01:55:35,663 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 01:55:35,664 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 01:55:37,329 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 01:55:37,329 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 01:55:37,329 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 01:55:39,586 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 01:56:09,351 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 01:56:10,706 - crud.user - INFO - Retrieving user info
+2025-03-25 01:56:15,621 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 01:59:41,656 - main - INFO - Application shutdown
+2025-03-25 02:00:01,330 - main - INFO - Application startup
+2025-03-25 02:09:47,268 - main - INFO - Application shutdown
+2025-03-25 02:10:06,920 - main - INFO - Application startup
+2025-03-25 02:10:26,232 - main - INFO - Application startup
+2025-03-25 02:10:56,161 - main - INFO - Application shutdown
+2025-03-25 02:11:15,909 - main - INFO - Application startup
+2025-03-25 02:11:34,408 - main - INFO - Application startup
+2025-03-25 02:14:01,702 - main - INFO - Application shutdown
+2025-03-25 02:14:21,374 - main - INFO - Application startup
+2025-03-25 02:14:49,633 - main - INFO - Application shutdown
+2025-03-25 02:15:08,939 - main - INFO - Application startup
+2025-03-25 02:15:19,881 - main - INFO - Application shutdown
+2025-03-25 02:15:39,023 - main - INFO - Application startup
+2025-03-25 02:15:40,410 - main - INFO - Application shutdown
+2025-03-25 02:16:00,219 - main - INFO - Application startup
+2025-03-25 02:16:45,358 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 02:16:45,360 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 02:16:47,009 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 02:16:47,010 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 02:16:47,010 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 02:16:49,232 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 02:17:04,576 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 02:17:06,373 - api.v1.user - INFO - Fetching user information.
+2025-03-25 02:17:06,374 - crud.user - INFO - Retrieving user info
+2025-03-25 02:17:11,006 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 02:17:21,406 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-25 02:17:21,407 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-25 02:17:23,039 - core.utils - INFO - Access token created for subject 88.
+2025-03-25 02:17:23,040 - core.utils - INFO - Refresh token created for subject 88.
+2025-03-25 02:17:23,040 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2025-03-25 02:17:25,309 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2025-03-25 02:18:02,324 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2025-03-25 02:19:35,249 - main - INFO - Application shutdown
+2025-03-25 02:19:56,497 - main - INFO - Application startup
+2025-03-25 02:20:15,456 - main - INFO - Application startup
+2025-03-25 02:21:17,366 - main - INFO - Application shutdown
+2025-03-25 02:21:36,881 - main - INFO - Application startup
+2025-03-25 02:21:56,498 - main - INFO - Application startup
+2025-03-25 02:22:15,745 - main - INFO - Application startup
+2025-03-25 02:22:34,571 - main - INFO - Application startup
+2025-03-25 02:22:53,142 - main - INFO - Application startup
+2025-03-25 02:26:20,683 - main - INFO - Application shutdown
+2025-03-25 02:26:41,055 - main - INFO - Application startup
+2025-03-25 02:27:29,739 - main - INFO - Application shutdown
+2025-03-25 02:27:49,309 - main - INFO - Application startup
+2025-03-25 02:28:21,479 - main - INFO - Application shutdown
+2025-03-25 02:28:41,044 - main - INFO - Application startup
+2025-03-25 02:29:02,164 - main - INFO - Application shutdown
+2025-03-25 02:29:21,159 - main - INFO - Application startup
+2025-03-25 02:29:40,893 - main - INFO - Application startup
+2025-03-25 02:30:01,616 - main - INFO - Application startup
+2025-03-25 02:30:21,345 - main - INFO - Application startup
+2025-03-25 02:30:31,962 - main - INFO - Application shutdown
+2025-03-25 02:30:51,489 - main - INFO - Application startup
+2025-03-25 02:31:01,360 - main - INFO - Application shutdown
+2025-03-25 02:31:21,422 - main - INFO - Application startup
+2025-03-25 02:31:30,678 - main - INFO - Application shutdown
+2025-03-25 02:31:49,501 - main - INFO - Application startup
+2025-03-25 02:32:10,528 - main - INFO - Application startup
+2025-03-25 02:32:29,602 - main - INFO - Application startup
+2025-03-25 02:32:48,830 - main - INFO - Application startup
+2025-03-25 02:33:51,202 - main - INFO - Application shutdown
+2025-03-25 02:34:10,055 - main - INFO - Application startup
+2025-03-25 02:38:38,225 - main - INFO - Application shutdown
+2025-03-25 02:38:58,144 - main - INFO - Application startup
+2025-03-25 02:41:16,087 - main - INFO - Application shutdown
+2025-03-25 02:41:56,519 - main - INFO - Application startup
+2025-03-25 02:42:16,545 - main - INFO - Application startup
+2025-03-25 02:42:35,609 - main - INFO - Application startup
+2025-03-25 02:42:55,031 - main - INFO - Application startup
+2025-03-25 02:43:22,270 - main - INFO - Application startup
+2025-03-25 02:43:42,901 - main - INFO - Application startup
+2025-03-25 02:43:44,465 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2025-03-25 02:43:52,053 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-25 02:43:52,054 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-25 02:43:53,700 - core.utils - INFO - Access token created for subject 88.
+2025-03-25 02:43:53,701 - core.utils - INFO - Refresh token created for subject 88.
+2025-03-25 02:43:53,701 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2025-03-25 02:43:55,947 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2025-03-25 02:44:23,496 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2025-03-25 02:47:01,931 - core.pay_bearer - INFO - Token validated successfully for user ID: 88
+2025-03-25 02:47:06,462 - crud.user - INFO - Retrieving user info
+2025-03-25 02:47:11,624 - crud.user - INFO - User info retrieved for user 88
+2025-03-25 02:50:41,563 - core.auth_bearer - INFO - Token validated successfully for user ID: 88
+2025-03-25 02:50:43,341 - api.v1.user - INFO - Fetching user information.
+2025-03-25 02:50:43,342 - crud.user - INFO - Retrieving user info
+2025-03-25 02:50:44,648 - crud.user - INFO - User info retrieved for user 88
+2025-03-25 02:51:22,869 - main - INFO - Application shutdown
+2025-03-25 02:51:43,199 - main - INFO - Application startup
+2025-03-25 03:33:36,542 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 03:33:36,543 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 03:33:38,210 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 03:33:38,211 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 03:33:38,211 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 03:33:40,446 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 04:58:16,403 - api.v1.user - INFO - Password reset request for email: liu@adaletgpt.com
+2025-03-25 04:58:16,406 - crud.user - INFO - Processing password reset request for liu@adaletgpt.com
+2025-03-25 04:58:20,060 - crud.notify - INFO - Sending reset password email to liu@adaletgpt.com
+2025-03-25 04:58:22,053 - crud.notify - INFO - Reset password email sent successfully to liu@adaletgpt.com
+2025-03-25 04:58:22,054 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 04:58:24,309 - crud.user - INFO - Password reset code sent to liu@adaletgpt.com
+2025-03-25 04:58:24,310 - api.v1.user - WARNING - Failed to send password reset email to: liu@adaletgpt.com
+2025-03-25 05:00:04,772 - main - INFO - Application shutdown
+2025-03-25 05:00:27,087 - main - INFO - Application startup
+2025-03-25 05:01:19,667 - api.v1.user - INFO - Password reset request for email: liu@adaletgpt.com
+2025-03-25 05:01:19,668 - crud.user - INFO - Processing password reset request for liu@adaletgpt.com
+2025-03-25 05:01:23,229 - crud.notify - INFO - Sending reset password email to liu@adaletgpt.com
+2025-03-25 05:01:24,976 - crud.notify - INFO - Reset password email sent successfully to liu@adaletgpt.com
+2025-03-25 05:01:24,977 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 05:01:27,200 - crud.user - INFO - Password reset code sent to liu@adaletgpt.com
+2025-03-25 05:01:27,201 - api.v1.user - WARNING - Failed to send password reset email to: liu@adaletgpt.com
+2025-03-25 05:01:58,240 - main - INFO - Application shutdown
+2025-03-25 05:02:17,228 - main - INFO - Application startup
+2025-03-25 05:09:31,069 - main - INFO - Application shutdown
+2025-03-25 05:09:50,441 - main - INFO - Application startup
+2025-03-25 05:11:06,833 - main - INFO - Application shutdown
+2025-03-25 05:12:24,786 - main - INFO - Application startup
+2025-03-25 05:13:17,327 - main - INFO - Application startup
+2025-03-25 05:13:26,872 - main - INFO - Application shutdown
+2025-03-25 05:13:46,246 - main - INFO - Application startup
+2025-03-25 05:19:51,506 - main - INFO - Application shutdown
+2025-03-25 05:20:10,970 - main - INFO - Application startup
+2025-03-25 05:32:17,206 - main - INFO - Application shutdown
+2025-03-25 05:33:05,482 - main - INFO - Application startup
+2025-03-25 05:34:11,203 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 05:34:11,204 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 05:34:12,836 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 05:34:12,837 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 05:34:12,837 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 05:34:15,070 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 05:34:32,923 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 05:34:34,712 - api.v1.user - INFO - Fetching user information.
+2025-03-25 05:34:34,712 - crud.user - INFO - Retrieving user info
+2025-03-25 05:34:39,180 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 05:35:56,987 - main - INFO - Application startup
+2025-03-25 05:36:46,674 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 05:39:49,181 - main - INFO - Application shutdown
+2025-03-25 05:40:04,763 - main - INFO - Application startup
+2025-03-25 05:40:26,955 - main - INFO - Application shutdown
+2025-03-25 05:41:23,293 - main - INFO - Application startup
+2025-03-25 05:41:36,435 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 05:41:36,436 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 05:41:38,068 - core.utils - WARNING - Password verification failed.
+2025-03-25 05:41:38,069 - crud.user - WARNING - Login failed: Incorrect Password for liu@adaletgpt.com
+2025-03-25 05:41:48,606 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 05:41:48,606 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 05:41:50,198 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 05:41:50,199 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 05:41:50,199 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 05:41:52,404 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 05:42:14,642 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 05:47:11,784 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 05:47:13,545 - crud.user - INFO - Retrieving user info
+2025-03-25 05:47:18,033 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 05:55:03,090 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-25 05:55:04,415 - crud.user - INFO - Retrieving user info
+2025-03-25 05:55:10,096 - crud.user - INFO - User info retrieved for user 84
