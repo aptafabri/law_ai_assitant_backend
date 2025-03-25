@@ -316,3 +316,22 @@
 2025-03-25 05:55:03,090 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
 2025-03-25 05:55:04,415 - crud.user - INFO - Retrieving user info
 2025-03-25 05:55:10,096 - crud.user - INFO - User info retrieved for user 84
+2025-03-25 07:15:49,237 - main - INFO - Application shutdown
+2025-03-25 07:16:17,420 - main - INFO - Application startup
+2025-03-25 11:31:42,330 - main - INFO - Application startup
+2025-03-25 11:33:48,836 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-25 11:33:48,836 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-25 11:33:50,560 - core.utils - WARNING - Password verification failed.
+2025-03-25 11:33:50,561 - crud.user - WARNING - Login failed: Incorrect Password for lee@adaletgpt.com
+2025-03-25 11:34:05,234 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-25 11:34:05,235 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-25 11:34:06,843 - core.utils - INFO - Access token created for subject 84.
+2025-03-25 11:34:06,844 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-25 11:34:06,844 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-25 11:34:09,506 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-25 11:34:25,107 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-25 11:34:25,108 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-25 11:34:26,717 - core.utils - INFO - Access token created for subject 88.
+2025-03-25 11:34:26,718 - core.utils - INFO - Refresh token created for subject 88.
+2025-03-25 11:34:26,718 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2025-03-25 11:34:29,374 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com

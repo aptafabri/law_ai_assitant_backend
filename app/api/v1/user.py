@@ -35,6 +35,7 @@ from schemas.user import (
 from crud.chat import remove_sessions_by_user_id
 from crud.notify import send_verify_email, send_export_email
 from core.auth_bearer import JWTBearer
+from core.pay_bearer import AUTHBearer
 from models import User, TokenTable
 from database.session import get_session
 from core.utils import create_access_token
@@ -144,7 +145,7 @@ def request_password_reset(
 @router.post("/verify-code", tags=["User controller"])
 def verify_reset_code(
     req: VerificationCodeRequest,
-    dependencies=Depends(JWTBearer()),
+    dependencies=Depends(AUTHBearer()),
     session: Session = Depends(get_session),
 ):
     logger.info("Verifying reset code.")
@@ -162,7 +163,7 @@ def verify_reset_code(
 @router.post("/reset-password", tags=["User controller"])
 def password_reset(
     req: ResetPasswordRequest,
-    dependencies=Depends(JWTBearer()),
+    dependencies=Depends(AUTHBearer()),
     session: Session = Depends(get_session),
 ):
     try:
