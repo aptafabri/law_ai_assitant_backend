@@ -33,3 +33,4 @@ sse-starlette
 email-validator
 dnspython
 jinja2
+iyzipay==1.0.45

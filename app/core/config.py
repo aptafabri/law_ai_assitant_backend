@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     AWS_EXPORTDATA_BUCKET_NAME: str
     AWS_LEGALCASE_BUCKET_NAME: str
     PAYMENT_CALLBACK_URL:str
+    IYZIPAY_SECRET_KEY:str
+    IYZIPAY_API_KEY:str
     class Config:
         env_file = ".env"
 

@@ -8,6 +8,7 @@ import json
 from schemas.payment import SubscriptionPlan, InitializePaymentRequest, RetrievePaymentRequest
 from models import User
 import datetime
+from core import settings
 
 SUBSCRIPTION_DETAILS = {
     SubscriptionPlan.MONTHLY: {"name": "Monthly Plan", "price":3000},
@@ -19,8 +20,8 @@ SUBSCRIPTION_DETAILS = {
 router = APIRouter()
 
 options = {
-    'api_key': "sandbox-mOKAeajuBHCge7y82o1gMbF97XIHmPHE",
-    'secret_key': "sandbox-JDbxk5wvHWbEaTuD3Q5yYHWqDTA37Zgw",
+    'api_key': settings.IYZIPAY_API_KEY,
+    'secret_key': settings.IYZIPAY_SECRET_KEY,
     'base_url': iyzipay.base_url
 
 }
@@ -85,7 +86,7 @@ async def initialize_checkout(
             "currency": "TRY",
             'basketId': str(request.plan),
             'paymentGroup': 'PRODUCT',
-            "callbackUrl": "http://localhost:3000/payment",
+            "callbackUrl": settings.PAYMENT_CALLBACK_URL,
             "enabledInstallments": ["1"],
             'buyer': buyer,
             'shippingAddress': address,
