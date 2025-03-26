@@ -27,3 +27,13 @@
 2025-03-26 08:35:39,872 - main - INFO - Application shutdown
 2025-03-26 08:35:59,191 - main - INFO - Application startup
 2025-03-26 08:36:01,896 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 08:43:07,572 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 08:43:11,726 - crud.user - INFO - Retrieving user info
+2025-03-26 08:43:16,419 - crud.user - INFO - User info retrieved for user 84
+2025-03-26 08:45:13,998 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 08:46:06,465 - main - INFO - Application shutdown
+2025-03-26 08:46:25,789 - main - INFO - Application startup
+2025-03-26 08:46:29,330 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 08:47:28,721 - main - INFO - Application shutdown
+2025-03-26 08:47:49,278 - main - INFO - Application startup
+2025-03-26 08:47:53,333 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
