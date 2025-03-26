@@ -362,3 +362,9 @@
 2025-03-26 02:21:20,989 - crud.user - INFO - Retrieving user info
 2025-03-26 02:21:25,399 - crud.user - INFO - User info retrieved for user 84
 2025-03-26 02:26:24,430 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 06:31:54,093 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-26 06:31:54,096 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-26 06:31:55,781 - core.utils - INFO - Access token created for subject 88.
+2025-03-26 06:31:55,803 - core.utils - INFO - Refresh token created for subject 88.
+2025-03-26 06:31:55,804 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
+2025-03-26 06:31:58,566 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com

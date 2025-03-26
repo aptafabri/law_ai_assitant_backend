@@ -128,7 +128,7 @@ async def retrieve_payment(
         checkout_form_retrieve_result = checkout_form_retrieve.retrieve(payment_request, options)
         checkout_form_retrieve_response = json.loads(checkout_form_retrieve_result.read().decode("utf-8"))
         conversation_id = str(user_id)
-        if checkout_form_retrieve_response.get("status") == "success":
+        if checkout_form_retrieve_response.get("paymentStatus") == "SUCCESSS":
             user_id = checkout_form_retrieve_response["conversationId"]
             plan = checkout_form_retrieve_response["basketId"]
             paid_price = str(checkout_form_retrieve_response["paidPrice"]).rstrip("0").rstrip(".")
