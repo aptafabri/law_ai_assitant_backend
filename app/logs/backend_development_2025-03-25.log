@@ -335,3 +335,30 @@
 2025-03-25 11:34:26,718 - core.utils - INFO - Refresh token created for subject 88.
 2025-03-25 11:34:26,718 - crud.user - INFO - Login successful for lee@adaletgpt.com, tokens generated
 2025-03-25 11:34:29,374 - api.v1.user - INFO - User logged in successfully: lee@adaletgpt.com
+2025-03-26 02:02:26,816 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-26 02:02:26,822 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-26 02:02:31,691 - core.utils - WARNING - Password verification failed.
+2025-03-26 02:02:31,692 - crud.user - WARNING - Login failed: Incorrect Password for lee@adaletgpt.com
+2025-03-26 02:02:43,106 - api.v1.user - INFO - User login attempt: lee@adaletgpt.com
+2025-03-26 02:02:43,106 - crud.user - INFO - Attempting login for email: lee@adaletgpt.com
+2025-03-26 02:02:44,744 - core.utils - WARNING - Password verification failed.
+2025-03-26 02:02:44,745 - crud.user - WARNING - Login failed: Incorrect Password for lee@adaletgpt.com
+2025-03-26 02:03:17,192 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-03-26 02:03:17,193 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-03-26 02:03:18,826 - core.utils - INFO - Access token created for subject 84.
+2025-03-26 02:03:18,827 - core.utils - INFO - Refresh token created for subject 84.
+2025-03-26 02:03:18,827 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-03-26 02:03:21,611 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-03-26 02:06:19,855 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 02:06:21,235 - crud.user - INFO - Retrieving user info
+2025-03-26 02:06:25,763 - crud.user - INFO - User info retrieved for user 84
+2025-03-26 02:13:36,318 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 02:13:37,681 - crud.user - INFO - Retrieving user info
+2025-03-26 02:13:39,050 - crud.user - INFO - User info retrieved for user 84
+2025-03-26 02:19:27,469 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 02:19:28,843 - crud.user - INFO - Retrieving user info
+2025-03-26 02:19:33,230 - crud.user - INFO - User info retrieved for user 84
+2025-03-26 02:21:19,633 - core.pay_bearer - INFO - Token validated successfully for user ID: 84
+2025-03-26 02:21:20,989 - crud.user - INFO - Retrieving user info
+2025-03-26 02:21:25,399 - crud.user - INFO - User info retrieved for user 84
+2025-03-26 02:26:24,430 - core.pay_bearer - INFO - Token validated successfully for user ID: 84

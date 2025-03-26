@@ -114,6 +114,7 @@ async def initialize_checkout(
 async def retrieve_payment(
     request: RetrievePaymentRequest,
     dependencies=Depends(AUTHBearer()),
+    session:Session = Depends(get_session)
 ):
     try:
         user_id = get_userid_by_token(dependencies)
@@ -126,25 +127,38 @@ async def retrieve_payment(
         checkout_form_retrieve = iyzipay.CheckoutForm()
         checkout_form_retrieve_result = checkout_form_retrieve.retrieve(payment_request, options)
         checkout_form_retrieve_response = json.loads(checkout_form_retrieve_result.read().decode("utf-8"))
-        print(checkout_form_retrieve_response)
+        conversation_id = str(user_id)
         if checkout_form_retrieve_response.get("status") == "success":
-            secret_key = options["secret_key"]
+            user_id = checkout_form_retrieve_response["conversationId"]
+            plan = checkout_form_retrieve_response["basketId"]
+            paid_price = str(checkout_form_retrieve_response["paidPrice"]).rstrip("0").rstrip(".")
+            
             payment_status = checkout_form_retrieve_response["paymentStatus"]
             payment_id = checkout_form_retrieve_response["paymentId"]
             currency = checkout_form_retrieve_response["currency"]
-            basket_id = checkout_form_retrieve_response["basketId"]
-            conversation_id = checkout_form_retrieve_response["conversationId"]
-            paid_price = str(checkout_form_retrieve_response["paidPrice"]).rstrip("0").rstrip(".")
             price = str(checkout_form_retrieve_response["price"]).rstrip("0").rstrip(".")
             token = checkout_form_retrieve_response["token"]
             signature = checkout_form_retrieve_response["signature"]
-
-            # Verify the signature (ensure the integrity of payment data)
+            secret_key = options["secret_key"]
             checkout_form_retrieve.verify_signature(
-                [payment_status, payment_id, currency, basket_id, conversation_id, paid_price, price, token],
+                [payment_status, payment_id, currency, plan, conversation_id, paid_price, price, token],
                 secret_key,
                 signature,
             )
+            
+            print("Payment Information:", user_id, plan, paid_price)
+            user = session.query(User).filter(User.id == int(user_id)).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            try:
+                subscription_plan = SubscriptionPlan(plan)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid subscription plan")
+            user.subscription_plan = subscription_plan
+            user.subscription_expiry = calculate_expiry(subscription_plan)
+            user.paid_price = paid_price 
+            session.commit()
+            
             return checkout_form_retrieve_response
         else:
             raise HTTPException(status_code=400, detail="Payment verification failed!")
