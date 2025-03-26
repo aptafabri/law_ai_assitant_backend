@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Body, status, HTTPException
+from fastapi.responses import JSONResponse
 from core.pay_bearer import AUTHBearer
 from crud.user import get_userid_by_token, get_user_info
 from sqlalchemy.orm import Session
@@ -128,6 +129,7 @@ async def retrieve_payment(
         checkout_form_retrieve_result = checkout_form_retrieve.retrieve(payment_request, options)
         checkout_form_retrieve_response = json.loads(checkout_form_retrieve_result.read().decode("utf-8"))
         conversation_id = str(user_id)
+        print("Paymenet status",checkout_form_retrieve_response.get("paymentStatus"))
         if checkout_form_retrieve_response.get("paymentStatus") == "SUCCESSS":
             user_id = checkout_form_retrieve_response["conversationId"]
             plan = checkout_form_retrieve_response["basketId"]
@@ -149,11 +151,11 @@ async def retrieve_payment(
             print("Payment Information:", user_id, plan, paid_price)
             user = session.query(User).filter(User.id == int(user_id)).first()
             if not user:
-                raise HTTPException(status_code=404, detail="User not found")
+                return JSONResponse(status_code=404, content={"message":"User not found"})
             try:
                 subscription_plan = SubscriptionPlan(plan)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid subscription plan")
+                return JSONResponse(status_code=400,  content={"message":"Invalid subscription plan"})
             user.subscription_plan = subscription_plan
             user.subscription_expiry = calculate_expiry(subscription_plan)
             user.paid_price = paid_price 
@@ -161,10 +163,10 @@ async def retrieve_payment(
             
             return checkout_form_retrieve_response
         else:
-            raise HTTPException(status_code=400, detail="Payment verification failed!")
+            return JSONResponse(content={"message":"Payment verification failed!","paymentStatus":"FAILURE"},status_code=400)
     except Exception as e:
-        return HTTPException(
-            detail="Internal Server error",
+        raise HTTPException(
+            detail=f"Internal Server error:{e}",
             status_code=500,
         )
         
@@ -207,11 +209,11 @@ async def webhook(
             print("Payment Information:", user_id, plan, paid_price)
             user = session.query(User).filter(User.id == int(user_id)).first()
             if not user:
-                raise HTTPException(status_code=404, detail="User not found")
+                return JSONResponse(status_code=404, detail="User not found")
             try:
                 subscription_plan = SubscriptionPlan(plan)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid subscription plan")
+                return JSONResponse(status_code=400, detail="Invalid subscription plan")
             user.subscription_plan = subscription_plan
             user.subscription_expiry = calculate_expiry(subscription_plan)
             user.paid_price = paid_price 
