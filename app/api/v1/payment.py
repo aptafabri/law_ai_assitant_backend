@@ -10,6 +10,8 @@ from schemas.payment import SubscriptionPlan, InitializePaymentRequest, Retrieve
 from models import User
 import datetime
 from core import settings
+from sqlalchemy import func
+
 
 SUBSCRIPTION_DETAILS = {
     SubscriptionPlan.MONTHLY: {"name": "Monthly Plan", "price":3000},
@@ -222,3 +224,14 @@ async def webhook(
             
         else:
             raise HTTPException(status_code=400, detail="Payment failed")
+
+@router.get("/total-paid-price", tags=["PaymentController"],  status_code=200)
+def get_total_paid_price(db: Session = Depends(get_session)):
+    try:    
+        total_paid = db.query(func.coalesce(func.sum(User.paid_price), 0)).scalar()
+        return JSONResponse(content={"total_paid_price": total_paid, "currency":"TRY"}, status_code=200)
+    except Exception as e:
+        raise HTTPException(
+            detail=f"Internal Server error:{e}",
+            status_code=500,
+        )
