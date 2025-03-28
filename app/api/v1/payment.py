@@ -25,8 +25,7 @@ router = APIRouter()
 options = {
     'api_key': settings.IYZIPAY_API_KEY,
     'secret_key': settings.IYZIPAY_SECRET_KEY,
-    'base_url': iyzipay.base_url
-
+    'base_url': settings.IYZIPAY_BASE_URL
 }
 
 def calculate_expiry(plan: SubscriptionPlan) -> datetime.datetime:
