@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     PAYMENT_CALLBACK_URL:str
     IYZIPAY_SECRET_KEY:str
     IYZIPAY_API_KEY:str
+    VERIFICATION_URL:str
+    DOWNLOAD_URL:str
     class Config:
         env_file = ".env"
 

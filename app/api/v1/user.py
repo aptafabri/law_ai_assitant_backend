@@ -211,13 +211,12 @@ def delete_account(
 def verify(token: str, session: Session = Depends(get_session)):
     logger.info(f"Email verification request with token: {token}")
     id, expired = verify_register_token(token)
-
     if id is None and expired is None:
         logger.warning("Invalid verification token provided.")
         raise HTTPException(status_code=404, detail="Invalid token")
     else:
         if expired == False:
-            user = session.query(User).filter(User.id == id).first()
+            user = session.query(User).filter(User.id == int(id)).first()
             if user:
                 user.is_active = True
                 user.created_date = datetime.now()

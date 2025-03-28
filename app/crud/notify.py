@@ -9,9 +9,8 @@ from log_config import configure_logging
 # Configure logging
 logger = configure_logging(__name__)
 
-VERIFICATION_URL = "https://chat.adaletgpt.com/user/verify"
-DOWNLOAD_URL = "https://chat.adaletgpt.com/user/exportdata"
-
+VERIFICATION_URL = settings.VERIFICATION_URL
+DOWNLOAD_URL = settings.DOWNLOAD_URL
 
 def send_reset_password_mail(recipient_email, user_name, verify_code):
     logger.info(f"Sending reset password email to {recipient_email}")
