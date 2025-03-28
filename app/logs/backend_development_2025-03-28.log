@@ -1,0 +1,16 @@
+2025-03-28 05:27:26,706 - main - INFO - Application startup
+2025-03-28 05:27:26,709 - main - INFO - Application shutdown
+2025-03-28 05:29:31,340 - main - INFO - Application startup
+2025-03-28 05:29:34,721 - api.v1.user - INFO - Email verification request with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDMxNjY3MDIsInN1YiI6IjE1NCJ9.YJUdEvyDtevRfbyw_ExY_Zppk1-ojx1XHe5RNyUKwkE
+2025-03-28 05:29:34,721 - crud.user - INFO - Verifying register token
+2025-03-28 05:29:34,722 - crud.user - INFO - Token verified successfully, payload: {'exp': 1743166702, 'sub': '154'}
+2025-03-28 05:30:26,266 - main - INFO - Application shutdown
+2025-03-28 05:30:44,898 - main - INFO - Application startup
+2025-03-28 05:30:48,588 - api.v1.user - INFO - Email verification request with token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDMxNjY3MDIsInN1YiI6IjE1NCJ9.YJUdEvyDtevRfbyw_ExY_Zppk1-ojx1XHe5RNyUKwkE
+2025-03-28 05:30:48,589 - crud.user - INFO - Verifying register token
+2025-03-28 05:30:48,591 - crud.user - INFO - Token verified successfully, payload: {'exp': 1743166702, 'sub': '154'}
+2025-03-28 05:30:52,088 - api.v1.user - INFO - Email verified successfully for user ID: 154
+2025-03-28 05:36:15,035 - main - INFO - Application shutdown
+2025-03-28 05:36:36,683 - main - INFO - Application startup
+2025-03-28 05:41:20,084 - main - INFO - Application shutdown
+2025-03-28 05:41:39,016 - main - INFO - Application startup

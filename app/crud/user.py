@@ -27,6 +27,7 @@ import os
 import zipfile
 import boto3
 from log_config import configure_logging
+from core.auth_bearer import is_subscription_expired
 
 # Configure logging
 logger = configure_logging(__name__)
@@ -86,11 +87,30 @@ def login_user(auth: UserLogin, session: Session):
             session.add(token_db)
             session.commit()
             session.refresh(token_db)
+            if user.subscription_plan is None or user.subscription_expiry is None:
+                message = "User has no subscription plan."
+                payment_status = False
+                return {
+                    "access_token": access,
+                    "refresh_token": refresh,
+                    "payment_status": payment_status,
+                    "message":message
+                }
+            if is_subscription_expired(user.subscription_expiry):
+                message= "Subscription has expired."
+                payment_status = False
+            else:
+                message = "Subscription is active."
+                payment_status = True
 
             return {
                 "access_token": access,
                 "refresh_token": refresh,
+                "payment_status": payment_status,
+                "message": message
             }
+            
+            
         else:
             logger.warning(f"Access not allowed for {auth.email}, account not activated by admin")
             raise HTTPException(status_code=400, detail="Your access is not allowed. Please request your access to the support team.")

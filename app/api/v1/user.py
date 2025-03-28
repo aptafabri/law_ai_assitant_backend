@@ -35,6 +35,7 @@ from schemas.user import (
 from crud.chat import remove_sessions_by_user_id
 from crud.notify import send_verify_email, send_export_email
 from core.auth_bearer import JWTBearer
+from core.pay_bearer import AUTHBearer
 from models import User, TokenTable
 from database.session import get_session
 from core.utils import create_access_token
@@ -89,27 +90,24 @@ async def password_change(
     dependencies=Depends(JWTBearer()),
     session: Session = Depends(get_session),
 ):
-    logger.info(f"Password change request for user ID: {user.user_id}")
-    change_info = await change_password(user, session)
-    if change_info.get("success"):
-        logger.info(f"Password changed successfully for user ID: {user.user_id}")
-    else:
-        logger.warning(f"Failed to change password for user ID: {user.user_id}")
-    return JSONResponse(content=change_info, status_code=200)
-
+    try:
+        logger.info(f"Password change request for user ID: {user.user_id}")
+        change_info = await change_password(user, session)
+        return JSONResponse(content=change_info, status_code=200)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
 
 @router.post("/logout", tags=["User controller"], status_code=200)
 async def logout(
     dependencies=Depends(JWTBearer()), session: Session = Depends(get_session)
 ):
-    logger.info(f"Logout request with token: {dependencies}")
-    token = dependencies
-    logout_info = await logout_user(token, session)
-    if logout_info.get("success"):
-        logger.info("User logged out successfully.")
-    else:
-        logger.warning("Failed to logout user.")
-    return JSONResponse(content=logout_info, status_code=200)
+    try:  
+        logger.info(f"Logout request with token: {dependencies}")
+        token = dependencies
+        logout_info = await logout_user(token, session)
+        return JSONResponse(content=logout_info, status_code=200)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
 
 
 @router.post("/get-user-information", response_model=UserInfo, tags=["User controller"])
@@ -135,19 +133,19 @@ async def refresh(dependencies=Depends(JWTBearer())):
 def request_password_reset(
     req: ForgotPasswordRequest, session: Session = Depends(get_session)
 ):
-    logger.info(f"Password reset request for email: {req.email}")
-    email_status = reset_password_request(email=req.email, session=session)
-    if email_status.get("success"):
-        logger.info(f"Password reset email sent to: {req.email}")
-    else:
-        logger.warning(f"Failed to send password reset email to: {req.email}")
-    return JSONResponse(content=email_status, status_code=200)
+    try:
+        logger.info(f"Password reset request for email: {req.email}")
+        email_status = reset_password_request(email=req.email, session=session)
+        print("status:",email_status, email_status.get("successs"))
+        return JSONResponse(content=email_status, status_code=200)        
+    except Exception as e:
+        return HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
 
 
 @router.post("/verify-code", tags=["User controller"])
 def verify_reset_code(
     req: VerificationCodeRequest,
-    dependencies=Depends(JWTBearer()),
+    dependencies=Depends(AUTHBearer()),
     session: Session = Depends(get_session),
 ):
     logger.info("Verifying reset code.")
@@ -165,18 +163,18 @@ def verify_reset_code(
 @router.post("/reset-password", tags=["User controller"])
 def password_reset(
     req: ResetPasswordRequest,
-    dependencies=Depends(JWTBearer()),
+    dependencies=Depends(AUTHBearer()),
     session: Session = Depends(get_session),
 ):
-    logger.info("Password reset request.")
-    reset_info = reset_password(
-        token=dependencies, new_password=req.new_password, session=session
-    )
-    if reset_info.get("success"):
-        logger.info("Password reset successfully.")
-    else:
-        logger.warning("Failed to reset password.")
-    return JSONResponse(content=reset_info, status_code=200)
+    try:
+        logger.info("Password reset request.")
+        reset_info = reset_password(
+            token=dependencies, new_password=req.new_password, session=session
+        )
+        return JSONResponse(content=reset_info, status_code=200)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=f"Internal Server Error:{e}")
+        
 
 
 @router.post("/delete-account", tags=["User controller"])
@@ -213,13 +211,12 @@ def delete_account(
 def verify(token: str, session: Session = Depends(get_session)):
     logger.info(f"Email verification request with token: {token}")
     id, expired = verify_register_token(token)
-
     if id is None and expired is None:
         logger.warning("Invalid verification token provided.")
         raise HTTPException(status_code=404, detail="Invalid token")
     else:
         if expired == False:
-            user = session.query(User).filter(User.id == id).first()
+            user = session.query(User).filter(User.id == int(id)).first()
             if user:
                 user.is_active = True
                 user.created_date = datetime.now()
