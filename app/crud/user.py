@@ -45,7 +45,7 @@ def create_user(user: UserCreate, session: Session):
         logger.warning(f"Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    activated_by_admin = user.password == "Mykola:)"
+    activated_by_admin = True
     
     try:
         encrypted_password = get_hashed_password(user.password)
