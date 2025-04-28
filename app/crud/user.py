@@ -460,7 +460,7 @@ async def check_daily_chat_limit(user_id: int, db_session: Session) -> bool:
     if not user:
         raise HTTPException(status_code=400, detail="User not found")
     current_time = datetime.now()
-    if user.last_chat_reset.date() < current_time.date():
+    if user.last_chat_reset is None or user.last_chat_reset.date() < current_time.date():
         user.daily_chat_count = 0
         user.last_chat_reset = current_time
     if user.daily_chat_count >= settings.DAILY_CHAT_LIMIT:
