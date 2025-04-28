@@ -393,6 +393,7 @@ def get_user_subscription_info(user_id: int, session: Session) -> SubscriptionIn
             subscription_plan=user.subscription_plan,
             subscription_expiry=user.subscription_expiry,
             is_active=is_active,
+            daily_usage= user.daily_chat_count,
             message=message
         )
     except Exception as e:
