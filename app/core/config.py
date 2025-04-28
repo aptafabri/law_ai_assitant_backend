@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     IYZIPAY_BASE_URL:str
     VERIFICATION_URL:str
     DOWNLOAD_URL:str
+    DAILY_CHAT_LIMIT:int
     class Config:
         env_file = ".env"
 

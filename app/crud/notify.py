@@ -98,3 +98,60 @@ def send_export_email(recipient_email: str, url: str):
     except Exception as e:
         logger.error(f"Error sending export data email to {recipient_email}: {e}")
         return None
+
+
+def send_subscription_expiry_notification(recipient_email: str, days_remaining: int, subscription_plan: str, status_message: str):
+    logger.info(f"Sending subscription expiry notification to {recipient_email}")
+    try:
+        # Determine subject and HTML content based on subscription status
+        if days_remaining > 0:
+            subject = f"Your {subscription_plan} Subscription Will Expire Soon"
+            html_content = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #ff9900;">Subscription Expiry Notice</h2>
+                    <p style="font-size: 16px; line-height: 1.5;">{status_message}</p>
+                    <div style="background-color: #f8f8f8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <p style="margin: 0; color: #666;">
+                            <strong>Subscription Plan:</strong> {subscription_plan}<br>
+                            <strong>Days Remaining:</strong> {days_remaining}
+                        </p>
+                    </div>
+                    <p style="font-size: 16px; line-height: 1.5;">Please renew your subscription to continue enjoying our services without interruption.</p>
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">Thank you for choosing our service!</p>
+                </div>
+            """
+        else:
+            subject = f"Your {subscription_plan} Subscription Has Expired"
+            html_content = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #ff0000;">Subscription Expired</h2>
+                    <p style="font-size: 16px; line-height: 1.5;">{status_message}</p>
+                    <div style="background-color: #fff0f0; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                        <p style="margin: 0; color: #666;">
+                            <strong>Subscription Plan:</strong> {subscription_plan}<br>
+                            <strong>Status:</strong> Expired
+                        </p>
+                    </div>
+                    <p style="font-size: 16px; line-height: 1.5;">To restore access to all features, please renew your subscription as soon as possible.</p>
+                    <p style="font-size: 14px; color: #666; margin-top: 30px;">Thank you for your continued support!</p>
+                </div>
+            """
+
+        message = Mail(
+            from_email=settings.SENDGRID_AUTH_EMAIL,
+            to_emails=[To(recipient_email)],
+            subject=subject,
+            is_multiple=True,
+            html_content=html_content
+        )
+
+        sendgrid_api_key = settings.SENDGRID_API_KEY
+        sg = SendGridAPIClient(api_key=sendgrid_api_key)
+        response = sg.send(message)
+        logger.debug(f"SendGrid response status code: {response.status_code}")
+        
+        logger.info(f"Subscription expiry notification sent successfully to {recipient_email}")
+        return response.status_code
+    except Exception as e:
+        logger.error(f"Error sending subscription expiry notification to {recipient_email}: {e}")
+        return None

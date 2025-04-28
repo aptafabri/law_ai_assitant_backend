@@ -1,0 +1,74 @@
+2025-04-22 03:13:03,633 - main - INFO - Application startup
+2025-04-22 03:14:25,682 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 03:14:25,683 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 03:14:27,374 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 03:14:27,375 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 03:14:27,377 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 03:14:30,090 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 03:18:15,243 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-22 03:18:17,048 - api.v1.user - INFO - Fetching user subscription information
+2025-04-22 03:18:17,048 - crud.user - INFO - Retrieving subscription info for user_id: 84
+2025-04-22 03:56:44,213 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-22 03:56:46,016 - api.v1.user - INFO - Fetching user subscription information
+2025-04-22 03:56:46,017 - crud.user - INFO - Retrieving subscription info for user_id: 84
+2025-04-22 04:44:23,070 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 04:44:23,071 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 04:44:25,144 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 04:44:25,145 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 04:44:25,146 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 04:44:27,862 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 04:45:33,484 - main - INFO - Application shutdown
+2025-04-22 04:45:54,082 - main - INFO - Application startup
+2025-04-22 04:45:59,752 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 04:45:59,753 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 04:46:01,444 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 04:46:01,445 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 04:46:01,446 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 04:46:04,158 - crud.notify - INFO - Sending subscription expiry notification to liu@adaletgpt.com
+2025-04-22 04:46:06,067 - crud.notify - INFO - Subscription expiry notification sent successfully to liu@adaletgpt.com
+2025-04-22 04:46:06,068 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 04:48:57,653 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 04:48:57,654 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 04:48:59,268 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 04:48:59,269 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 04:48:59,270 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 04:49:01,972 - crud.notify - INFO - Sending subscription expiry notification to liu@adaletgpt.com
+2025-04-22 04:49:05,135 - crud.notify - INFO - Subscription expiry notification sent successfully to liu@adaletgpt.com
+2025-04-22 04:49:05,136 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 04:52:12,838 - main - INFO - Application shutdown
+2025-04-22 04:52:32,278 - main - INFO - Application startup
+2025-04-22 04:55:30,513 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 04:55:30,514 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 04:55:32,470 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 04:55:32,471 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 04:55:32,472 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 04:55:35,565 - crud.notify - INFO - Sending subscription expiry notification to liu@adaletgpt.com
+2025-04-22 04:55:37,472 - crud.notify - INFO - Subscription expiry notification sent successfully to liu@adaletgpt.com
+2025-04-22 04:55:37,473 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 05:27:57,072 - main - INFO - Application shutdown
+2025-04-22 07:41:35,600 - main - INFO - Application startup
+2025-04-22 07:42:30,726 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 07:42:30,727 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 07:52:43,177 - main - INFO - Application shutdown
+2025-04-22 07:53:02,448 - main - INFO - Application startup
+2025-04-22 08:27:54,918 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 08:27:54,919 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 08:41:25,886 - main - INFO - Application shutdown
+2025-04-22 08:41:50,891 - main - INFO - Application startup
+2025-04-22 08:42:08,523 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 08:42:08,524 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 08:42:10,193 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 08:42:10,193 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 08:42:10,194 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 08:42:12,908 - crud.notify - INFO - Sending subscription expiry notification to liu@adaletgpt.com
+2025-04-22 08:42:14,865 - crud.notify - INFO - Subscription expiry notification sent successfully to liu@adaletgpt.com
+2025-04-22 08:42:15,769 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 08:43:35,445 - main - INFO - Application shutdown
+2025-04-22 08:44:01,982 - main - INFO - Application startup
+2025-04-22 08:44:19,244 - api.v1.user - INFO - User login attempt: liu@adaletgpt.com
+2025-04-22 08:44:19,245 - crud.user - INFO - Attempting login for email: liu@adaletgpt.com
+2025-04-22 08:44:20,901 - core.utils - INFO - Access token created for subject 84.
+2025-04-22 08:44:20,902 - core.utils - INFO - Refresh token created for subject 84.
+2025-04-22 08:44:20,903 - crud.user - INFO - Login successful for liu@adaletgpt.com, tokens generated
+2025-04-22 08:44:23,612 - api.v1.user - INFO - User logged in successfully: liu@adaletgpt.com
+2025-04-22 11:02:02,024 - main - INFO - Application shutdown

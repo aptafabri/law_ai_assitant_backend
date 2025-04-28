@@ -28,6 +28,7 @@ from database.session import get_session
 from schemas.message import LegalChatAdd
 from core.auth_bearer import JWTBearer
 from crud.agent import agent_run
+from core.decorators import check_chat_limit
 
 # Configure logging
 logger = configure_logging(__name__)
@@ -36,6 +37,7 @@ router = APIRouter()
 
 
 @router.post("/chat", tags=["RagController"], status_code=200)
+@check_chat_limit()
 async def rag_regulation_chat(
     session_id: str = Form(),
     question: str = Form(),
@@ -145,6 +147,7 @@ async def rag_regulation_chat(
 
 
 @router.post("/chat-streaming", tags=["RagController"], status_code=200)
+@check_chat_limit()
 async def rag_streaming(
     session_id: str = Form(),
     question: str = Form(),
@@ -217,7 +220,6 @@ async def rag_streaming(
             status_code=500,
         )
 
-
 @router.post("/get-legal-cases", tags=["RagController"])
 def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
     logger.info("Received /get-legal-cases request.")
@@ -238,6 +240,7 @@ def get_legal_cases(body: dict = Body(), dependencies=Depends(JWTBearer())):
 
 
 @router.post("/chat-agent-streaming", tags=["RagController"], status_code=200)
+@check_chat_limit()
 async def rag_agent_streaming(
     session_id: str = Form(),
     question: str = Form(),

@@ -14,6 +14,7 @@ from sqlalchemy import func
 
 
 SUBSCRIPTION_DETAILS = {
+    SubscriptionPlan.PROMOTIONAL: {"name": "Promotional Plan", "price": 300},
     SubscriptionPlan.MONTHLY: {"name": "Monthly Plan", "price":3000},
     SubscriptionPlan.TRIMONTHLY: {"name": "3-Month Plan", "price": 8000},
     SubscriptionPlan.BIANUAL: {"name": "6-Month Plan", "price": 15000},
@@ -30,12 +31,13 @@ options = {
 
 def calculate_expiry(plan: SubscriptionPlan) -> datetime.datetime:
     duration_map = {
+        SubscriptionPlan.PROMOTIONAL: 15,
         SubscriptionPlan.MONTHLY: 30,
         SubscriptionPlan.TRIMONTHLY: 90,
         SubscriptionPlan.BIANUAL: 180,
         SubscriptionPlan.ANUAL: 365
     }
-    days = duration_map.get(plan, 30)  # Default to 1-month if invalid plan
+    days = duration_map.get(plan, 0) 
     return datetime.datetime.now() + datetime.timedelta(days=days)
 
 @router.post("/initialize", tags=["PaymentController"], status_code=200)

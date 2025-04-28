@@ -10,6 +10,8 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
     llm_token = Column(Float, default=100)
+    daily_chat_count = Column(Integer, default=0)
+    last_chat_reset = Column(DateTime, default=datetime.datetime.now)
     reset_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=False)
     verify_code = Column(String(50), nullable=True)
@@ -19,3 +21,5 @@ class User(Base):
     subscription_plan =  Column(Enum(SubscriptionPlan), nullable=True)
     subscription_expiry = Column(DateTime, nullable=True)  # Subscription expiry
     paid_price = Column(Float, nullable=True)  # Store payment amount
+    last_expiry_notification_sent = Column(DateTime, nullable=True)  # Add this new column
+    

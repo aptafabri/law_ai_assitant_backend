@@ -1,0 +1,90 @@
+2025-04-28 03:41:30,540 - main - INFO - Application startup
+2025-04-28 03:41:42,756 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-28 03:41:47,654 - api.v1.rag - INFO - Received /chat-agent-streaming request with session_id: b044c2fe-a756-4005-b521-da47d527734d, question: what is your name?
+2025-04-28 03:41:47,655 - api.v1.rag - INFO - File attached: 
+2025-04-28 03:41:47,655 - crud.chat - INFO - Uploading legal description for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:41:51,748 - crud.chat - INFO - Reading PDF file contents
+2025-04-28 03:41:51,752 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2025-04-28 03:41:51,781 - crud.chat - INFO - Generating question with legal PDF and question
+2025-04-28 03:41:54,123 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:41:54,143 - crud.agent - INFO - Starting agent_run for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:41:55,543 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:41:55,654 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:41:59,270 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2025-04-28 03:42:01,077 - crud.agent - INFO - Starting agent execution
+2025-04-28 03:42:04,678 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:42:14,233 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:42:14,258 - crud.agent - INFO - Agent execution completed
+2025-04-28 03:42:14,258 - crud.agent - INFO - Final answer: Üzgünüm, ancak hukuki davaların taraflarının isimlerini paylaşamam. Başka bir konuda yardımcı olabilir miyim?
+2025-04-28 03:42:14,259 - crud.agent - INFO - Total Tokens: 2480
+2025-04-28 03:42:14,259 - crud.agent - INFO - Total Cost (USD): $0.02778
+2025-04-28 03:42:14,260 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:42:15,592 - crud.rag - INFO - Adding chat history for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:42:15,593 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:42:17,824 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:42:20,038 - crud.rag - INFO - Chat history added successfully
+2025-04-28 03:42:20,038 - crud.agent - INFO - Chat history added successfully
+2025-04-28 03:42:20,038 - crud.user - INFO - Calculating LLM token for user 84
+2025-04-28 03:42:21,373 - crud.user - INFO - LLM token updated for user 84
+2025-04-28 03:42:21,374 - crud.agent - INFO - LLM token usage calculated and updated
+2025-04-28 03:42:26,123 - main - INFO - Application shutdown
+2025-04-28 03:42:50,078 - main - INFO - Application startup
+2025-04-28 03:42:51,362 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-28 03:42:56,334 - api.v1.rag - INFO - Received /chat-agent-streaming request with session_id: b044c2fe-a756-4005-b521-da47d527734d, question: what is your name?
+2025-04-28 03:42:56,335 - api.v1.rag - INFO - File attached: 
+2025-04-28 03:42:56,336 - crud.chat - INFO - Uploading legal description for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:00,448 - crud.chat - INFO - Reading PDF file contents
+2025-04-28 03:43:00,452 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2025-04-28 03:43:00,457 - crud.chat - INFO - Generating question with legal PDF and question
+2025-04-28 03:43:03,660 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:43:03,700 - crud.agent - INFO - Starting agent_run for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:05,691 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:43:05,777 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:09,314 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2025-04-28 03:43:11,169 - crud.agent - INFO - Starting agent execution
+2025-04-28 03:43:14,969 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:43:23,041 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:43:23,076 - crud.agent - INFO - Agent execution completed
+2025-04-28 03:43:23,077 - crud.agent - INFO - Final answer: Üzgünüm, ancak hukuki davaların taraflarının isimlerini paylaşamam. Başka bir konuda yardımcı olabilir miyim?
+2025-04-28 03:43:23,077 - crud.agent - INFO - Total Tokens: 2466
+2025-04-28 03:43:23,078 - crud.agent - INFO - Total Cost (USD): $0.027360000000000002
+2025-04-28 03:43:23,078 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:24,426 - crud.rag - INFO - Adding chat history for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:24,427 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:26,675 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:43:28,917 - crud.rag - INFO - Chat history added successfully
+2025-04-28 03:43:28,918 - crud.agent - INFO - Chat history added successfully
+2025-04-28 03:43:28,918 - crud.user - INFO - Calculating LLM token for user 84
+2025-04-28 03:43:30,268 - crud.user - INFO - LLM token updated for user 84
+2025-04-28 03:43:30,268 - crud.agent - INFO - LLM token usage calculated and updated
+2025-04-28 03:45:10,218 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-28 03:45:28,579 - main - INFO - Application shutdown
+2025-04-28 03:45:50,997 - main - INFO - Application startup
+2025-04-28 03:45:54,438 - core.auth_bearer - INFO - Token validated successfully for user ID: 84
+2025-04-28 03:45:59,374 - api.v1.rag - INFO - Received /chat-agent-streaming request with session_id: b044c2fe-a756-4005-b521-da47d527734d, question: what is your name?
+2025-04-28 03:45:59,375 - api.v1.rag - INFO - File attached: 
+2025-04-28 03:45:59,376 - crud.chat - INFO - Uploading legal description for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:03,441 - crud.chat - INFO - Reading PDF file contents
+2025-04-28 03:46:03,445 - crud.chat - ERROR - Error reading PDF: Unable to get page count. Is poppler installed and in PATH?
+2025-04-28 03:46:03,449 - crud.chat - INFO - Generating question with legal PDF and question
+2025-04-28 03:46:06,568 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:46:06,590 - crud.agent - INFO - Starting agent_run for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:08,012 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:46:08,104 - crud.chat - INFO - Initializing Postgres chat memory for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:11,258 - langchain_postgres.chat_message_histories - INFO - Creating schema for table legal_message_store
+2025-04-28 03:46:13,090 - crud.agent - INFO - Starting agent execution
+2025-04-28 03:46:16,774 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:46:24,727 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-04-28 03:46:24,747 - crud.agent - INFO - Agent execution completed
+2025-04-28 03:46:24,748 - crud.agent - INFO - Final answer: Üzgünüm, ancak hukuki davaların taraflarının isimlerini paylaşamam. Başka bir konuda yardımcı olabilir miyim?
+2025-04-28 03:46:24,749 - crud.agent - INFO - Total Tokens: 2477
+2025-04-28 03:46:24,750 - crud.agent - INFO - Total Cost (USD): $0.02769
+2025-04-28 03:46:24,750 - crud.chat - INFO - Checking if session exists for session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:26,092 - crud.rag - INFO - Adding chat history for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:26,092 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:28,327 - crud.chat - INFO - Adding legal chat message for user_id: 84, session_id: b044c2fe-a756-4005-b521-da47d527734d
+2025-04-28 03:46:30,558 - crud.rag - INFO - Chat history added successfully
+2025-04-28 03:46:30,559 - crud.agent - INFO - Chat history added successfully
+2025-04-28 03:46:30,559 - crud.user - INFO - Calculating LLM token for user 84
+2025-04-28 03:46:31,939 - crud.user - INFO - LLM token updated for user 84
+2025-04-28 03:46:31,940 - crud.agent - INFO - LLM token usage calculated and updated
