@@ -46,3 +46,4 @@ class SubscriptionInfo(BaseModel):
     subscription_expiry: Optional[datetime.datetime] = None
     is_active: bool = False
     message: str
+    daily_usage: int = 0
