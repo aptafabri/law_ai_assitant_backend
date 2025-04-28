@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 import datetime
+from typing import Optional
 
 
 class UserCreate(BaseModel):
@@ -38,3 +39,10 @@ class VerificationCodeRequest(BaseModel):
 
 class ResendVerificationRequest(BaseModel):
     token: str
+
+
+class SubscriptionInfo(BaseModel):
+    subscription_plan: Optional[str] = None
+    subscription_expiry: Optional[datetime.datetime] = None
+    is_active: bool = False
+    message: str

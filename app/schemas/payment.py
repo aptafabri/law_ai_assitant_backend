@@ -4,6 +4,7 @@ from typing import List, Any
 from enum import StrEnum
 
 class SubscriptionPlan(StrEnum):
+    PROMOTIONAL = "PROMOTIONAL"
     MONTHLY = "MONTHLY" 
     TRIMONTHLY = "TRIMONTHLY"
     BIANUAL = "BIANUAL"

@@ -21,6 +21,7 @@ from crud.user import (
     get_userid_by_token,
     verify_register_token,
     export_data,
+    get_user_subscription_info,
 )
 from schemas.user import (
     UserCreate,
@@ -31,6 +32,7 @@ from schemas.user import (
     ForgotPasswordRequest,
     VerificationCodeRequest,
     ResendVerificationRequest,
+    SubscriptionInfo,
 )
 from crud.chat import remove_sessions_by_user_id
 from crud.notify import send_verify_email, send_export_email
@@ -290,3 +292,13 @@ def request_exporting_data(
     except Exception as e:
         logger.exception(f"Error processing data export request: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@router.get("/subscription-info", response_model=SubscriptionInfo, tags=["User controller"])
+def get_subscription_info(
+    dependencies=Depends(JWTBearer()),
+    session: Session = Depends(get_session)
+):
+    logger.info("Fetching user subscription information")
+    user_id = get_userid_by_token(dependencies)
+    return get_user_subscription_info(user_id, session)

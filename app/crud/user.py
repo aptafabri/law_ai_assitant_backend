@@ -2,7 +2,7 @@ from models import User, TokenTable
 from database.session import Base, engine, SessionLocal
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo
+from schemas.user import UserCreate, UserLogin, ChangePassword, UserInfo, SubscriptionInfo
 from fastapi import Depends, Response, HTTPException
 from fastapi.responses import JSONResponse
 from core.utils import (
@@ -16,7 +16,7 @@ import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 from core import settings
 import secrets
-from crud.notify import send_reset_password_mail, send_verify_email
+from crud.notify import send_reset_password_mail, send_verify_email, send_subscription_expiry_notification
 import asyncio
 from core.utils import create_access_token
 from models.session_summary_legal import LegalSessionSummary
@@ -87,27 +87,12 @@ def login_user(auth: UserLogin, session: Session):
             session.add(token_db)
             session.commit()
             session.refresh(token_db)
-            if user.subscription_plan is None or user.subscription_expiry is None:
-                message = "User has no subscription plan."
-                payment_status = False
-                return {
-                    "access_token": access,
-                    "refresh_token": refresh,
-                    "payment_status": payment_status,
-                    "message":message
-                }
-            if is_subscription_expired(user.subscription_expiry):
-                message= "Subscription has expired."
-                payment_status = False
-            else:
-                message = "Subscription is active."
-                payment_status = True
-
+            subscription_status = check_subscription_expiry_notification(user, session)
             return {
                 "access_token": access,
                 "refresh_token": refresh,
-                "payment_status": payment_status,
-                "message": message
+                "payment_status": subscription_status["payment_status"],
+                "message": subscription_status["message"]
             }
             
             
@@ -385,3 +370,106 @@ async def calculate_llm_token(user_id: int, db_session: Session, total_llm_token
     except SQLAlchemyError as e:
         logger.error(f"Error updating LLM token for user {user_id}: {str(e)}")
         db_session.rollback()
+
+
+def get_user_subscription_info(user_id: int, session: Session) -> SubscriptionInfo:
+    logger.info(f"Retrieving subscription info for user_id: {user_id}")
+    try:
+        user = session.query(User).filter(User.id == user_id).first()
+        if not user:
+            logger.warning(f"User not found with ID {user_id}")
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        if user.subscription_plan is None or user.subscription_expiry is None:
+            return SubscriptionInfo(
+                message="User has no subscription plan.",
+                is_active=False
+            )
+            
+        is_active = not is_subscription_expired(user.subscription_expiry)
+        message = "Subscription is active." if is_active else "Subscription has expired."
+        
+        return SubscriptionInfo(
+            subscription_plan=user.subscription_plan,
+            subscription_expiry=user.subscription_expiry,
+            is_active=is_active,
+            message=message
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving subscription info: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+def check_subscription_expiry_notification(user: User, session: Session) -> dict:
+    if user.subscription_plan is None or user.subscription_expiry is None:
+        return {
+            "message": "User has no subscription plan.",
+            "payment_status": False
+        }
+        
+    current_time = datetime.now()
+    days_until_expiry = (user.subscription_expiry - current_time).days
+
+    # Check if we've already sent a notification recently (within last 5 days)
+    notification_already_sent = (
+        user.last_expiry_notification_sent is not None
+        and (current_time - user.last_expiry_notification_sent).days < 5
+    )
+    print("notification_already_sent",notification_already_sent)
+
+    if days_until_expiry <= 5 and days_until_expiry > 0 and not notification_already_sent:
+        # Send notification email with custom message for upcoming expiry
+        send_subscription_expiry_notification(
+            recipient_email=user.email,
+            days_remaining=days_until_expiry,
+            subscription_plan=user.subscription_plan,
+            status_message=f"Your {user.subscription_plan} subscription will expire in {days_until_expiry} days. Please renew to continue using our services."
+        )
+        # Update the last notification sent timestamp
+        user.last_expiry_notification_sent = current_time
+        session.commit()
+        
+        message = f"Subscription will expire in {days_until_expiry} days."
+        payment_status = True
+    elif days_until_expiry <= 0 and not notification_already_sent:
+        # Send notification email with custom message for expired subscription
+        send_subscription_expiry_notification(
+            recipient_email=user.email,
+            days_remaining=0,
+            subscription_plan=user.subscription_plan,
+            status_message=f"Your {user.subscription_plan} subscription has expired. Please renew to restore access to all features."
+        )
+        # Update the last notification sent timestamp
+        user.last_expiry_notification_sent = current_time
+        session.commit()
+        
+        message = "Subscription has expired."
+        payment_status = False
+    else:
+        message = "Subscription is active." if days_until_expiry > 5 else f"Subscription will expire in {days_until_expiry} days."
+        payment_status = days_until_expiry > 0
+        
+    return {
+        "message": message,
+        "payment_status": payment_status
+    }
+
+async def check_daily_chat_limit(user_id: int, db_session: Session) -> bool:
+    print("check_daily_chat_limit",user_id)
+    user = db_session.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    current_time = datetime.now()
+    if user.last_chat_reset.date() < current_time.date():
+        user.daily_chat_count = 0
+        user.last_chat_reset = current_time
+    if user.daily_chat_count >= settings.DAILY_CHAT_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail="Daily chat limit reached. Please try again tomorrow."
+        )
+    print("user.daily_chat_count",user.daily_chat_count)
+    user.daily_chat_count += 1
+    db_session.commit()
+    
+    return True
+    
